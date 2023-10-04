@@ -26,6 +26,10 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 - [GBIF](https://www.gbif.org/dataset/9012def0-bd87-48a0-ac9e-e0e78dd37689)
 - [OBIS](https://obis.org/dataset/210efc7c-4762-47ee-b4b5-22a0f436ef44)
 
+## NOAA Omics MIMARKS-based metadata template
+This code was developed to convert a custom Google Sheet metadata template developed by NOAA Omics at AOML. To use the sheet for your own data, copy the Google Sheet to your Google Drive. Note that we have not tested the data validation functionality when downloading the Google Sheet to use as an Excel file.
+[AOML_MIMARKS.survey.water.6.0 v1.0.0](https://docs.google.com/spreadsheets/d/1jof9MBEll7Xluu8-_znLRBIP9JpyAd_5YvdioZ-REoY/edit?usp=sharing)
+
 ## Repo structure
 ```
 .
