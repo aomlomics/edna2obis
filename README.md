@@ -6,7 +6,7 @@
 DNA derived data are increasingly being used to document taxon 
 occurrences. To ensure these data are useful to the broadest possible 
 community, [GBIF](https://www.gbif.org/) published a guide entitled "[Publishing DNA-derived 
-data through biodiversity data platforms](https://docs.gbif-uat.org/publishing-dna-derived-data/1.0/en/)." 
+data through biodiversity data platforms](https://docs.gbif.org/publishing-dna-derived-data/en/)." 
 This guide is supported by the [DNA derived data extension](https://tools.gbif.org/dwca-validator/extension.do?id=http://rs.gbif.org/terms/1.0/DNADerivedData) 
 for [Darwin Core](https://dwc.tdwg.org/), which incorporates [MIxS](https://gensc.org/mixs/) 
 terms into the Darwin Core standard. 
@@ -26,7 +26,7 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 ## NOAA Omics MIMARKS-based metadata template
 This code was developed to convert a custom Google Sheet metadata template developed by NOAA Omics at AOML. To use the sheet for your own data, copy the Google Sheet to your Google Drive. Note that we have not tested the data validation functionality when downloading the Google Sheet to use as an Excel file.  
 
-[AOML_MIMARKS.survey.water.6.0 v1.0.0](https://docs.google.com/spreadsheets/d/1jof9MBEll7Xluu8-_znLRBIP9JpyAd_5YvdioZ-REoY/edit?usp=sharing)
+[AOML_MIMARKS.survey.water.6.0 v1.0.0](https://docs.google.com/spreadsheets/d/1fAJxtH_ioIN5Ri7dXe4Lsy8SuImg8NR79MUGSOb1vpk/edit?usp=sharing)
 
 ## Requirements  
 - Python 3
