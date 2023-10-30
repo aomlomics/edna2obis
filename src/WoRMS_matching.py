@@ -59,11 +59,11 @@ def get_worms_from_scientific_name(tax_df, ordered_rank_columns, queue,full_tax_
                     if len(mult) > 1:
                         row_data['scientificName'] = "Multiple matches"
                         row_data['scientificNameID'] = "None"
-                        print(old_name+": Multiple matches, "+rank+" ")
+                        #print(old_name+": Multiple matches, "+rank+" ")
                     elif len(mult) < 1:
                         row_data['scientificName'] = "Multiple unaccepted matches"
                         row_data['scientificNameID'] = "None"
-                        print(old_name+": Multiple unaccepted matches, "+rank+" ")
+                        #print(old_name+": Multiple unaccepted matches, "+rank+" ")
                     elif len(mult) == 1:
                         row_data['scientificName'] = mult[0]['scientificname']
                         row_data['scientificNameID'] = mult[0]['lsid']
@@ -86,13 +86,16 @@ def get_worms_from_scientific_name(tax_df, ordered_rank_columns, queue,full_tax_
                             row_data.update(dict(zip(w_ranks, [v_match[0].get(key) for key in w_ranks])))
                             row_data.update({'taxonRank': v_match[0]['rank']})
                             print(old_name+": Unaccepted, using "+valid_name+", "+rank+" ")
-                        else:
-                            print(old_name+": Unaccepted, no valid name, "+rank+" ")
+                        #else:
+                            #print(old_name+": Unaccepted, no valid name, "+rank+" ")
         matches += [row_data]
     matches = pd.DataFrame.from_dict(matches)
     queue.put(matches)
 
 def get_worms_from_scientific_name_parallel(tax_df, ordered_rank_columns, full_tax_column="taxonomy",like=False, marine_only=False,full_tax_vI = False,n_proc=0):
+    import multiprocess as mp
+    import pandas as pd
+    
     queue = mp.Queue()
     if n_proc == 0:
     # create as many processes as there are CPUs on your machine
@@ -183,11 +186,11 @@ def get_worms_from_aphiaid_or_name(tax_df, worms_dict,ordered_rank_columns, queu
                         if len(mult) > 1:
                             row_data['scientificName'] = "Multiple matches"
                             row_data['scientificNameID'] = "None"
-                            print(old_name+": Multiple matches, "+rank+" ")
+                            #print(old_name+": Multiple matches, "+rank+" ")
                         elif len(mult) < 1:
                             row_data['scientificName'] = "Multiple unaccepted matches"
                             row_data['scientificNameID'] = "None"
-                            print(old_name+": Multiple unaccepted matches, "+rank+" ")
+                            #print(old_name+": Multiple unaccepted matches, "+rank+" ")
                         elif len(mult) == 1:
                             row_data['scientificName'] = mult[0]['scientificname']
                             row_data['scientificNameID'] = mult[0]['lsid']
@@ -209,9 +212,9 @@ def get_worms_from_aphiaid_or_name(tax_df, worms_dict,ordered_rank_columns, queu
                                 row_data['scientificNameID'] = v_match[0]['lsid']
                                 row_data.update(dict(zip(w_ranks, [v_match[0].get(key) for key in w_ranks])))
                                 row_data.update({'taxonRank': v_match[0]['rank']})
-                                print(old_name+": Unaccepted, using "+valid_name+", "+rank+" ")
-                            else:
-                                print(old_name+": Unaccepted, no valid name, "+rank+" ")
+                                #print(old_name+": Unaccepted, using "+valid_name+", "+rank+" ")
+                            #else:
+                                #print(old_name+": Unaccepted, no valid name, "+rank+" ")
         matches += [row_data]
     matches = pd.DataFrame.from_dict(matches)
     queue.put(matches)
@@ -256,11 +259,3 @@ def get_worms_from_aphiaid_or_name_parallel(tax_df, worms_dict,ordered_rank_colu
 if __name__ == '__main__':
     pass
 
-    # # Code for testing:
-    # print('Querying scientific name...')
-    # sci_name = get_worms_from_scientific_name('Sebastes carnatus')
-    #
-    # print('Querying common name...')
-    # com_name = get_worms_from_common_name('Great white shark')
-    #
-    # print((sci_name, com_name))
