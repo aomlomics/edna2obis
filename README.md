@@ -26,7 +26,7 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 ## NOAA Omics MIMARKS-based metadata template
 This code was developed to convert a custom Google Sheet metadata template developed by NOAA Omics at AOML. To use the sheet for your own data, copy the Google Sheet to your Google Drive. Note that we have not tested the data validation functionality when downloading the Google Sheet to use as an Excel file.  
 
-[AOML_MIMARKS.survey.water.6.0 v1.0.0](https://docs.google.com/spreadsheets/d/1YBXFU9PuMqm7IT1tp0LTxQ1v2j0tlCWFnhSpy-EBwPw/edit?usp=sharing)
+[AOML_MIMARKS.survey.water.6.0 v1.0.2](https://docs.google.com/spreadsheets/d/1YBXFU9PuMqm7IT1tp0LTxQ1v2j0tlCWFnhSpy-EBwPw/edit?usp=sharing)
 
 ## Requirements  
 - Python 3
