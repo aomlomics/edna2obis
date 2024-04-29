@@ -31,6 +31,7 @@ def get_worms_from_scientific_name(tax_df, ordered_rank_columns, queue,full_tax_
     w_ranks = ['kingdom','phylum','class','order','family','genus']
     for index, row in tax_df.iterrows():
         full_tax = row[full_tax_column]
+        row_data = {'full_tax':full_tax,'verbatimIdentification': full_tax}
         if full_tax_vI:
             row_data = {'full_tax':full_tax,'verbatimIdentification': full_tax}
         else:   
@@ -137,7 +138,10 @@ def get_worms_from_aphiaid_or_name(tax_df, worms_dict,ordered_rank_columns, queu
     for index, row in tax_df.iterrows():
         full_tax = row[full_tax_column]
         if row['species'] in worms_dict.keys():
-            row_data = {'full_tax':full_tax,'verbatimIdentification': row['species']}
+            if full_tax_vI:
+                row_data = {'full_tax':full_tax,'verbatimIdentification': full_tax}
+            else:
+                row_data = {'full_tax':full_tax,'verbatimIdentification': row['species']}
             aid = worms_dict[row['species']]
             record = pyworms.aphiaRecordByAphiaID(aid)
             row_data.update({'taxonRank': 'species', 'old name': 'aphiaID'})
