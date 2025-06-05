@@ -70,7 +70,7 @@ def get_worms_match_for_single_taxon_worker(combo_input_for_worker, assays_to_sk
         
         s_match_list = None
         try:
-            time.sleep(0.05) # Small delay to be kind to the API
+            time.sleep(0.001) # Small delay to be kind to the API
             debug_log.append(f"Querying WoRMS API for: '{name_to_match}' (marine_only=True, like=False)")
             s_match_list = pyworms.aphiaRecordsByName(name_to_match, like=False, marine_only=True)
             debug_log.append(f"Raw WoRMS API response for '{name_to_match}': {s_match_list}")

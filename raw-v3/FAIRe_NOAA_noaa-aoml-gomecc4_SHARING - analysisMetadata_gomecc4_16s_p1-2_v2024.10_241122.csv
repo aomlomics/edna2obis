@@ -1,0 +1,69 @@
+requirement_level_code,section,term_name,values
+M,Project,project_id,noaa-aoml-gomecc4
+M,PCR,assay_name,ssu16sv4v5-emp
+M,Bioinformatics,analysis_run_name,gomecc4_16s_p1-2_v2024.10_241122
+R,Bioinformatics,sop_bioinformatics,https://github.com/aomlomics/tourmaline
+R,Bioinformatics,trim_method,cutadapt
+R,Bioinformatics,trim_param,qiime cutadapt trim-paired --i-demultiplexed-sequences demux-paired-end-16S.qza --p-front-f GTGYCAGCMGCCGCGGTAA --p-adapter-f AAACTYAAAKRAATTGRCGG --p-front-r CCGYCAATTYMTTTRAGTTT --p-adapter-r TTACCGCGGCKGCTGRCAC --verbose --p-error-rate 0.5 --o-trimmed-sequences demux-trimmed-16S.qza
+R,Bioinformatics,demux_tool,Illumina Bcl2fastq v2.20.0
+R,Bioinformatics,demux_max_mismatch,not provided
+R,Bioinformatics,merge_tool,qiime2-2021.2; DADA2 1.18.0
+R,Bioinformatics,merge_min_overlap,12
+R,Bioinformatics,min_len_cutoff,2
+R,Bioinformatics,min_len_tool,qiime2-2021.2; DADA2 1.18.0
+R,Bioinformatics,error_rate_tool,qiime2-2021.2; DADA2 1.18.0
+R,Bioinformatics,error_rate_type,expected error rate
+R,Bioinformatics,error_rate_cutoff,2
+R,Bioinformatics,chimera_check_method,denovo; qiime2-2021.2; DADA2 v1.18.0
+R,Bioinformatics,chimera_check_param,--chimera_method consensus --min_parental_fold 1
+R,Bioinformatics,otu_clust_tool,Tourmaline; qiime2-2021.2; dada2
+R,Bioinformatics,otu_clust_cutoff,100
+R,Bioinformatics,min_reads_cutoff,1
+R,Bioinformatics,min_reads_cutoff_unit,reads
+R,Bioinformatics,min_reads_tool,qiime2-2021.2
+HR,Bioinformatics,otu_db,Silva SSU Ref NR 99 v138.1; 515f-926r region; 10.5281/zenodo.8392695
+O,Bioinformatics,otu_db_custom,not applicable
+HR,Bioinformatics,tax_assign_cat,sequence composition
+HR,Bioinformatics,otu_seq_comp_appr,Tourmaline; qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1
+R,Bioinformatics,tax_class_id_cutoff,not applicable
+R,Bioinformatics,tax_class_query_cutoff,not applicable
+R,Bioinformatics,tax_class_collapse,Confidence threshold for limiting taxonomic depth: 0.7
+R,Bioinformatics,tax_class_other,not applicable
+HR,Bioinformatics,screen_contam_method,
+R,Bioinformatics,screen_geograph_method,
+R,Bioinformatics,screen_nontarget_method,
+R,Bioinformatics,screen_other,
+R,Bioinformatics,otu_raw_description,No filtering outside of dada2 default ASV denoising.
+R,Bioinformatics,otu_final_description,"Merged 2 sequencing runs. Removal of ASVs assigned to Chloroplast, Mitochondria, and Eukaryota, and unassigned past the domain level. Removal of control samples and those with < 5000 reads, removed ASVs only observed once."
+O,Bioinformatics,bioinfo_method_additional,
+R,Bioinformatics,output_read_count,
+R,Bioinformatics,output_otu_num,
+R,Bioinformatics,otu_num_tax_assigned,
+R,Bioinformatics,discard_untrimmed,
+R,Bioinformatics,qiime2_version,
+R,Bioinformatics,tourmaline_asv_method,
+R,Bioinformatics,dada2_trunc_len_f,
+R,Bioinformatics,dada2pe_trunc_len_r,
+R,Bioinformatics,dada2_trim_left_f,
+R,Bioinformatics,dada2pe_trim_left_r,
+R,Bioinformatics,dada2_max_ee_f,
+R,Bioinformatics,dada2pe_max_ee_r,
+R,Bioinformatics,dada2_trunc_q,
+R,Bioinformatics,dada2_pooling_method,
+R,Bioinformatics,dada2_chimera_method,
+R,Bioinformatics,dada2_min_fold_parent_over_abundance,
+R,Bioinformatics,dada2_n_reads_learn,
+R,Bioinformatics,deblur_trim_length,
+R,Bioinformatics,deblur_mean_error,
+R,Bioinformatics,deblur_indel_prob,
+R,Bioinformatics,deblur_indel_max,
+R,Bioinformatics,deblur_min_reads,
+R,Bioinformatics,deblur_min_size,
+O,Bioinformatics,repseqs_min_abundance,
+O,Bioinformatics,repseqs_min_length,
+O,Bioinformatics,repseqs_max_length,
+O,Bioinformatics,repseqs_min_prevalence,
+R,Bioinformatics,skl_confidence,
+R,Bioinformatics,min_consensus,
+R,Bioinformatics,tourmaline_classify_method,
+R,Bioinformatics,blca_confidence,

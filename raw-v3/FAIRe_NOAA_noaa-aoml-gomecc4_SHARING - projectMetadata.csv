@@ -1,0 +1,91 @@
+requirement_level_code,section,term_name,project_level,ssu16sv4v5-emp,ssu18sv9-emp
+M,Project,recordedBy,Luke Thompson,,
+R,Project,recordedByID,https://orcid.org/0000-0002-3911-1280,,
+M,Project,project_contact,Luke Thompson,,
+R,Project,institution,NOAA/AOML,,
+R,Project,institutionID,https://www.aoml.noaa.gov/omics,,
+R,Project,project_name,eDNA from Gulf of Mexico Ecosystems and Carbon Cruise 2021 (GOMECC-4),,
+M,Project,project_id,noaa-aoml-gomecc4,,
+O,Project,parent_project_id,noaa-aoml-gomecc,,
+O,Project,study_factor,water column spatial series,,
+M,Project,assay_type,metabarcoding,,
+HR,Project,sterilise_method,"After sampling, run ~1 L of 5% bleach through tubing lines, then repeat with ~1 L of deionized water. Rinse the 20-L collection carboy 3 times with ~0.5 L DI water (1.5 L total) after sampling. Before the next sample, rinse 20-L carboy 2 times with ~100 mL of sample water (200 mL total).",,
+HR,Project,neg_cont_0_1,1,,
+HR,Project,pos_cont_0_1,1,,
+M,Data management,checkls_ver,FAIRe_checklist_v1.0.xlsx,,
+R,Data management,mod_date,2024-10-31,,
+R,Data management,license,http://creativecommons.org/publicdomain/zero/1.0/legalcode,,
+R,Data management,rightsHolder,US Government,,
+R,Data management,accessRights,no rights reserved,,
+O,Data management,informationWithheld,no information withheld,,
+O,Data management,dataGeneralizations,no data generalizations,,
+R,Data management,bibliographicCitation,https://doi.org/10.1101/2024.07.30.605667,,
+O,Data management,associated_resource,http://www.earthmicrobiome.org/,,
+R,Data management,code_repo,https://github.com/aomlomics/gomecc,,
+R,Sample collection,biological_rep,3,,
+M,PCR,pcr_0_1,,1,1
+O,PCR,inhibition_check_0_1,,0,0
+O,PCR,inhibition_check,,not applicable,not applicable
+O,PCR,thermocycler,,Eppendorf Mastercycler Nexus Thermal Cycler,Eppendorf Mastercycler Nexus Thermal Cycler
+M,PCR,assay_name,,ssu16sv4v5-emp,ssu18sv9-emp
+R,PCR,assay_validation,,not provided,not provided
+M,PCR,targetTaxonomicAssay,,16S rRNA gene sequencing targeting the V4-V5 region using primers 515F and 926R,18S rRNA gene sequencing targeting the V9 region using primers 1391f and EukBrâ€
+R,PCR,targetTaxonomicScope,,"Prokaryotes, including Bacteria and Archaea","Eukaryotes, with a focus on microbial eukaryotic lineages"
+HR,PCR,target_gene,,16S rRNA (SSU prokaryote),18S rRNA (SSU eukaryote)
+O,PCR,target_subfragment,,V4-V5,V9
+HR,PCR,ampliconSize,,411,260
+M,PCR,pcr_primer_forward,,GTGYCAGCMGCCGCGGTAA,GTACACACCGCCCGTC
+M,PCR,pcr_primer_reverse,,CCGYCAATTYMTTTRAGTTT,TGATCCTTCTGCAGGTTCACCTAC
+R,PCR,pcr_primer_name_forward,,515F-Y,1391f
+R,PCR,pcr_primer_name_reverse,,926R,EukBr
+HR,PCR,pcr_primer_reference_forward,,10.1111/1462-2920.13023,10.1371/journal.pone.0006372
+HR,PCR,pcr_primer_reference_reverse,,10.1111/1462-2920.13023,10.1371/journal.pone.0006372
+R,PCR,pcr_primer_vol_forward,,0.375,0.25
+R,PCR,pcr_primer_vol_reverse,,0.375,0.25
+R,PCR,pcr_primer_conc_forward,,10,10
+R,PCR,pcr_primer_conc_reverse,,10,10
+HR,PCR,probeReporter,,not applicable,not applicable
+HR,PCR,probeQuencher,,not applicable,not applicable
+HR,PCR,probe_seq,,not applicable,not applicable
+HR,PCR,probe_ref,,not applicable,not applicable
+HR,PCR,probe_conc,,not applicable,not applicable
+HR,PCR,commercial_mm,,"AmpliTaq Gold 360 Master Mix, Thermo Fisher Scientific","AmpliTaq Gold 360 Master Mix, Thermo Fisher Scientific"
+HR,PCR,custom_mm,,"PCR reactions were run in triplicate (13.0 µl), with 1 µl of DNA per reaction, 5 µl of AmpliTaq Gold, 6.25 µl of water, and 0.375 µl of each primer (10 µM).","PCR reactions were run in triplicate (13.0 µl), with 1 µl of DNA per reaction, 5 µl of AmpliTaq Gold, 6.5 µl of water, and 0.25 µl of each primer (10 µM)."
+O,PCR,block_seq,,not applicable,not applicable
+O,PCR,block_ref,,not applicable,not applicable
+O,PCR,block_taxa,,not applicable,not applicable
+R,PCR,amplificationReactionVolume,,13,13
+HR,PCR,pcr_dna_vol,,1,1
+HR,PCR,pcr_rep,,3,3
+R,PCR,nucl_acid_amp,,https://doi.org/10.1111/1462-2920.13023,
+HR,PCR,pcr_cond,,initial denaturation:95_2;denaturation:95_0.75;annealing:50_0.75;elongation:68_1.5;final elongation:68_5;25,initial denaturation:94_3;denaturation:94_0.75;annealing:65_0.25;57_0.5;elongation:72_1.5;final elongation:72_10;35
+HR,PCR,annealingTemp,,50,65 | 57
+HR,PCR,pcr_cycles,,25,35
+O,PCR,pcr_analysis_software,,not applicable,not applicable
+O,PCR,pcr_method_additional,,not applicable,not applicable
+HR,Library preparation sequencing,barcoding_pcr_appr,,two-step PCR,two-step PCR
+O,Library preparation sequencing,pcr2_thermocycler,,not provided,not provided
+O,Library preparation sequencing,pcr2_amplificationReactionVolume,,15,15
+R,Library preparation sequencing,pcr2_commercial_mm,,"DreamTaq Hot Start PCR Master Mix (K9012), Thermo Fisher Scientific","DreamTaq Hot Start PCR Master Mix (K9012), Thermo Fisher Scientific"
+R,Library preparation sequencing,pcr2_custom_mm,,not applicable,not applicable
+R,Library preparation sequencing,pcr2_dna_vol,,1,1
+R,Library preparation sequencing,pcr2_cond,,initial denaturation:95_3;denaturation:95_0.25;annealing:60_0.5;elongation:72_1;final elongation:72_3;15,initial denaturation:95_3;denaturation:95_0.25;annealing:60_0.5;elongation:72_1;final elongation:72_3;15
+R,Library preparation sequencing,pcr2_annealingTemp,,60,60
+R,Library preparation sequencing,pcr2_cycles,,11,11
+O,Library preparation sequencing,pcr2_analysis_software,,not applicable,not applicable
+R,Library preparation sequencing,pcr2_plate_id,,not provided,not provided
+O,Library preparation sequencing,pcr2_method_additional,,not applicable,not applicable
+O,Library preparation sequencing,sequencing_location,,Michigan State University Research Technology Support Facility Genomics Core,Michigan State University Research Technology Support Facility Genomics Core
+HR,Library preparation sequencing,platform,,ILLUMINA,ILLUMINA
+HR,Library preparation sequencing,instrument,,Illumina MiSeq [OBI_0002003],Illumina MiSeq [OBI_0002003]
+HR,Library preparation sequencing,seq_kit,,MiSeq v2 500,MiSeq v2 500
+R,Library preparation sequencing,lib_layout,paired end,,
+R,Library preparation sequencing,adapter_forward,,ACACTGACGACATGGTTCTACA,ACACTGACGACATGGTTCTACA
+R,Library preparation sequencing,adapter_reverse,,TACGGTAGCAGAGACTTGGTCT,TACGGTAGCAGAGACTTGGTCT
+HR,Library preparation sequencing,lib_screen,,"The Genomics Core performed secondary PCR using dual indexed, Illumina-compatible primers targeting the Fluidigm CS1/CS2 oligomers at the ends of the primary PCR products. Amplicons were batch normalized using Invitrogen SequalPrep DNA Normalization plates and recovered product was pooled. The pool was QC’d and quantified using a combination of Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000, and Invitrogen Collibri Library Quantification qPCR assays.","The Genomics Core performed secondary PCR using dual indexed, Illumina-compatible primers targeting the Fluidigm CS1/CS2 oligomers at the ends of the primary PCR products. Amplicons were batch normalized using Invitrogen SequalPrep DNA Normalization plates and recovered product was pooled. The pool was QC’d and quantified using a combination of Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000, and Invitrogen Collibri Library Quantification qPCR assays."
+R,Library preparation sequencing,checksum_method,,MD5,MD5
+O,Library preparation sequencing,seq_method_additional,,PhiX control library was spiked in at 10%.,PhiX control library was spiked in at 10%.
+R,Project,expedition_id,GOMECC-4 (2021),,
+R,Project,ship_crs_expocode,WBTSRHB,,
+R,Project,woce_sect,RB2103,,
+R,Project,bioproject_accession,PRJNA887898,,
