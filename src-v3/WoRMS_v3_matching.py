@@ -44,35 +44,6 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
     return {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}'}
 
 
-def get_worms_match_for_single_taxon_worker(combo_input_for_worker, assays_to_skip_species_list, api_source_for_record='WoRMS'):
-    """(FALLBACK) Matches a single verbatimIdentification string using a slow, iterative search."""
-    verbatim_identification_str, assay_name_str = combo_input_for_worker
-
-    parsed_names = parse_semicolon_taxonomy(verbatim_identification_str)
-    if not parsed_names:
-        return {'match_type_debug': 'No_Tax_String_Provided'}
-
-    for i, term in enumerate(reversed(parsed_names)):
-        if i == 0 and assay_name_str in assays_to_skip_species_list:
-            continue
-        
-        try:
-            time.sleep(0.001)
-            s_match_list = pyworms.aphiaRecordsByName(term, like=False, marine_only=True)
-            
-            if s_match_list:
-                accepted_match = next((m for m in s_match_list if m and m.get('status') == 'accepted'), None)
-                if accepted_match:
-                    result_dict = {'scientificName': accepted_match.get('scientificname'), 'scientificNameID': accepted_match.get('lsid'), 'taxonRank': accepted_match.get('rank'), 'nameAccordingTo': api_source_for_record, 'match_type_debug': f'Success_Fallback_{term}'}
-                    for rank_std in DWC_RANKS_STD:
-                        result_dict[rank_std] = accepted_match.get(rank_std.lower())
-                    return result_dict
-        except Exception as e:
-            logging.warning(f"Fallback API call error for '{term}': {e}")
-    
-    return {'match_type_debug': 'Failed_Fallback_IncertaeSedis'}
-
-
 def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     """Adds WoRMS taxonomic information using an optimized multi-stage process."""
     overall_start_time = time.time()
@@ -154,13 +125,27 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             unmatched_tuples = still_unmatched_batch
             logging.info(f"Finished Stage 2. Remaining unmatched: {len(unmatched_tuples)}.")
 
-    # --- Stage 3: Iterative Fallback for Remaining Taxa ---
+    # --- Stage 3: Handle Final Unmatched as 'incertae sedis' ---
     if unmatched_tuples:
-        logging.info(f"Starting Stage 3: Iterative fallback for {len(unmatched_tuples)} taxa.")
-        # This is a slow, single-threaded process for the remainders
+        logging.info(f"Starting Stage 3: Assigning 'incertae sedis' to {len(unmatched_tuples)} remaining taxa.")
+        # This is a fast, non-API step to handle hard-to-match taxa gracefully.
+        incertae_sedis_record = {
+            'scientificName': 'incertae sedis',
+            'scientificNameID': None,
+            'taxonRank': 'no rank',
+            'kingdom': 'incertae sedis',
+            'phylum': None,
+            'class': None,
+            'order': None,
+            'family': 'incertae sedis',
+            'genus': None,
+            'species': None,
+            'nameAccordingTo': api_source,
+            'match_type_debug': 'Failed_All_Stages_IncertaeSedis'
+        }
+
         for combo in unmatched_tuples:
-            result = get_worms_match_for_single_taxon_worker(combo, assays_to_skip_species, api_source)
-            results_cache[combo] = result
+            results_cache[combo] = incertae_sedis_record
 
     # --- FIX: APPLY THE RESULTS TO THE DATAFRAME ---
     logging.info("Applying all results to DataFrame.")
