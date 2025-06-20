@@ -1,149 +1,217 @@
-from pygbif import species
 import pandas as pd
+from pygbif import species
 import os
+import time
+import pickle
+from multiprocess import Pool, cpu_count
+import logging
+import re
 
-def parse_taxonomy_string(tax_string):
-    """Parse a taxonomy string with rank prefixes into a dict"""
-    ranks = ['d', 'p', 'c', 'o', 'f', 'g', 's']  # domain to species
-    tax_dict = {}
+# --- Setup logging ---
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# --- Helper Functions ---
+
+def _build_result_dict(gbif_result):
+    """Helper to build the final dictionary from a GBIF result, cleaning the scientific name."""
+    rank = gbif_result.get('rank', '').lower()
     
-    parts = tax_string.split(';')
-    for part in parts:
-        part = part.strip()
-        if not part:  # Handle empty fields
-            continue
-            
-        # Extract rank and name
-        if '__' in part:
-            rank, name = part.split('__')
-            if rank in ranks:
-                tax_dict[rank] = name
-
-    return tax_dict
-
-def clean_species_name(name):
-    """Remove common prefixes/suffixes that won't match in GBIF"""
-    removals = [
-        'uncultured_',
-        'uncultured ',
-        '_bacterium',
-        'metagenome',
-        'environmental'
-    ]
-    name = name.strip()
-    for r in removals:
-        name = name.replace(r, '')
-    return name
-
-def match_to_gbif(taxonomy_dict):
-    """Match a taxonomy dict against GBIF"""
-    # Start with most specific rank available
-    for rank in ['s', 'g', 'f', 'o', 'c', 'p', 'd']:
-        if rank in taxonomy_dict:
-            name = taxonomy_dict[rank]
-            name = clean_species_name(name)  # Removing species name- I've read GBIF species may be more useful than WoRMS?
-            
-            if not name:  # Skip if name is empty after cleaning
-                continue
-                
-            try:
-                # Try exact match first
-                results = species.name_backbone(
-                    name=name,
-                    rank=rank,
-                    strict=True  # Only match at this rank
-                )
-                
-                # If no exact match, try fuzzy match
-                if not results or results.get('matchType') == 'NONE':
-                    results = species.name_backbone(
-                        name=name,
-                        rank=rank,
-                        strict=False  # Allow matching to higher ranks
-                    )
-                
-                # If still no match, try name_suggest as last resort
-                if not results or results.get('matchType') == 'NONE':
-                    suggestions = species.name_suggest(q=name)
-                    if suggestions:
-                        # Use name_backbone to get full classification
-                        results = species.name_backbone(
-                            name=suggestions[0]['scientificName']
-                        )
-                
-                if results and results.get('matchType') != 'NONE':
-                    classification = {
-                        'kingdom': results.get('kingdom'),
-                        'phylum': results.get('phylum'),
-                        'class': results.get('class'),
-                        'order': results.get('order'),
-                        'family': results.get('family'),
-                        'genus': results.get('genus')
-                    }
-                    
-                    return {
-                        'old_taxonRank': rank,
-                        'old name': name,
-                        'scientificName': results['scientificName'],
-                        'scientificNameID': str(results['usageKey']),
-                        'taxonRank': results['rank'],
-                        'matchType': results['matchType'],  # Added to track match quality
-                        **classification
-                    }
-            except Exception as e:
-                print(f"Error matching {name}: {e}")
-                
-    return None
-
-# Read test data
-df = pd.read_csv('edna2obis/raw/test_data-taxa_sample_table_l7.tsv', 
-                 sep='\t', 
-                 skiprows=[1],  # Skip the "Constructed from biom file" line
-                 comment='#',   # This will skip the "#OTU ID" line
-                 nrows=25,   
-                 index_col=0)   # First column is index
-
-# Process first 5 rows
-results = []
-for tax_string in df.index:  # Iterate over index which contains our taxonomy strings
-    tax_dict = parse_taxonomy_string(tax_string)
-    match = match_to_gbif(tax_dict)
-    if match:
-        results.append({
-            'full_tax': tax_string,
-            'verbatimIdentification': tax_string,
-            **match  # Unpack the match results
-        })
+    # Logic for the scientificName field
+    final_name = None
+    if rank == 'species':
+        # For a species match, use the clean binomial name
+        final_name = gbif_result.get('species')
     else:
-        # Handle no match case
-        results.append({
-            'full_tax': tax_string,
-            'verbatimIdentification': tax_string,
-            'old_taxonRank': None,
-            'old name': None,
-            'scientificName': None,
-            'scientificNameID': None,
-            'kingdom': None,
-            'phylum': None,
-            'class': None,
-            'order': None,
-            'family': None,
-            'genus': None,
-            'taxonRank': None
-        })
+        # For higher ranks, use the clean rank name (e.g., 'Clausocalanus')
+        # instead of the canonical name with authorship.
+        final_name = gbif_result.get(rank)
+    
+    # Fallback if the clean name wasn't found (for unusual ranks like 'subfamily')
+    if not final_name:
+        final_name = gbif_result.get('scientificName')
 
-# Create DataFrame with columns in same order as WoRMS output
-output_df = pd.DataFrame(results)[['full_tax', 'verbatimIdentification', 'old_taxonRank', 
-                                 'old name', 'scientificName', 'scientificNameID',
-                                 'kingdom', 'phylum', 'class', 'order', 'family', 
-                                 'genus', 'taxonRank']]
+    gbif_taxon_id = f"gbif:{gbif_result['usageKey']}"
 
-# Add this before saving to check what's happening
-print(f"Saving {len(output_df)} matched records to edna2obis/processed/gbif_test_matches_full.tsv")
-print(f"First few results: {output_df.head(2)}")
+    # Build the dictionary. DO NOT include a 'species' key in the output dict.
+    result = {
+        'scientificName': final_name,
+        'scientificNameID': None,
+        'taxonID': gbif_taxon_id,
+        'kingdom': gbif_result.get('kingdom'),
+        'phylum': gbif_result.get('phylum'),
+        'class': gbif_result.get('class'),
+        'order': gbif_result.get('order'),
+        'family': gbif_result.get('family'),
+        'genus': gbif_result.get('genus'),
+        'taxonRank': rank,
+        'nameAccordingTo': 'GBIF',
+        'match_type_debug': f"GBIF_{gbif_result.get('matchType', 'UNKNOWN')}"
+    }
+    return result
 
-# Create directory if it doesn't exist
-os.makedirs('edna2obis/processed/', exist_ok=True)
+def _gbif_worker(args):
+    """
+    Worker function to match a single taxon name against the GBIF backbone.
+    This function implements a tenacious "species-first", context-aware strategy.
+    """
+    lookup_key, skip_species = args
 
-output_df.to_csv('edna2obis/processed/gbif_test_matches_full.tsv', sep='\t', index=False)
-print("File saved successfully!")
+    if not isinstance(lookup_key, str) or not lookup_key.strip():
+        return args, {'scientificName': 'No Match: Empty Input', 'match_type_debug': 'empty_input'}
+
+    # 1. Aggressively clean and parse the taxonomy string
+    parts = [p.strip() for p in lookup_key.split(';') if p.strip()]
+    cleaned_parts = [re.sub(r'[^a-zA-Z\s.-]', '', p).strip() for p in parts]
+    cleaned_parts = [p for p in cleaned_parts if p and p.lower() != 'unassigned']
+    
+    if not cleaned_parts:
+        return args, {'scientificName': 'No Match: Empty Input after processing', 'match_type_debug': 'empty_input_processed'}
+
+    # 2. Determine a kingdom hint for context
+    kingdom_hint = None
+    if cleaned_parts:
+        first_rank_lower = cleaned_parts[0].lower()
+        if first_rank_lower in ['bacteria', 'eukaryota', 'archaea', 'viruses', 'chromista', 'protozoa', 'animalia', 'plantae', 'fungi']:
+            kingdom_hint = cleaned_parts[0]
+
+    # 3. "Species First" Strategy: Tenaciously try to match the most specific part as a SPECIES
+    potential_species_name = cleaned_parts[-1]
+    if not skip_species and ' ' in potential_species_name:
+        try:
+            # Try a strict species-only match first
+            gbif_result = species.name_backbone(name=potential_species_name, rank='species', kingdom=kingdom_hint, strict=True)
+            if gbif_result.get('usageKey') is None:
+                # If strict fails, try a fuzzy species match
+                gbif_result = species.name_backbone(name=potential_species_name, rank='species', kingdom=kingdom_hint, strict=False)
+
+            if gbif_result.get('usageKey') is not None and gbif_result.get('rank', '').lower() == 'species':
+                return args, _build_result_dict(gbif_result)
+        except Exception as e:
+            logging.warning(f"GBIF API call (species search) failed for '{potential_species_name}': {e}")
+            
+    # 4. If species match failed/skipped, proceed with taxonomic walk-up for HIGHER ranks
+    walk_up_parts = cleaned_parts
+    # If we already tried the last part as a species, don't try it again in the walk-up
+    if not skip_species and ' ' in potential_species_name:
+        walk_up_parts = cleaned_parts[:-1]
+
+    for taxon_to_search in reversed(walk_up_parts):
+        if not taxon_to_search:
+            continue
+        try:
+            # Use the same context-aware search as before
+            gbif_result = species.name_backbone(name=taxon_to_search, kingdom=kingdom_hint, strict=False)
+            if gbif_result.get('usageKey') is None:
+                 gbif_result = species.name_backbone(name=taxon_to_search, strict=False)
+
+            if gbif_result and gbif_result.get('usageKey') is not None:
+                return args, _build_result_dict(gbif_result)
+        except Exception as e:
+            logging.warning(f"GBIF API call (walk-up) failed for '{taxon_to_search}': {e}")
+            continue
+
+    # 5. If all attempts fail
+    return args, {'scientificName': 'No GBIF Match', 'match_type_debug': 'no_gbif_match_walkup'}
+
+
+# --- Main Function ---
+
+def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
+    """
+    Main function to perform taxonomic matching against the GBIF backbone for an
+    entire DataFrame of occurrences.
+    Args:
+        occurrence_df (pd.DataFrame): The DataFrame containing occurrence data.
+                                      Must have 'verbatimIdentification' and 'assay_name' columns.
+        params_dict (dict): A dictionary of parameters, including:
+                            - 'user_defined_assays_to_skip_species' (list of assay names)
+                            - 'output_dir' (str, path to save cache file)
+        n_proc (int): Number of processes to use for parallel matching. 0 means use all available.
+    Returns:
+        pd.DataFrame: The input DataFrame with added/updated taxonomic columns.
+    """
+    if occurrence_df.empty:
+        logging.warning("Input DataFrame is empty. Skipping GBIF matching.")
+        return occurrence_df
+
+    # --- Caching Setup ---
+    output_dir = params_dict.get('output_dir', '.')
+    os.makedirs(output_dir, exist_ok=True)
+    cache_file = os.path.join(output_dir, 'gbif_matches.pkl')
+    
+    try:
+        with open(cache_file, 'rb') as f:
+            cache = pickle.load(f)
+        logging.info(f"Loaded {len(cache)} results from GBIF cache file: {cache_file}")
+    except (FileNotFoundError, EOFError):
+        cache = {}
+        logging.info("No GBIF cache file found or cache is empty. Starting fresh.")
+
+    # --- Prepare for Matching ---
+    # Fix the parameter name to match what the notebook passes
+    assays_to_skip_species = params_dict.get('user_defined_assays_to_skip_species', [])
+    
+    # Create unique combinations of verbatimIdentification and whether to skip species
+    occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
+    unique_lookups = occurrence_df[['verbatimIdentification', 'skip_species_flag']].drop_duplicates()
+    
+    # Filter out what's already in the cache
+    # The cache key is a tuple (verbatimIdentification, skip_species_flag)
+    new_lookups = [
+        tuple(row) for row in unique_lookups.itertuples(index=False)
+        if tuple(row) not in cache
+    ]
+
+    logging.info(f"Found {len(new_lookups)} new unique taxonomic strings to match against GBIF.")
+
+    # --- Parallel Processing ---
+    if new_lookups:
+        if n_proc == 0:
+            n_proc = cpu_count()
+        
+        logging.info(f"Starting parallel GBIF matching with {n_proc} processes...")
+        start_time = time.time()
+        
+        with Pool(processes=n_proc) as pool:
+            results = pool.map(_gbif_worker, new_lookups)
+        
+        # Update cache with new results
+        for key_tuple, result_dict in results:
+            if key_tuple is not None:
+                cache[key_tuple] = result_dict
+            
+        end_time = time.time()
+        logging.info(f"Finished matching in {end_time - start_time:.2f} seconds.")
+
+        # Save updated cache
+        with open(cache_file, 'wb') as f:
+            pickle.dump(cache, f)
+        logging.info(f"Saved {len(cache)} total results to GBIF cache.")
+
+    # --- Merge Results back to DataFrame ---
+    logging.info("Merging GBIF results back into the main DataFrame...")
+
+    # Create a mapping DataFrame from the cache
+    cache_df_list = []
+    for (verbatim_id, skip_flag), result in cache.items():
+        row = {'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **result}
+        cache_df_list.append(row)
+    
+    match_results_df = pd.DataFrame(cache_df_list)
+
+    # Merge the results back into the main df
+    # First, drop any old taxonomy columns to prevent merge conflicts
+    cols_to_drop = ['scientificName', 'scientificNameID', 'taxonID', 'kingdom', 'phylum', 'class', 
+                    'order', 'family', 'genus', 'taxonRank', 'nameAccordingTo', 'match_type_debug']
+    occurrence_df_clean = occurrence_df.drop(columns=[col for col in cols_to_drop if col in occurrence_df.columns])
+    
+    final_df = occurrence_df_clean.merge(
+        match_results_df,
+        on=['verbatimIdentification', 'skip_species_flag'],
+        how='left'
+    )
+    
+    final_df.drop(columns=['skip_species_flag'], inplace=True, errors='ignore')
+    
+    logging.info("GBIF matching and merging complete.")
+    return final_df

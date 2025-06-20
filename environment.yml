@@ -1,10 +1,16 @@
-name: dataset-edna
+name: edna2obis
 channels:
+  - conda-forge
   - defaults
 dependencies:
+  - python=3.8
   - pandas
   - numpy
   - biopython
+  - openpyxl
+  - pyworms
+  - multiprocess
+  - pygbif
+  - notebook
+  - nb_conda_kernels
   - pytz
-  - python=3.8
-prefix: /Users/dianalg/miniconda3/envs/dataset-edna
