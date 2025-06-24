@@ -15,7 +15,6 @@ DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'spec
 def parse_semicolon_taxonomy(tax_string):
     """
     Helper function to parse and clean a semicolon-separated taxonomy string.
-    Optimized for speed while maintaining thorough cleaning.
     """
     if pd.isna(tax_string) or not str(tax_string).strip():
         return []
@@ -48,7 +47,8 @@ def parse_semicolon_taxonomy(tax_string):
     return cleaned_names
 
 def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_record='WoRMS'):
-    """Fetches and formats a full WoRMS record using a direct AphiaID."""
+    """Fetches and formats a full WoRMS record using a direct AphiaID.
+    Used by local database pre-matching. Example uses Silva PR2 database"""
     try:
         record = pyworms.aphiaRecordByAphiaID(aphia_id_to_check)
         
@@ -112,7 +112,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     else:
         n_proc = min(n_proc, 3)  # Cap at 3 processes
     
-    logging.info(f"Using {n_proc} processes for WoRMS matching (capped for API stability)")
+    logging.info(f"Using {n_proc} processes for WoRMS matching (recommended to have a max of 3 for API stability)")
 
     df_to_process = occurrence_df.copy()
 
@@ -244,7 +244,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                     except Exception as batch_e:
                         logging.error(f"Error in batch {batch_num}: {batch_e}")
 
-            # Apply species-skipping logic - OPTIMIZED VERSION
+            # Apply species-skipping logic
             still_unmatched_batch = []
             for verbatim_str, assay_name in unmatched_tuples:
                 parsed_names = parse_semicolon_taxonomy(verbatim_str)

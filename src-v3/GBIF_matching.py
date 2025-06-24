@@ -90,7 +90,7 @@ def _gbif_worker(args):
         return args, {'scientificName': 'No Match: Empty Input', 'match_type_debug': 'empty_input'}
 
     # 1. Parse and clean the taxonomy string using the comprehensive function
-    # This logic is now identical to the WoRMS script for consistency.
+    # This logic is identical to the WoRMS script for consistency
     cleaned_parts = parse_semicolon_taxonomy(lookup_key)
     
     if not cleaned_parts:
@@ -164,10 +164,8 @@ def _gbif_worker(args):
             continue
 
     # 5. If all attempts fail
-    return args, {'scientificName': 'No GBIF Match', 'match_type_debug': 'no_gbif_match_walkup'}
+    return args, {'scientificName': 'No GBIF Match', 'match_type_debug': 'No_GBIF_Match'}
 
-
-# --- Main Function ---
 
 def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     """
