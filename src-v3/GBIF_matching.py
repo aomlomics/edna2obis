@@ -10,6 +10,36 @@ import re
 # --- Setup logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def parse_semicolon_taxonomy(tax_string):
+    """
+    Helper function to parse and aggressively clean a semicolon-separated taxonomy string.
+    This function handles prefixes (e.g., d__), underscores, and other non-standard formatting.
+    """
+    if pd.isna(tax_string) or not str(tax_string).strip():
+        return []
+
+    # Split the raw string by semicolons
+    parts = str(tax_string).split(';')
+
+    cleaned_parts = []
+    for part in parts:
+        # Strip leading/trailing whitespace from the part
+        clean_part = part.strip()
+        # Remove prefixes like d__, p__, c__, f__, g__, s__, o__
+        clean_part = re.sub(r'^[dpcofgs]__', '', clean_part)
+        # Replace underscores, hyphens, and slashes with spaces
+        clean_part = clean_part.replace('_', ' ').replace('-', ' ').replace('/', ' ')
+        # Remove any lingering "sp." or "spp." at the end of a name
+        clean_part = re.sub(r'\s+spp?\.?$', '', clean_part, flags=re.IGNORECASE).strip()
+        # Clean up any resulting extra whitespace
+        clean_part = re.sub(r'\s+', ' ', clean_part).strip()
+
+        # Add the part if it's not empty and not an uninformative term
+        if clean_part and clean_part.lower() not in ['unassigned', 'unknown', 'no hit', '']:
+            cleaned_parts.append(clean_part)
+            
+    return cleaned_parts
+
 # --- Helper Functions ---
 
 def _build_result_dict(gbif_result):
@@ -59,10 +89,9 @@ def _gbif_worker(args):
     if not isinstance(lookup_key, str) or not lookup_key.strip():
         return args, {'scientificName': 'No Match: Empty Input', 'match_type_debug': 'empty_input'}
 
-    # 1. Aggressively clean and parse the taxonomy string
-    parts = [p.strip() for p in lookup_key.split(';') if p.strip()]
-    cleaned_parts = [re.sub(r'[^a-zA-Z\s.-]', '', p).strip() for p in parts]
-    cleaned_parts = [p for p in cleaned_parts if p and p.lower() != 'unassigned']
+    # 1. Parse and clean the taxonomy string using the comprehensive function
+    # This logic is now identical to the WoRMS script for consistency.
+    cleaned_parts = parse_semicolon_taxonomy(lookup_key)
     
     if not cleaned_parts:
         return args, {'scientificName': 'No Match: Empty Input after processing', 'match_type_debug': 'empty_input_processed'}
@@ -89,25 +118,49 @@ def _gbif_worker(args):
         except Exception as e:
             logging.warning(f"GBIF API call (species search) failed for '{potential_species_name}': {e}")
             
-    # 4. If species match failed/skipped, proceed with taxonomic walk-up for HIGHER ranks
+    # 4. If species match failed/skipped, proceed with a more robust taxonomic walk-up.
     walk_up_parts = cleaned_parts
-    # If we already tried the last part as a species, don't try it again in the walk-up
     if not skip_species and ' ' in potential_species_name:
         walk_up_parts = cleaned_parts[:-1]
 
     for taxon_to_search in reversed(walk_up_parts):
-        if not taxon_to_search:
+        # Skip very short, ambiguous terms.
+        if not taxon_to_search or len(taxon_to_search) < 3:
             continue
-        try:
-            # Use the same context-aware search as before
-            gbif_result = species.name_backbone(name=taxon_to_search, kingdom=kingdom_hint, strict=False)
-            if gbif_result.get('usageKey') is None:
-                 gbif_result = species.name_backbone(name=taxon_to_search, strict=False)
 
-            if gbif_result and gbif_result.get('usageKey') is not None:
+        try:
+            # --- PRIMARY ATTEMPT: Use name_backbone without a restrictive kingdom hint. ---
+            # This is often the most effective way to find the correct higher taxon.
+            # It allows GBIF's backbone to resolve the name across the entire tree of life.
+            gbif_result = species.name_backbone(name=taxon_to_search, strict=False)
+
+            # Check for a high-confidence match from the backbone service.
+            # A 'NONE' matchType means GBIF found nothing conclusive.
+            if gbif_result.get('matchType') != 'NONE':
+                logging.info(f"Walk-up success (backbone) for '{taxon_to_search}' with type: {gbif_result.get('matchType')}")
                 return args, _build_result_dict(gbif_result)
+
+            # --- FALLBACK ATTEMPT: Use name_lookup for broader search. ---
+            # This is useful if the name is ambiguous or not in the backbone as expected.
+            # We look for the first 'ACCEPTED' name.
+            logging.info(f"Backbone failed for '{taxon_to_search}'. Trying name_lookup fallback.")
+            lookup_data = species.name_lookup(q=taxon_to_search, limit=5)
+            if lookup_data and lookup_data.get('data'):
+                for record in lookup_data['data']:
+                    if record.get('status') == 'ACCEPTED' and record.get('rank'):
+                        # Found an accepted name. Now get its full classification using its key.
+                        # The species.usage() call retrieves the complete record.
+                        usage_key = record.get('key')
+                        if usage_key:
+                            full_record = species.usage(key=usage_key)
+                            if full_record and full_record.get('usageKey'):
+                                logging.info(f"Walk-up success (lookup) for '{taxon_to_search}'")
+                                # Manually add a match type for our debugging.
+                                full_record['matchType'] = 'LOOKUP_ACCEPTED'
+                                return args, _build_result_dict(full_record)
+
         except Exception as e:
-            logging.warning(f"GBIF API call (walk-up) failed for '{taxon_to_search}': {e}")
+            logging.warning(f"GBIF API call (walk-up) for '{taxon_to_search}' failed with error: {e}")
             continue
 
     # 5. If all attempts fail
@@ -149,7 +202,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     # --- Prepare for Matching ---
     # Fix the parameter name to match what the notebook passes
-    assays_to_skip_species = params_dict.get('user_defined_assays_to_skip_species', [])
+    assays_to_skip_species = params_dict.get('assays_to_skip_species_match', [])
     
     # Create unique combinations of verbatimIdentification and whether to skip species
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
