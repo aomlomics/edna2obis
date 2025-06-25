@@ -1,0 +1,1 @@
+# Occurrence core creation module 

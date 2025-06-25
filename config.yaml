@@ -1,0 +1,70 @@
+# edna2obis Configuration File
+# USERS of edna2obis, EDIT THIS FILE!!
+# Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
+
+# STEP 1
+# Assign sheets from your FAIRe Excel metadata file
+# NOTE: Left side is what edna2obis calls that data. Right side must be the actual sheetname from your FAIRe Excel metadata file:
+sampleMetadata: "sampleMetadata"
+experimentRunMetadata: "experimentRunMetadata"
+projectMetadata: "projectMetadata"
+
+excel_file: "raw-v3/FAIRe_NOAA_noaa-aoml-gomecc4_SHARING.xlsx"
+FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.xlsx"
+
+# STEP 2
+# Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
+datafiles:
+  gomecc4_18s_p1-6_v2024.10_241122:
+    taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_18s_p1-6_v2024.10_241122.tsv"
+    occurrence_file: "raw-v3/table_gomecc4_18s_p1-6_v2024.10_241122.tsv"
+  gomecc4_16s_p3-6_v2024.10_241122:
+    taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p3-6_v2024.10_241122.tsv"
+    occurrence_file: "raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv"
+  gomecc4_16s_p1-2_v2024.10_241122:
+    taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv"
+    occurrence_file: "raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv"
+  # Add other analysis runs here, following the pattern:
+  # your_analysis_run_name:
+  #   taxonomy_file: "path/to/your/asvTaxaFeatures_your_analysis_run_name.tsv"
+  #   occurrence_file: "path/to/your/table_your_analysis_run_name.tsv"
+
+# STEP 3:
+# However you denote control / blank samples, specify here
+# 'skip_sample_types' is the column name in your metadata, and 'negative control' and 'positive control' are values in that column
+skip_sample_types:
+  - "negative control"
+  - "positive control"
+
+skip_columns:
+  - "samp_collect_notes"
+  - "date_modified"
+  - "modified_by"
+
+# STEP 4:
+# Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
+# Taxonomic Assignment Parameters:
+# taxonomic_api_source: "WoRMS"
+taxonomic_api_source: "GBIF"
+
+# STEP 5:
+# Define which assays should not consider 'species' rank in their taxonomic assignment.
+# This is because certain assays (for example, 16S) species' level assignments are not useful / correct.
+# Additionally, for example, 18S species' level assignments are good, and we want them!
+# This should be the exact 'assay_name' value as found in your analysisMetadata sheets (cell D3)
+# and subsequently in the 'assay_name' column of the intermediate occurrence.csv
+assays_to_skip_species_match:
+  # - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic assignment
+  # - "another_16s_assay_name_if_any"
+
+# Optional local reference database (WoRMS only) - speeds up matching significantly!
+use_local_reference_database: false  # or false  
+local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
+
+# Optional parameters (will use defaults if not specified)
+# Number of processes for matching (0 means use all available CPUs)
+worms_n_proc: 0
+gbif_n_proc: 0
+
+# Output directory (will be created if it doesn't exist)
+output_dir: "processed-v3/" 
