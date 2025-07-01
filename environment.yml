@@ -6,12 +6,11 @@ dependencies:
   - python=3.8
   - pandas
   - numpy
-  - biopython
   - openpyxl
   - pyworms
   - multiprocess
   - pygbif
-  - notebook
-  - nb_conda_kernels
   - pytz
   - pyyaml
+  - notebook
+  - nb_conda_kernels
