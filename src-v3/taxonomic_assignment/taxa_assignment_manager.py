@@ -324,6 +324,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             reporter.add_text(f"Removed temporary columns: {columns_to_drop}")
             
             # Define the desired final column order (same as in occurrence_builder.py but without assay_name)
+            # NOTE: cleanedTaxonomy is excluded here - it should only appear in taxa_assignment_INFO.csv
             DESIRED_FINAL_COLUMNS_IN_ORDER = [
                 'eventID', 'organismQuantity', 'occurrenceID', 'verbatimIdentification',
                 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
@@ -377,3 +378,127 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         print(f"❌ Taxonomic assignment failed: {str(e)}")
         import traceback
         traceback.print_exc()
+
+
+def create_taxa_assignment_info(params, reporter):
+    """
+    Create a taxa_assignment_INFO.csv file with one row per unique taxonomy string
+    showing the cleaned taxonomy and API results for each unique verbatimIdentification
+    """
+    try:
+        reporter.add_section("Creating Taxa Assignment Info File")
+        print("📊 Creating taxa assignment info file...")
+        
+        api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
+        
+        # Load the taxonomically matched occurrence file
+        occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_{api_source}_matched.csv')
+        if not os.path.exists(occurrence_path):
+            reporter.add_error(f"Taxonomically matched occurrence file not found at {occurrence_path}")
+            return
+            
+        matched_df = pd.read_csv(occurrence_path)
+        reporter.add_text(f"Loaded taxonomically matched data: {len(matched_df):,} records")
+        
+        # Get unique taxonomy strings (one row per unique verbatimIdentification)
+        unique_taxa = matched_df.drop_duplicates(subset=['verbatimIdentification']).copy()
+        reporter.add_text(f"Found {len(unique_taxa):,} unique taxonomy strings")
+        
+        # Define columns based on API source
+        if api_source == 'worms':
+            taxonomic_id_col = 'scientificNameID'
+            columns_to_keep = [
+                'verbatimIdentification', 
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'scientificName', 'scientificNameID', 'taxonRank', 
+                'match_type_debug'
+            ]
+        else:  # GBIF
+            taxonomic_id_col = 'taxonID'
+            columns_to_keep = [
+                'verbatimIdentification',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'scientificName', 'taxonID', 'taxonRank', 
+                'match_type_debug'
+            ]
+        
+        # Select and reorder columns (excluding cleanedTaxonomy since it's not in the final file)
+        columns_to_keep_available = [col for col in columns_to_keep if col != 'cleanedTaxonomy']
+        taxa_info = unique_taxa[columns_to_keep_available].copy()
+        
+        # Recalculate cleanedTaxonomy from verbatimIdentification
+        # Import the parsing function from the appropriate matching script
+        if api_source == 'worms':
+            from .WoRMS_v3_matching import parse_semicolon_taxonomy
+        else:  # GBIF
+            from .GBIF_matching import parse_semicolon_taxonomy
+        
+        # Calculate cleanedTaxonomy for each verbatimIdentification
+        cleaned_taxonomies = []
+        for verbatim_id in taxa_info['verbatimIdentification']:
+            parsed_names = parse_semicolon_taxonomy(verbatim_id)
+            cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else str(verbatim_id) if verbatim_id else ''
+            cleaned_taxonomies.append(cleaned_taxonomy)
+        
+        taxa_info['cleanedTaxonomy'] = cleaned_taxonomies
+        
+        # Add nameAccordingTo from config (same value for all rows)
+        taxa_info['nameAccordingTo'] = params.get('taxonomic_api_source', 'WoRMS')
+        
+        # Reorder columns to put cleanedTaxonomy right after verbatimIdentification
+        if api_source == 'worms':
+            final_column_order = [
+                'verbatimIdentification', 'cleanedTaxonomy',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'scientificName', 'scientificNameID', 'taxonRank', 
+                'match_type_debug', 'nameAccordingTo'
+            ]
+        else:  # GBIF
+            final_column_order = [
+                'verbatimIdentification', 'cleanedTaxonomy',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'scientificName', 'taxonID', 'taxonRank', 
+                'match_type_debug', 'nameAccordingTo'
+            ]
+        
+        taxa_info = taxa_info[final_column_order]
+        
+        # Sort by verbatimIdentification for easier review
+        taxa_info = taxa_info.sort_values('verbatimIdentification')
+        
+        # Save the taxa assignment info file
+        output_dir = params.get('output_dir', '../processed-v3/')
+        os.makedirs(output_dir, exist_ok=True)
+        
+        output_filename = "taxa_assignment_INFO.csv"
+        output_path = os.path.join(output_dir, output_filename)
+        taxa_info.to_csv(output_path, index=False, na_rep='')
+        
+        reporter.add_success("Taxa assignment info file created successfully")
+        reporter.add_text(f"Saved taxa assignment info: {len(taxa_info):,} unique taxonomy strings")
+        reporter.add_text(f"Output file: {output_filename}")
+        
+        # Verify the file was created
+        if os.path.exists(output_path):
+            file_size = os.path.getsize(output_path) / (1024*1024)  # Size in MB
+            reporter.add_text(f"File size: {file_size:.2f} MB")
+            print(f"✅ Taxa assignment info created! Saved {len(taxa_info):,} unique taxonomy strings to {output_filename}")
+        else:
+            reporter.add_error("❌ Error: File was not created")
+            
+        # Show preview of the data
+        reporter.add_text("<h4>Taxa Assignment Info Preview:</h4>")
+        reporter.add_dataframe(taxa_info.head(10), "First 10 entries from taxa_assignment_INFO.csv")
+        
+        # Summary statistics
+        empty_cleaned = taxa_info['cleanedTaxonomy'].isna().sum()
+        reporter.add_text(f"Summary: {len(taxa_info) - empty_cleaned:,} taxa with cleaned taxonomy, {empty_cleaned:,} empty/unassigned")
+        
+    except Exception as e:
+        reporter.add_error(f"Taxa assignment info creation failed: {str(e)}")
+        print(f"❌ Taxa assignment info creation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+
+
+

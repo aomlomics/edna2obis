@@ -160,7 +160,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None,
                 'nameAccordingTo': api_source,
-                'match_type_debug': 'incertae_sedis_unassigned'
+                'match_type_debug': 'incertae_sedis_unassigned',
+                'cleanedTaxonomy': cleaned_verbatim  # Store what was actually processed
             }
             for col in DWC_RANKS_STD:
                 incertae_sedis_record[col] = None
@@ -173,7 +174,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None,
                 'nameAccordingTo': api_source,
-                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}'
+                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}',
+                'cleanedTaxonomy': cleaned_verbatim  # Store what was actually processed
             }
             for col in DWC_RANKS_STD:
                 incertae_sedis_record[col] = None
@@ -216,7 +218,13 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             for aphia_id, result in parallel_results:
                 if 'scientificName' in result:
                     for combo in aphia_id_map.get(aphia_id, []):
-                        results_cache[combo] = result
+                        # Add cleaned taxonomy info for PR2 matches
+                        verbatim_str, assay_name = combo
+                        parsed_names = parse_semicolon_taxonomy(verbatim_str)
+                        cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
+                        result_with_cleaned = result.copy()
+                        result_with_cleaned['cleanedTaxonomy'] = cleaned_taxonomy
+                        results_cache[combo] = result_with_cleaned
                 else:
                     unmatched_tuples.extend(aphia_id_map.get(aphia_id, []))
         
@@ -310,6 +318,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                     if not parsed_names:  # If nothing left after removal
                         still_unmatched_batch.append((verbatim_str, assay_name))
                         continue
+                
+                # Store the cleaned taxonomy string that will be used for matching
+                cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
                     
                 match_found = False
                 
@@ -320,7 +331,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         results_cache[(verbatim_str, assay_name)] = {
                             **batch_lookup[term], 
                             'nameAccordingTo': api_source, 
-                            'match_type_debug': f'Success_Batch_{term}'
+                            'match_type_debug': f'Success_Batch_{term}',
+                            'cleanedTaxonomy': cleaned_taxonomy  # Store what was actually processed
                         }
                         match_found = True
                         break  # Found match, stop looking
@@ -333,17 +345,30 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     # --- Handle Final Unmatched ---
     if unmatched_tuples:
-        no_match_record = {
-            'scientificName': 'incertae sedis',
-            'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
-            'taxonRank': None,
-            'nameAccordingTo': api_source,
-            'match_type_debug': 'Failed_All_Stages_NoMatch'
-        }
-        for col in DWC_RANKS_STD:
-            no_match_record[col] = None
-
         for combo in unmatched_tuples:
+            verbatim_str, assay_name = combo
+            # Get the cleaned taxonomy for unmatched items
+            parsed_names = parse_semicolon_taxonomy(verbatim_str)
+            max_depth_for_assay = assay_rank_info.get(assay_name, {}).get('max_depth', 99)
+            is_full_length_taxonomy = (len(parsed_names) >= max_depth_for_assay)
+            
+            # Apply same preprocessing as we did during matching
+            if assay_name in assays_to_skip_species and is_full_length_taxonomy and parsed_names:
+                parsed_names = parsed_names[:-1]
+            
+            cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
+            
+            no_match_record = {
+                'scientificName': 'incertae sedis',
+                'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
+                'taxonRank': None,
+                'nameAccordingTo': api_source,
+                'match_type_debug': 'Failed_All_Stages_NoMatch',
+                'cleanedTaxonomy': cleaned_taxonomy
+            }
+            for col in DWC_RANKS_STD:
+                no_match_record[col] = None
+
             results_cache[combo] = no_match_record
 
     # --- Create record for initially empty inputs ---
@@ -353,7 +378,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
         'taxonRank': None,
         'nameAccordingTo': api_source,
-        'match_type_debug': 'incertae_sedis_truly_empty_fallback'
+        'match_type_debug': 'incertae_sedis_truly_empty_fallback',
+        'cleanedTaxonomy': ''  # Empty string for truly empty inputs
     }
     for col in DWC_RANKS_STD:
         results_cache['IS_TRULY_EMPTY'][col] = None
@@ -362,7 +388,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     if results_cache:
         mapped_results = df_to_process['_map_key'].map(results_cache)
         results_df = pd.DataFrame(mapped_results.to_list(), index=df_to_process.index)
-        df_to_process.update(results_df)
+        
+        # Apply results to existing columns AND add new columns like cleanedTaxonomy
+        for col in results_df.columns:
+            df_to_process[col] = results_df[col]
 
     df_to_process.drop(columns=['_map_key'], inplace=True, errors='ignore')
     

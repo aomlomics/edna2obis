@@ -87,21 +87,24 @@ def _gbif_worker(args):
     lookup_key, skip_species = args
 
     if not isinstance(lookup_key, str) or not lookup_key.strip():
-        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input'}
+        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input', 'cleanedTaxonomy': ''}
 
     # 1. Parse and clean the taxonomy string using the comprehensive function
     # This logic is identical to the WoRMS script for consistency
     cleaned_parts = parse_semicolon_taxonomy(lookup_key)
     
     if not cleaned_parts:
-        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input_processed'}
+        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input_processed', 'cleanedTaxonomy': ''}
     
     # 2. Pre-process: Remove last term if skip_species is True and we have what looks like a full taxonomy
     # Note: We don't have assay rank info here, so we use a heuristic of 6+ terms being "full-length"
     if skip_species and len(cleaned_parts) >= 6:
         cleaned_parts = cleaned_parts[:-1]  # Remove the most specific (last) term
         if not cleaned_parts:
-            return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_after_species_removal'}
+            return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_after_species_removal', 'cleanedTaxonomy': ''}
+    
+    # Store the cleaned taxonomy string that will be used for matching
+    cleaned_taxonomy = ';'.join(cleaned_parts) if cleaned_parts else lookup_key
 
     # 3. Determine a kingdom hint for context
     kingdom_hint = None
@@ -121,7 +124,9 @@ def _gbif_worker(args):
                 gbif_result = species.name_backbone(name=potential_species_name, rank='species', kingdom=kingdom_hint, strict=False)
 
             if gbif_result.get('usageKey') is not None and gbif_result.get('rank', '').lower() == 'species':
-                return args, _build_result_dict(gbif_result)
+                result_dict = _build_result_dict(gbif_result)
+                result_dict['cleanedTaxonomy'] = cleaned_taxonomy
+                return args, result_dict
         except Exception as e:
             logging.warning(f"GBIF API call (species search) failed for '{potential_species_name}': {e}")
             
@@ -145,7 +150,9 @@ def _gbif_worker(args):
             # A 'NONE' matchType means GBIF found nothing conclusive.
             if gbif_result.get('matchType') != 'NONE':
                 logging.info(f"Walk-up success (backbone) for '{taxon_to_search}' with type: {gbif_result.get('matchType')}")
-                return args, _build_result_dict(gbif_result)
+                result_dict = _build_result_dict(gbif_result)
+                result_dict['cleanedTaxonomy'] = cleaned_taxonomy
+                return args, result_dict
 
             # --- FALLBACK ATTEMPT: Use name_lookup for broader search. ---
             # This is useful if the name is ambiguous or not in the backbone as expected.
@@ -164,14 +171,16 @@ def _gbif_worker(args):
                                 logging.info(f"Walk-up success (lookup) for '{taxon_to_search}'")
                                 # Manually add a match type for our debugging.
                                 full_record['matchType'] = 'LOOKUP_ACCEPTED'
-                                return args, _build_result_dict(full_record)
+                                result_dict = _build_result_dict(full_record)
+                                result_dict['cleanedTaxonomy'] = cleaned_taxonomy
+                                return args, result_dict
 
         except Exception as e:
             logging.warning(f"GBIF API call (walk-up) for '{taxon_to_search}' failed with error: {e}")
             continue
 
     # 6. If all attempts fail
-    return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'No_GBIF_Match'}
+    return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'No_GBIF_Match', 'cleanedTaxonomy': cleaned_taxonomy}
 
 
 def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
@@ -243,7 +252,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'genus': None,
                 'taxonRank': None,
                 'nameAccordingTo': 'GBIF',
-                'match_type_debug': 'incertae_sedis_unassigned'
+                'match_type_debug': 'incertae_sedis_unassigned',
+                'cleanedTaxonomy': cleaned_verbatim
             }
             cases_handled[tuple(row)] = incertae_sedis_record
         # Then check for simple kingdom-only cases  
@@ -260,7 +270,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'genus': None,
                 'taxonRank': None,
                 'nameAccordingTo': 'GBIF',
-                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}'
+                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}',
+                'cleanedTaxonomy': cleaned_verbatim
             }
             cases_handled[tuple(row)] = incertae_sedis_record
         else:
@@ -300,7 +311,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     # Add handled cases to cache
     cache.update(cases_handled)
 
-    # Save updated cache
+        # Save updated cache
     if new_lookups or cases_handled:
         with open(cache_file, 'wb') as f:
             pickle.dump(cache, f)

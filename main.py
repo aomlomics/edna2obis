@@ -554,6 +554,11 @@ def main():
         print("🐟 Performing taxonomic assignment...")
         assign_taxonomy(params, data, raw_data_tables, reporter)
         
+        # Create taxa assignment info file
+        print("📊 Creating taxa assignment info file...")
+        from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
+        create_taxa_assignment_info(params, reporter)
+        
         # Create DNA derived extension
         print("📄 Creating DNA derived extension...")
         create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
@@ -567,7 +572,7 @@ def main():
         reporter.add_text("Files generated:")
         
         output_dir = params.get('output_dir', '../processed-v3/')
-        files = ['occurrence.csv', f'occurrence_{params.get("taxonomic_api_source", "worms").lower()}_matched.csv', 'dna_derived_extension.csv']
+        files = ['occurrence.csv', f'occurrence_{params.get("taxonomic_api_source", "worms").lower()}_matched.csv', 'taxa_assignment_INFO.csv', 'dna_derived_extension.csv']
         
         for filename in files:
             filepath = os.path.join(output_dir, filename)
