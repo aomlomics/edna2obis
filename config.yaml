@@ -44,8 +44,8 @@ skip_columns:
 # STEP 4:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
-taxonomic_api_source: "WoRMS"
-# taxonomic_api_source: "GBIF"
+# taxonomic_api_source: "WoRMS"
+taxonomic_api_source: "GBIF"
 
 # STEP 5:
 # Define which assays should not consider 'species' rank in their taxonomic assignment.
@@ -54,11 +54,11 @@ taxonomic_api_source: "WoRMS"
 # This should be the exact 'assay_name' value as found in your analysisMetadata sheets (cell D3)
 # and subsequently in the 'assay_name' column of the intermediate occurrence.csv
 assays_to_skip_species_match:
-  - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic assignment
+  # - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic assignment
   # - "another_16s_assay_name_if_any"
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
-use_local_reference_database: true  # or false  
+use_local_reference_database: false  # or false  
 local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
 
 # Optional parameters (will use defaults if not specified)

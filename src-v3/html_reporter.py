@@ -93,8 +93,9 @@ class HTMLReporter:
         })
     
     def add_error(self, message):
-        """Add an error message"""
+        """Add an error message and automatically set report status to FAILED"""
         self.error_message = message
+        self.status = "FAILED"  # Automatically mark the report as failed
         self.sections.append({
             'type': 'error',
             'content': f'<div class="alert alert-danger"><strong>ERROR:</strong> {message}</div>'
@@ -111,8 +112,9 @@ class HTMLReporter:
         })
     
     def set_success(self):
-        """Mark the report as successful"""
-        self.status = "SUCCESS"
+        """Mark the report as successful (only if not already failed)"""
+        if self.status != "FAILED":
+            self.status = "SUCCESS"
     
     def set_failed(self, error_message=None):
         """Mark the report as failed"""
@@ -122,6 +124,10 @@ class HTMLReporter:
     
     def set_status(self, status, error_message=None):
         """Set the status (SUCCESS or FAILED) with optional error message"""
+        # Don't allow overriding FAILED status with SUCCESS
+        if self.status == "FAILED" and status == "SUCCESS":
+            return  # Keep the FAILED status
+        
         self.status = status
         if error_message:
             self.error_message = error_message
@@ -180,7 +186,7 @@ class HTMLReporter:
         pre {{ background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }}
         .header-section {{ text-align: center; margin: 30px 0 50px 0; }}
         .logo-bar {{ display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0; opacity: 0.8; }}
-        .logo-bar img {{ height: 40px; object-fit: contain; }}
+        .logo-bar img {{ height: 60px; object-fit: contain; }}
     </style>
 </head>
 <body>
