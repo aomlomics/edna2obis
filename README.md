@@ -117,22 +117,6 @@ The pipeline generates several files in your `output_dir`:
 - **Storage**: ~1GB free space for large datasets
 - **Network**: Stable internet for API calls
 
-### Quick Command Reference
-
-```bash
-# Setup (one time only)
-git clone <repository-url>
-cd edna2obis-3/edna2obis-3.0
-conda env create -f environment.yml
-
-# Every time you want to run
-conda activate edna2obis
-python main.py
-
-# To update the environment (if environment.yml changes)
-conda env update -f environment.yml
-```
-
 ## Introduction
 **Rationale:**
 
