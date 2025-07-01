@@ -213,45 +213,101 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 ALL_TAX_RANKS = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'taxonRank']
 
                 # CASE 1: Handle records where WoRMS lookup completely failed.
-                # The script flags these with the specific string 'No WoRMS Match'.
-                # These become 'Biota'.
-                no_match_mask = matched_df['scientificName'] == 'No WoRMS Match'
+                # The script now assigns these to 'incertae sedis' directly, so we don't need to change them.
+                # But we can log how many we have for reporting purposes.
+                no_match_mask = matched_df['match_type_debug'] == 'Failed_All_Stages_NoMatch'
                 num_no_match = no_match_mask.sum()
                 if num_no_match > 0:
-                    reporter.add_text(f"Found {num_no_match:,} records with no match in WoRMS. Assigning 'Biota'.")
-                    matched_df.loc[no_match_mask, 'scientificName'] = 'Biota'
-                    matched_df.loc[no_match_mask, 'scientificNameID'] = 'urn:lsid:marinespecies.org:taxname:1'
-                    # Clear all other taxonomic columns for these records
-                    for rank_col in ALL_TAX_RANKS:
-                        if rank_col in matched_df.columns:
-                            matched_df.loc[no_match_mask, rank_col] = np.nan
-
-                # CASE 2: Handle specific high-level Eukaryota assignments that should also be 'Biota'.
-                biota_override_mask = (
-                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota') |
-                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota;Haptista') |
-                    (matched_df['scientificName'] == 'Eukaryota')
+                    reporter.add_text(f"Found {num_no_match:,} records assigned to 'incertae sedis' due to no WoRMS match.")
+                
+                # Check for pre-handled cases
+                pre_handled_mask = (
+                    matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False) |
+                    matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)
                 )
-                num_eukaryota_override = biota_override_mask.sum()
+                num_pre_handled = pre_handled_mask.sum()
+                if num_pre_handled > 0:
+                    reporter.add_text(f"Found {num_pre_handled:,} pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.")
+
+                # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
+                # Note: Simple "Eukaryota" cases are now handled earlier, but we may have "Eukaryota;Haptista" style cases
+                eukaryota_override_mask = (
+                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota;Haptista') |
+                    ((matched_df['scientificName'] == 'Eukaryota') & 
+                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
+                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
+                )
+                num_eukaryota_override = eukaryota_override_mask.sum()
                 if num_eukaryota_override > 0:
-                    reporter.add_text(f"Reassigned {num_eukaryota_override:,} high-level Eukaryota records to 'Biota'.")
-                    matched_df.loc[biota_override_mask, 'scientificName'] = 'Biota'
-                    matched_df.loc[biota_override_mask, 'scientificNameID'] = 'urn:lsid:marinespecies.org:taxname:1'
+                    reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
+                    matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
+                    matched_df.loc[eukaryota_override_mask, 'scientificNameID'] = 'urn:lsid:marinespecies.org:taxname:12'
                     # Clear all other taxonomic columns for these records
                     for rank_col in ALL_TAX_RANKS:
                         if rank_col in matched_df.columns:
-                            matched_df.loc[biota_override_mask, rank_col] = np.nan
+                            matched_df.loc[eukaryota_override_mask, rank_col] = np.nan
 
                 # CASE 3: Handle any remaining empty/NaN scientificName records as 'incertae sedis'.
-                # This catches inputs that were 'Unassigned' or blank from the start.
+                # This catches any edge cases that might have slipped through
                 nan_mask = matched_df['scientificName'].isna()
                 num_nan = nan_mask.sum()
                 if num_nan > 0:
-                    reporter.add_text(f"Assigned {num_nan:,} empty records to 'incertae sedis'.")
+                    reporter.add_text(f"Assigned {num_nan:,} remaining empty records to 'incertae sedis'.")
                     matched_df.loc[nan_mask, 'scientificName'] = 'incertae sedis'
                     matched_df.loc[nan_mask, 'scientificNameID'] = 'urn:lsid:marinespecies.org:taxname:12'
                     # Clear all other taxonomic columns for these records
                     for rank_col in ALL_TAX_RANKS:
+                         if rank_col in matched_df.columns:
+                            matched_df.loc[nan_mask, rank_col] = np.nan
+            
+            elif api_source == 'GBIF':
+                reporter.add_text("Applying manual taxonomic corrections for GBIF...")
+                print("🔧 Applying manual taxonomic corrections for GBIF...")
+                
+                # Define all taxonomic rank columns that need to be managed (GBIF doesn't have scientificNameID)
+                ALL_TAX_RANKS_GBIF = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'taxonRank']
+
+                # CASE 1: Handle records where GBIF lookup completely failed.
+                no_match_mask = matched_df['match_type_debug'] == 'No_GBIF_Match'
+                num_no_match = no_match_mask.sum()
+                if num_no_match > 0:
+                    reporter.add_text(f"Found {num_no_match:,} records assigned to 'incertae sedis' due to no GBIF match.")
+                
+                # Check for pre-handled cases
+                pre_handled_mask = (
+                    matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False) |
+                    matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)
+                )
+                num_pre_handled = pre_handled_mask.sum()
+                if num_pre_handled > 0:
+                    reporter.add_text(f"Found {num_pre_handled:,} pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.")
+
+                # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
+                eukaryota_override_mask = (
+                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota;Haptista') |
+                    ((matched_df['scientificName'] == 'Eukaryota') & 
+                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
+                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
+                )
+                num_eukaryota_override = eukaryota_override_mask.sum()
+                if num_eukaryota_override > 0:
+                    reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
+                    matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
+                    # No scientificNameID for GBIF
+                    # Clear all other taxonomic columns for these records
+                    for rank_col in ALL_TAX_RANKS_GBIF:
+                        if rank_col in matched_df.columns:
+                            matched_df.loc[eukaryota_override_mask, rank_col] = np.nan
+
+                # CASE 3: Handle any remaining empty/NaN scientificName records as 'incertae sedis'.
+                nan_mask = matched_df['scientificName'].isna()
+                num_nan = nan_mask.sum()
+                if num_nan > 0:
+                    reporter.add_text(f"Assigned {num_nan:,} remaining empty records to 'incertae sedis'.")
+                    matched_df.loc[nan_mask, 'scientificName'] = 'incertae sedis'
+                    # No scientificNameID for GBIF
+                    # Clear all other taxonomic columns for these records
+                    for rank_col in ALL_TAX_RANKS_GBIF:
                          if rank_col in matched_df.columns:
                             matched_df.loc[nan_mask, rank_col] = np.nan
             

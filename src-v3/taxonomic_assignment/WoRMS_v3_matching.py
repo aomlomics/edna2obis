@@ -144,6 +144,46 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     results_cache = {}
     unmatched_tuples = []
+    
+    # Handle cases that should get 'incertae sedis' immediately
+    cases_to_handle = []
+    for verbatim_str, assay_name in unique_tuples_to_process:
+        # First check for unassigned/empty cases  
+        cleaned_verbatim = str(verbatim_str).strip().rstrip(';').strip()
+        
+        # Check for truly empty or unassigned cases
+        if (not cleaned_verbatim or 
+            cleaned_verbatim.lower() in ['unassigned', 'nan', 'none', ''] or
+            pd.isna(verbatim_str)):
+            incertae_sedis_record = {
+                'scientificName': 'incertae sedis',
+                'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
+                'taxonRank': None,
+                'nameAccordingTo': api_source,
+                'match_type_debug': 'incertae_sedis_unassigned'
+            }
+            for col in DWC_RANKS_STD:
+                incertae_sedis_record[col] = None
+            results_cache[(verbatim_str, assay_name)] = incertae_sedis_record
+            cases_to_handle.append((verbatim_str, assay_name))
+        # Then check for simple kingdom-only cases
+        elif cleaned_verbatim.lower() in ['bacteria', 'eukaryota']:
+            incertae_sedis_record = {
+                'scientificName': 'incertae sedis',
+                'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
+                'taxonRank': None,
+                'nameAccordingTo': api_source,
+                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}'
+            }
+            for col in DWC_RANKS_STD:
+                incertae_sedis_record[col] = None
+            results_cache[(verbatim_str, assay_name)] = incertae_sedis_record
+            cases_to_handle.append((verbatim_str, assay_name))
+    
+    # Remove handled cases from further processing
+    unique_tuples_to_process = [t for t in unique_tuples_to_process if t not in cases_to_handle]
+    if cases_to_handle:
+        logging.info(f"Assigned {len(cases_to_handle)} cases (unassigned/empty/simple kingdoms) to 'incertae sedis'.")
 
     # --- Stage 1: PR2 AphiaID Pre-matching ---
     if pr2_dict:
@@ -151,6 +191,11 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         aphia_id_map = {}
         
         for verbatim_str, assay_name in unique_tuples_to_process:
+            # Skip PR2 lookup entirely for assays that shouldn't get species-level matches
+            if assay_name in assays_to_skip_species:
+                unmatched_tuples.append((verbatim_str, assay_name))
+                continue
+                
             parsed_names = parse_semicolon_taxonomy(verbatim_str)
             if parsed_names:
                 species_name = parsed_names[-1]
@@ -248,26 +293,28 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                     except Exception as batch_e:
                         logging.error(f"Error in batch {batch_num}: {batch_e}")
 
-            # Apply species-skipping logic
+            # Apply species-skipping logic with pre-processing
             still_unmatched_batch = []
             for verbatim_str, assay_name in unmatched_tuples:
                 parsed_names = parse_semicolon_taxonomy(verbatim_str)
                 if not parsed_names:  # Skip if no parsed names
                     still_unmatched_batch.append((verbatim_str, assay_name))
                     continue
+                
+                max_depth_for_assay = assay_rank_info.get(assay_name, {}).get('max_depth', 99)
+                is_full_length_taxonomy = (len(parsed_names) >= max_depth_for_assay)
+                
+                # Pre-process: Remove last term if this assay should skip species AND has full-length taxonomy
+                if assay_name in assays_to_skip_species and is_full_length_taxonomy:
+                    parsed_names = parsed_names[:-1]  # Remove the most specific (last) term
+                    if not parsed_names:  # If nothing left after removal
+                        still_unmatched_batch.append((verbatim_str, assay_name))
+                        continue
                     
                 match_found = False
-                max_depth_for_assay = assay_rank_info.get(assay_name, {}).get('max_depth', 99)
                 
                 # Check from most specific to least specific (reverse order)
                 for i_term, term in enumerate(reversed(parsed_names)):
-                    is_potential_species = (i_term == 0)  # First in reversed list = most specific
-                    is_full_length_taxonomy = (len(parsed_names) >= max_depth_for_assay)
-                    
-                    # Skip species-level matching if configured
-                    if assay_name in assays_to_skip_species and is_potential_species and is_full_length_taxonomy:
-                        continue
-                        
                     # Quick lookup - no complex processing
                     if term in batch_lookup:
                         results_cache[(verbatim_str, assay_name)] = {
@@ -287,17 +334,29 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     # --- Handle Final Unmatched ---
     if unmatched_tuples:
         no_match_record = {
-            'scientificName': 'No WoRMS Match',
+            'scientificName': 'incertae sedis',
+            'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
+            'taxonRank': None,
+            'nameAccordingTo': api_source,
             'match_type_debug': 'Failed_All_Stages_NoMatch'
         }
-        for col in ['scientificNameID', 'taxonRank', 'nameAccordingTo'] + DWC_RANKS_STD:
+        for col in DWC_RANKS_STD:
             no_match_record[col] = None
 
         for combo in unmatched_tuples:
             results_cache[combo] = no_match_record
 
     # --- Create record for initially empty inputs ---
-    results_cache['IS_TRULY_EMPTY'] = { 'scientificName': pd.NA }
+    # Note: Empty inputs are now handled earlier in the process with 'incertae sedis'
+    results_cache['IS_TRULY_EMPTY'] = { 
+        'scientificName': 'incertae sedis',
+        'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
+        'taxonRank': None,
+        'nameAccordingTo': api_source,
+        'match_type_debug': 'incertae_sedis_truly_empty_fallback'
+    }
+    for col in DWC_RANKS_STD:
+        results_cache['IS_TRULY_EMPTY'][col] = None
 
     # --- Apply results to DataFrame ---
     if results_cache:

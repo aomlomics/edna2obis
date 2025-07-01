@@ -87,23 +87,30 @@ def _gbif_worker(args):
     lookup_key, skip_species = args
 
     if not isinstance(lookup_key, str) or not lookup_key.strip():
-        return args, {'scientificName': 'No Match: Empty Input', 'match_type_debug': 'empty_input'}
+        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input'}
 
     # 1. Parse and clean the taxonomy string using the comprehensive function
     # This logic is identical to the WoRMS script for consistency
     cleaned_parts = parse_semicolon_taxonomy(lookup_key)
     
     if not cleaned_parts:
-        return args, {'scientificName': 'No Match: Empty Input after processing', 'match_type_debug': 'empty_input_processed'}
+        return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_input_processed'}
+    
+    # 2. Pre-process: Remove last term if skip_species is True and we have what looks like a full taxonomy
+    # Note: We don't have assay rank info here, so we use a heuristic of 6+ terms being "full-length"
+    if skip_species and len(cleaned_parts) >= 6:
+        cleaned_parts = cleaned_parts[:-1]  # Remove the most specific (last) term
+        if not cleaned_parts:
+            return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'empty_after_species_removal'}
 
-    # 2. Determine a kingdom hint for context
+    # 3. Determine a kingdom hint for context
     kingdom_hint = None
     if cleaned_parts:
         first_rank_lower = cleaned_parts[0].lower()
         if first_rank_lower in ['bacteria', 'eukaryota', 'archaea', 'viruses', 'chromista', 'protozoa', 'animalia', 'plantae', 'fungi']:
             kingdom_hint = cleaned_parts[0]
 
-    # 3. "Species First" Strategy: Tenaciously try to match the most specific part as a SPECIES
+    # 4. "Species First" Strategy: Tenaciously try to match the most specific part as a SPECIES
     potential_species_name = cleaned_parts[-1]
     if not skip_species and ' ' in potential_species_name:
         try:
@@ -118,7 +125,7 @@ def _gbif_worker(args):
         except Exception as e:
             logging.warning(f"GBIF API call (species search) failed for '{potential_species_name}': {e}")
             
-    # 4. If species match failed/skipped, proceed with a more robust taxonomic walk-up.
+    # 5. If species match failed/skipped, proceed with a more robust taxonomic walk-up.
     walk_up_parts = cleaned_parts
     if not skip_species and ' ' in potential_species_name:
         walk_up_parts = cleaned_parts[:-1]
@@ -163,8 +170,8 @@ def _gbif_worker(args):
             logging.warning(f"GBIF API call (walk-up) for '{taxon_to_search}' failed with error: {e}")
             continue
 
-    # 5. If all attempts fail
-    return args, {'scientificName': 'No GBIF Match', 'match_type_debug': 'No_GBIF_Match'}
+    # 6. If all attempts fail
+    return args, {'scientificName': 'incertae sedis', 'match_type_debug': 'No_GBIF_Match'}
 
 
 def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
@@ -210,14 +217,66 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
     unique_lookups = occurrence_df[['verbatimIdentification', 'skip_species_flag']].drop_duplicates()
     
-    # Filter out what's already in the cache
+    # Handle cases that should get 'incertae sedis' immediately
+    cases_handled = {}
+    new_lookups_to_process = []
+    
+    for row in unique_lookups.itertuples(index=False):
+        verbatim_str, skip_species_flag = tuple(row)
+        
+        # First check for unassigned/empty cases
+        cleaned_verbatim = str(verbatim_str).strip().rstrip(';').strip()
+        
+        # Check for truly empty or unassigned cases
+        if (not cleaned_verbatim or 
+            cleaned_verbatim.lower() in ['unassigned', 'nan', 'none', ''] or
+            pd.isna(verbatim_str)):
+            incertae_sedis_record = {
+                'scientificName': 'incertae sedis',
+                'scientificNameID': None,  # GBIF doesn't use scientificNameID
+                'taxonID': None,
+                'kingdom': None,
+                'phylum': None,
+                'class': None,
+                'order': None,
+                'family': None,
+                'genus': None,
+                'taxonRank': None,
+                'nameAccordingTo': 'GBIF',
+                'match_type_debug': 'incertae_sedis_unassigned'
+            }
+            cases_handled[tuple(row)] = incertae_sedis_record
+        # Then check for simple kingdom-only cases  
+        elif cleaned_verbatim.lower() in ['bacteria', 'eukaryota']:
+            incertae_sedis_record = {
+                'scientificName': 'incertae sedis',
+                'scientificNameID': None,  # GBIF doesn't use scientificNameID
+                'taxonID': None,
+                'kingdom': None,
+                'phylum': None,
+                'class': None,
+                'order': None,
+                'family': None,
+                'genus': None,
+                'taxonRank': None,
+                'nameAccordingTo': 'GBIF',
+                'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}'
+            }
+            cases_handled[tuple(row)] = incertae_sedis_record
+        else:
+            new_lookups_to_process.append(tuple(row))
+    
+    # Filter out what's already in the cache (including handled cases)
     # The cache key is a tuple (verbatimIdentification, skip_species_flag)
+    all_cache = {**cache, **cases_handled}
     new_lookups = [
-        tuple(row) for row in unique_lookups.itertuples(index=False)
-        if tuple(row) not in cache
+        lookup for lookup in new_lookups_to_process
+        if lookup not in all_cache
     ]
 
     logging.info(f"Found {len(new_lookups)} new unique taxonomic strings to match against GBIF.")
+    if cases_handled:
+        logging.info(f"Assigned {len(cases_handled)} cases (unassigned/empty/simple kingdoms) to 'incertae sedis'.")
 
     # --- Parallel Processing ---
     if new_lookups:
@@ -238,7 +297,11 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         end_time = time.time()
         logging.info(f"Finished matching in {end_time - start_time:.2f} seconds.")
 
-        # Save updated cache
+    # Add handled cases to cache
+    cache.update(cases_handled)
+
+    # Save updated cache
+    if new_lookups or cases_handled:
         with open(cache_file, 'wb') as f:
             pickle.dump(cache, f)
         logging.info(f"Saved {len(cache)} total results to GBIF cache.")
