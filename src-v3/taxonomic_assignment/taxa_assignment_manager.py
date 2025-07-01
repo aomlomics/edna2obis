@@ -86,8 +86,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             params['pr2_worms_dict'] = {}
         
         # Determine maximum taxonomic ranks for each assay
-        reporter.add_text("📊 Determining maximum taxonomic ranks for each assay...")
-        print("📊 Determining maximum taxonomic ranks for each assay...")
+        reporter.add_text("Determining maximum taxonomic ranks for each assay...")
+        print("Determining maximum taxonomic ranks for each assay...")
         
         assay_rank_info = {}
         if raw_data_tables and data.get('analysis_data_by_assay'):
@@ -178,7 +178,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             if all_progress:
                 progress_text = "\n".join(all_progress)
-                print("\n📊 Taxonomic matching progress:")
+                print("\n🐟 Taxonomic matching progress:")
                 print(progress_text)
                 # Add to HTML report
                 reporter.add_text("Taxonomic matching progress:")
@@ -266,6 +266,32 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             matched_df = matched_df.drop(columns=columns_to_drop, errors='ignore')
             reporter.add_text(f"Removed temporary columns: {columns_to_drop}")
+            
+            # Define the desired final column order (same as in occurrence_builder.py but without assay_name)
+            DESIRED_FINAL_COLUMNS_IN_ORDER = [
+                'eventID', 'organismQuantity', 'occurrenceID', 'verbatimIdentification',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'scientificName', 'scientificNameID', 'match_type_debug', 
+                'taxonRank', 'identificationRemarks',
+                'taxonID', 'basisOfRecord', 'nameAccordingTo', 'organismQuantityType',
+                'recordedBy', 'materialSampleID', 'sampleSizeValue', 'sampleSizeUnit',
+                'associatedSequences', 'locationID', 'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters',
+                'locality', 'decimalLatitude', 'decimalLongitude',
+                'geodeticDatum', 'parentEventID', 'datasetID', 'occurrenceStatus'
+            ]
+            
+            # For GBIF, remove scientificNameID from the desired column order
+            if api_source == 'GBIF':
+                DESIRED_FINAL_COLUMNS_IN_ORDER = [col for col in DESIRED_FINAL_COLUMNS_IN_ORDER if col != 'scientificNameID']
+            
+            # Ensure all desired columns exist in the DataFrame, add as NA if missing
+            for col in DESIRED_FINAL_COLUMNS_IN_ORDER:
+                if col not in matched_df.columns:
+                    matched_df[col] = pd.NA
+            
+            # Reorder columns to match the desired order
+            matched_df = matched_df.reindex(columns=DESIRED_FINAL_COLUMNS_IN_ORDER)
+            reporter.add_text("Applied proper column ordering to match WoRMS output format.")
             
             # Save the taxonomically matched file
             output_filename = f"occurrence_{api_source.lower()}_matched.csv"

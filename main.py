@@ -494,7 +494,7 @@ def main():
     global reporter
     reporter = HTMLReporter("edna2obis_report.html")
     
-    print("🚀 Starting edna2obis conversion...")
+    print("Starting edna2obis conversion...")
     print("="*50)
     
     try:
@@ -502,7 +502,7 @@ def main():
         reporter.add_text_with_submission_logos("Starting initial data cleaning of eDNA metadata and raw data from FAIRe NOAA format to Darwin Core for OBIS and GBIF submission")
         
         # Load configuration
-        print("📋 Loading configuration...")
+        print("🔄 Loading and Cleaning Data...")
         reporter.add_section("Loading Configuration", level=2)
         params = load_config()
         reporter.add_success("Configuration loaded successfully")
@@ -515,52 +515,52 @@ def main():
         ], "Configuration Summary:")
         
         # Set up pandas display options
-        print("🐼 Setting up pandas display options...")
+        print("Setting up Pandas display options...")
         setup_pandas_display()
         
         # Load project data
-        print("📊 Loading project data and metadata...")
+        print("Loading project data and metadata...")
         data = load_project_data(params, reporter)
         
         # Load ASV data
-        print("🔬 Loading ASV data...")
+        print("Loading ASV data...")
         raw_data_tables = load_asv_data(params, reporter)
         
         # Remove control samples
-        print("🧹 Removing control samples...")
+        print("Removing control samples...")
         data, raw_data_tables = remove_control_samples(data, raw_data_tables, params, reporter)
         
         # Drop columns with all NAs
-        print("🗑️ Dropping columns with all NAs...")
+        print("Dropping columns with all NAs...")
         data = drop_all_na_columns(data, reporter)
         
         # Drop NA rows of each analysisMetadata sheet
-        print("📝 Dropping empty analysis metadata rows...")
+        print("Dropping empty analysis metadata rows...")
         data = drop_empty_analysis_rows(data, reporter)
         
         # Drop columns with some missing values
-        print("🧼 Dropping columns with some missing values...")
+        print("Dropping columns with some missing values...")
         data = drop_some_na_columns(data, reporter)
         
         # Load Darwin Core mappings
-        print("🗺️ Loading Darwin Core mappings...")
+        print("Loading Darwin Core mappings...")
         dwc_data = load_darwin_core_mappings(params, reporter)
         
         # Create occurrence core
-        print("🎯 Creating occurrence core...")
+        print("📄 Creating Occurrence Core...")
         occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
         
         # Perform taxonomic assignment
-        print("🔬 Performing taxonomic assignment...")
+        print("🐟 Performing taxonomic assignment...")
         assign_taxonomy(params, data, raw_data_tables, reporter)
         
         # Create DNA derived extension
-        print("🧬 Creating DNA derived extension...")
+        print("📄 Creating DNA derived extension...")
         create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
         
         # Generate final report
         print("\n🎉 Process completed successfully!")
-        print("📄 Generating HTML report...")
+        print("Generating HTML report...")
         
         reporter.add_section("Process Completion")
         reporter.add_success("All steps completed successfully!")
@@ -590,8 +590,8 @@ def main():
     
     finally:
         # Save the report
-        print(f"📊 HTML report saved: {reporter.filename}")
-        print("\n🎊 edna2obis conversion complete!")
+        print(f"HTML report saved: {reporter.filename}")
+        print("\n✓ edna2obis conversion complete!")
         reporter.save()
         reporter.open_in_browser()
 
