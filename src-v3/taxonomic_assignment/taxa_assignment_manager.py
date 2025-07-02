@@ -140,7 +140,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         captured_output = io.StringIO()
         
         reporter.add_text("Starting taxonomic matching process...")
-        print(f"🧬 Starting taxonomic assignment using {api_source} API...")
+        print(f"🐟 Starting taxonomic assignment using {api_source} API...")
         
         try:
             # Run the matching with both logging and stdout/stderr capture
@@ -387,7 +387,7 @@ def create_taxa_assignment_info(params, reporter):
     """
     try:
         reporter.add_section("Creating Taxa Assignment Info File")
-        print("📊 Creating taxa assignment info file...")
+        print("📄 Creating taxa assignment info file...")
         
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
         

@@ -25,7 +25,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             'occurrenceID', 'DNA_sequence', 'concentrationUnit', 'otu_class_appr'
         ]
         
-        print("🧬 Creating DNA derived extension...")
         reporter.add_text(f"DNA derived extension will have {len(DESIRED_DNA_DERIVED_COLUMNS)} columns")
         
         # Create foundation from occurrence core

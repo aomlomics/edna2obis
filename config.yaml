@@ -10,7 +10,7 @@ experimentRunMetadata: "experimentRunMetadata"
 projectMetadata: "projectMetadata"
 
 excel_file: "raw-v3/FAIRe_NOAA_noaa-aoml-gomecc4_SHARING.xlsx"
-FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.xlsx"
+FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.2.xlsx"
 
 # STEP 2
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
