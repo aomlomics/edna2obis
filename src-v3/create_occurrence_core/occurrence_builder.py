@@ -32,7 +32,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
         DESIRED_OCCURRENCE_COLUMNS_IN_ORDER = [
             'eventID', 'organismQuantity', 'assay_name', 'occurrenceID', 'verbatimIdentification',
             'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
-            'scientificName', 'scientificNameID', 'match_type_debug', 
+            'scientificName', 'scientificNameID', 'match_type_debug',
             'taxonRank', 'identificationRemarks',
             'taxonID', 'basisOfRecord', 'nameAccordingTo', 'organismQuantityType',
             'recordedBy', 'materialSampleID', 'sampleSizeValue', 'sampleSizeUnit',
@@ -215,7 +215,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
                 else:
                     reporter.add_text(f"    Warning: Could not construct 'locationID' using '{line_id_col_sm}' or '{station_id_col_sm}'.")
                     if 'locationID' not in current_assay_occurrence_intermediate_df.columns or current_assay_occurrence_intermediate_df['locationID'].isna().all():
-                         current_assay_occurrence_intermediate_df['locationID'] = "LocationID_NotAvailable"
+                         current_assay_occurrence_intermediate_df['locationID'] = "not applicable"
 
 
                 # --- STEP 6: Merge `experimentRunMetadata` & Define `eventID`, `associatedSequences` ---

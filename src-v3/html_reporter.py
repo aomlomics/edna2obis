@@ -204,10 +204,10 @@ class HTMLReporter:
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
             <div class="logo-bar">
-                <img src="images/aoml_logo.png" alt="AOML">
-                <img src="images/noaa_omics_logo.png" alt="NOAA Omics">
-                <img src="images/obis_logo.png" alt="OBIS">
-                <img src="images/gbif_logo.png" alt="GBIF">
+                <img src="../images/aoml_logo.png" alt="AOML">
+                <img src="../images/noaa_omics_logo.png" alt="NOAA Omics">
+                <img src="../images/obis_logo.png" alt="OBIS">
+                <img src="../images/gbif_logo.png" alt="GBIF">
             </div>
         </div>
 """

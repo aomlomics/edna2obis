@@ -119,10 +119,6 @@ def _gbif_worker(args):
         try:
             # Try a strict species-only match first
             gbif_result = species.name_backbone(name=potential_species_name, rank='species', kingdom=kingdom_hint, strict=True)
-            if gbif_result.get('usageKey') is None:
-                # If strict fails, try a fuzzy species match
-                gbif_result = species.name_backbone(name=potential_species_name, rank='species', kingdom=kingdom_hint, strict=False)
-
             if gbif_result.get('usageKey') is not None and gbif_result.get('rank', '').lower() == 'species':
                 result_dict = _build_result_dict(gbif_result)
                 result_dict['cleanedTaxonomy'] = cleaned_taxonomy
@@ -256,23 +252,18 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'cleanedTaxonomy': cleaned_verbatim
             }
             cases_handled[tuple(row)] = incertae_sedis_record
-        # Then check for simple kingdom-only cases  
-        elif cleaned_verbatim.lower() in ['bacteria', 'eukaryota']:
+        # Then check for simple kingdom-only cases that should get incertae sedis
+        elif cleaned_verbatim.lower() in ['eukaryota']:  # Only assign incertae sedis to Eukaryota, not bacteria
             incertae_sedis_record = {
                 'scientificName': 'incertae sedis',
-                'scientificNameID': None,  # GBIF doesn't use scientificNameID
-                'taxonID': None,
-                'kingdom': None,
-                'phylum': None,
-                'class': None,
-                'order': None,
-                'family': None,
-                'genus': None,
+                'scientificNameID': '',  # GBIF doesn't use LSIDs like WoRMS
                 'taxonRank': None,
                 'nameAccordingTo': 'GBIF',
                 'match_type_debug': f'incertae_sedis_simple_case_{cleaned_verbatim}',
                 'cleanedTaxonomy': cleaned_verbatim
             }
+            for col in ['kingdom', 'phylum', 'class', 'order', 'family', 'genus']:
+                incertae_sedis_record[col] = None
             cases_handled[tuple(row)] = incertae_sedis_record
         else:
             new_lookups_to_process.append(tuple(row))

@@ -30,16 +30,13 @@ datafiles:
   #   occurrence_file: "path/to/your/table_your_analysis_run_name.tsv"
 
 # STEP 3:
-# However you denote control / blank samples, specify here
-# 'skip_sample_types' is the column name in your metadata, and 'negative control' and 'positive control' are values in that column
-skip_sample_types:
-  - "negative control"
-  - "positive control"
-
-skip_columns:
-  - "samp_collect_notes"
-  - "date_modified"
-  - "modified_by"
+# Sample filtering configuration
+# Control sample detection - specify the column to check and which values indicate control samples
+control_sample_detection:
+  column_name: "samp_category"  # Column name to check for control indicators
+  control_values:               # List of values in that column that indicate control samples
+    - "negative control"
+    - "positive control"
 
 # STEP 4:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
