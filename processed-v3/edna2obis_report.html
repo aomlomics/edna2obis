@@ -37,19 +37,19 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-07-02 13:43:59</p>
-            <p><strong>End Time:</strong> 2025-07-02 13:44:58</p>
-            <p><strong>Duration:</strong> 0:00:59</p>
-            <p><strong>Report File:</strong> edna2obis_report.html</p>
+            <p><strong>Start Time:</strong> 2025-07-08 11:11:17</p>
+            <p><strong>End Time:</strong> 2025-07-08 11:20:30</p>
+            <p><strong>Duration:</strong> 0:09:13</p>
+            <p><strong>Report File:</strong> processed-v3/edna2obis_report.html</p>
         </div>
         
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
             <div class="logo-bar">
-                <img src="images/aoml_logo.png" alt="AOML">
-                <img src="images/noaa_omics_logo.png" alt="NOAA Omics">
-                <img src="images/obis_logo.png" alt="OBIS">
-                <img src="images/gbif_logo.png" alt="GBIF">
+                <img src="../images/aoml_logo.png" alt="AOML">
+                <img src="../images/noaa_omics_logo.png" alt="NOAA Omics">
+                <img src="../images/obis_logo.png" alt="OBIS">
+                <img src="../images/gbif_logo.png" alt="GBIF">
             </div>
         </div>
 <h1>Data Cleaning</h1>
@@ -1160,15 +1160,15 @@
 <h2>Loading ASV Data</h2>
 <p>Processing analysis run: gomecc4_18s_p1-6_v2024.10_241122</p>
 <div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_18s_p1-6_v2024.10_241122.tsv (shape: (24473, 14))</div>
-<div class="alert alert-success">Loaded occurrence file: raw-v3/table_gomecc4_18s_p1-6_v2024.10_241122.tsv (shape: (24473, 501))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_18s_p1-6_v2024.10_241122.tsv (shape: (24473, 501))</div>
 <p>Processing analysis run: gomecc4_16s_p3-6_v2024.10_241122</p>
 <div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_16s_p3-6_v2024.10_241122.tsv (shape: (49523, 12))</div>
-<div class="alert alert-success">Loaded occurrence file: raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv (shape: (49523, 312))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv (shape: (49523, 312))</div>
 <p>Processing analysis run: gomecc4_16s_p1-2_v2024.10_241122</p>
 <div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv (shape: (19540, 12))</div>
-<div class="alert alert-success">Loaded occurrence file: raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv (shape: (19540, 198))</div>
-<p><h4>Preview of OCCURRENCE table for 'gomecc4_18s_p1-6_v2024.10_241122':</h4></p>
-<h4>Occurrence data preview for gomecc4_18s_p1-6_v2024.10_241122</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv (shape: (19540, 198))</div>
+<p><h4>Preview of ABUNDANCE TABLE for 'gomecc4_18s_p1-6_v2024.10_241122':</h4></p>
+<h4>Abundance table data preview for gomecc4_18s_p1-6_v2024.10_241122</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1314,13 +1314,14 @@
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <div class="alert alert-success">Successfully loaded ASV data for 3 analysis runs</div>
 <h2>Removing Control Samples</h2>
+<p>Using column 'samp_category' to detect control samples</p>
+<p>Looking for these control values: ['negative control', 'positive control']</p>
 <p>Found 30 control/blank samples to remove</p>
 <p>You can view the list of samples to be dropped below:</p>
 <h4>Complete list of samples being removed:</h4><ul><li>GOMECC4_Blank_DIW_20210915_A</li><li>GOMECC4_Blank_DIW_20210915_B</li><li>GOMECC4_Blank_DIW_20210915_C</li><li>GOMECC4_Blank_DIW_20210930_A</li><li>GOMECC4_Blank_DIW_20210930_B</li><li>GOMECC4_Blank_DIW_20210930_C</li><li>GOMECC4_Blank_DIW_20211011_A</li><li>GOMECC4_Blank_DIW_20211011_B</li><li>GOMECC4_Blank_DIW_20211011_C</li><li>GOMECC4_Blank_DIW_20211016_A</li><li>GOMECC4_Blank_DIW_20211016_B</li><li>GOMECC4_Blank_DIW_20211016_C</li><li>GOMECC4_ExtractionBlank_1</li><li>GOMECC4_ExtractionBlank_11</li><li>GOMECC4_ExtractionBlank_12</li><li>GOMECC4_ExtractionBlank_3</li><li>GOMECC4_ExtractionBlank_5</li><li>GOMECC4_ExtractionBlank_7</li><li>GOMECC4_ExtractionBlank_9</li><li>GOMECC4_MSUControl_1</li><li>GOMECC4_MSUControl_2</li><li>GOMECC4_MSUControl_3</li><li>GOMECC4_MSUControl_4</li><li>GOMECC4_MSUControl_5</li><li>GOMECC4_MSUControl_6</li><li>GOMECC4_MSUControl_7</li><li>GOMECC4_NegativeControl_1</li><li>GOMECC4_NegativeControl_2</li><li>GOMECC4_PositiveControl_1</li><li>GOMECC4_PositiveControl_2</li></ul>
 <p>Sample metadata shape after removal: (472, 166)</p>
-<p>Check the samp_category values left in your sampleMetadata. We only want 'sample' (indicating it is not a control or blank).</p>
-<p>Remaining sample categories: sample</p>
-<div class="alert alert-success">✓ Only 'sample' category remains - this is correct!</div>
+<p>Check the samp_category values left in your sampleMetadata.</p>
+<p>Remaining samp_category values: sample</p>
 <p>Experiment run metadata shape after removal: (944, 17)</p>
 <p>Analysis 'gomecc4_18s_p1-6_v2024.10_241122': removed 28 columns (501 → 473)</p>
 <p>Analysis 'gomecc4_16s_p3-6_v2024.10_241122': removed 21 columns (312 → 291)</p>
@@ -1745,16 +1746,18 @@
 <p>Starting taxonomic matching process...</p>
 <p>Taxonomic matching progress:</p>
 <p><pre>Log Output:
-INFO - Loaded 3906 results from GBIF cache file: processed-v3/gbif_matches.pkl
-INFO - Found 0 new unique taxonomic strings to match against GBIF.
-INFO - Assigned 3 cases (unassigned/empty/simple kingdoms) to 'incertae sedis'.
+INFO - No GBIF cache file found or cache is empty. Starting fresh.
+INFO - Found 3904 new unique taxonomic strings to match against GBIF.
+INFO - Assigned 2 cases (unassigned/empty/simple kingdoms) to 'incertae sedis'.
+INFO - Starting parallel GBIF matching with 8 processes...
+INFO - Finished matching in 506.31 seconds.
 INFO - Saved 3906 total results to GBIF cache.
 INFO - Merging GBIF results back into the main DataFrame...
 INFO - GBIF matching and merging complete.</pre></p>
 <p>Applying manual taxonomic corrections for GBIF...</p>
-<p>Found 46,154 records assigned to 'incertae sedis' due to no GBIF match.</p>
-<p>Found 13,309 pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.</p>
-<p>Reassigned 1 complex Eukaryota records to 'incertae sedis'.</p>
+<p>Found 41,376 records assigned to 'incertae sedis' due to no GBIF match.</p>
+<p>Found 11,114 pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.</p>
+<p>Reassigned 0 complex Eukaryota records to 'incertae sedis'.</p>
 <p>Starting post-matching processing.</p>
 <p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
 <p>Removed temporary columns: ['assay_name', 'scientificNameID']</p>
@@ -1762,14 +1765,14 @@ INFO - GBIF matching and merging complete.</pre></p>
 <div class="alert alert-success">Taxonomic assignment completed successfully</div>
 <p>Saved taxonomically matched data: 312,214 records</p>
 <p>Output file: occurrence_gbif_matched.csv</p>
-<p>Summary: 1,623 unique taxa identified</p>
+<p>Summary: 1,597 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
 <p>Loaded taxonomically matched data: 312,214 records</p>
 <p>Found 3,906 unique taxonomy strings</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
 <p>Saved taxa assignment info: 3,906 unique taxonomy strings</p>
 <p>Output file: taxa_assignment_INFO.csv</p>
-<p>File size: 1.16 MB</p>
+<p>File size: 1.17 MB</p>
 <p><h4>Taxa Assignment Info Preview:</h4></p>
 <h4>First 10 entries from taxa_assignment_INFO.csv</h4><p><strong>Shape:</strong> 10 rows × 13 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
@@ -1884,7 +1887,7 @@ INFO - GBIF matching and merging complete.</pre></p>
       <td>Heimdallarchaeia</td>
       <td>gbif:10872566</td>
       <td>class</td>
-      <td>GBIF_EXACT</td>
+      <td>GBIF_HIGHERRANK</td>
       <td>GBIF</td>
     </tr>
     <tr>
@@ -1900,7 +1903,7 @@ INFO - GBIF matching and merging complete.</pre></p>
       <td>Bathyarchaeia</td>
       <td>gbif:10705856</td>
       <td>class</td>
-      <td>GBIF_EXACT</td>
+      <td>GBIF_HIGHERRANK</td>
       <td>GBIF</td>
     </tr>
     <tr>
@@ -1916,7 +1919,7 @@ INFO - GBIF matching and merging complete.</pre></p>
       <td>Bathyarchaeia</td>
       <td>gbif:10705856</td>
       <td>class</td>
-      <td>GBIF_EXACT</td>
+      <td>GBIF_HIGHERRANK</td>
       <td>GBIF</td>
     </tr>
     <tr>
@@ -1932,7 +1935,7 @@ INFO - GBIF matching and merging complete.</pre></p>
       <td>Bathyarchaeia</td>
       <td>gbif:10705856</td>
       <td>class</td>
-      <td>GBIF_EXACT</td>
+      <td>GBIF_HIGHERRANK</td>
       <td>GBIF</td>
     </tr>
     <tr>
@@ -1948,12 +1951,14 @@ INFO - GBIF matching and merging complete.</pre></p>
       <td>Bathyarchaeia</td>
       <td>gbif:10705856</td>
       <td>class</td>
-      <td>GBIF_EXACT</td>
+      <td>GBIF_HIGHERRANK</td>
       <td>GBIF</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Summary: 3,906 taxa with cleaned taxonomy, 0 empty/unassigned</p>
+<p>🔧 Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)</p>
+<p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
 <p>DNA derived extension will have 30 columns</p>
 <p>Starting with the Occurrence Core's shape: (312214, 36)</p>
@@ -1972,9 +1977,9 @@ INFO - GBIF matching and merging complete.</pre></p>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
-<p>✓ occurrence.csv (264.28 MB)</p>
-<p>✓ occurrence_gbif_matched.csv (254.83 MB)</p>
-<p>✓ taxa_assignment_INFO.csv (1.16 MB)</p>
+<p>✗ occurrence.csv (not found)</p>
+<p>✓ occurrence_gbif_matched.csv (251.58 MB)</p>
+<p>✓ taxa_assignment_INFO.csv (1.17 MB)</p>
 <p>✓ dna_derived_extension.csv (338.29 MB)</p>
 
     </div>

@@ -168,7 +168,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             results_cache[(verbatim_str, assay_name)] = incertae_sedis_record
             cases_to_handle.append((verbatim_str, assay_name))
         # Then check for simple kingdom-only cases
-        elif cleaned_verbatim.lower() in ['bacteria', 'eukaryota']:
+        elif cleaned_verbatim.lower() in ['eukaryota']:  # Only assign incertae sedis to Eukaryota, not bacteria
             incertae_sedis_record = {
                 'scientificName': 'incertae sedis',
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',

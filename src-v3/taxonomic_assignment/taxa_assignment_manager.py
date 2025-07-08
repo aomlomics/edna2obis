@@ -230,22 +230,16 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     reporter.add_text(f"Found {num_pre_handled:,} pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.")
 
                 # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
-                # Note: Simple "Eukaryota" cases are now handled earlier, but we may have "Eukaryota;Haptista" style cases
+                # Only reassign to incertae sedis if the kingdom is specifically 'Eukaryota' and scientificName is also 'Eukaryota'
                 eukaryota_override_mask = (
-                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota;Haptista') |
-                    ((matched_df['scientificName'] == 'Eukaryota') & 
-                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
-                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
-                )
+                    (matched_df['kingdom'] == 'Eukaryota') & 
+                    (matched_df['scientificName'] == 'Eukaryota') &
+                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
+                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
                 num_eukaryota_override = eukaryota_override_mask.sum()
-                if num_eukaryota_override > 0:
-                    reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
-                    matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
-                    matched_df.loc[eukaryota_override_mask, 'scientificNameID'] = 'urn:lsid:marinespecies.org:taxname:12'
-                    # Clear all other taxonomic columns for these records
-                    for rank_col in ALL_TAX_RANKS:
-                        if rank_col in matched_df.columns:
-                            matched_df.loc[eukaryota_override_mask, rank_col] = np.nan
+                
+                reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
+                matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
 
                 # CASE 3: Handle any remaining empty/NaN scientificName records as 'incertae sedis'.
                 # This catches any edge cases that might have slipped through
@@ -283,21 +277,16 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     reporter.add_text(f"Found {num_pre_handled:,} pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.")
 
                 # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
+                # Only reassign to incertae sedis if the kingdom is specifically 'Eukaryota' and scientificName is also 'Eukaryota'
                 eukaryota_override_mask = (
-                    (matched_df['verbatimIdentification'].str.strip() == 'Eukaryota;Haptista') |
-                    ((matched_df['scientificName'] == 'Eukaryota') & 
-                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
-                     (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
-                )
+                    (matched_df['kingdom'] == 'Eukaryota') & 
+                    (matched_df['scientificName'] == 'Eukaryota') &
+                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
+                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
                 num_eukaryota_override = eukaryota_override_mask.sum()
-                if num_eukaryota_override > 0:
-                    reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
-                    matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
-                    # No scientificNameID for GBIF
-                    # Clear all other taxonomic columns for these records
-                    for rank_col in ALL_TAX_RANKS_GBIF:
-                        if rank_col in matched_df.columns:
-                            matched_df.loc[eukaryota_override_mask, rank_col] = np.nan
+                
+                reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
+                matched_df.loc[eukaryota_override_mask, 'scientificName'] = 'incertae sedis'
 
                 # CASE 3: Handle any remaining empty/NaN scientificName records as 'incertae sedis'.
                 nan_mask = matched_df['scientificName'].isna()
@@ -325,10 +314,11 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             # Define the desired final column order (same as in occurrence_builder.py but without assay_name)
             # NOTE: cleanedTaxonomy is excluded here - it should only appear in taxa_assignment_INFO.csv
+            # NOTE: match_type_debug is kept temporarily for creating taxa_assignment_INFO.csv, then removed
             DESIRED_FINAL_COLUMNS_IN_ORDER = [
                 'eventID', 'organismQuantity', 'occurrenceID', 'verbatimIdentification',
                 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
-                'scientificName', 'scientificNameID', 'match_type_debug', 
+                'scientificName', 'scientificNameID', 'match_type_debug',
                 'taxonRank', 'identificationRemarks',
                 'taxonID', 'basisOfRecord', 'nameAccordingTo', 'organismQuantityType',
                 'recordedBy', 'materialSampleID', 'sampleSizeValue', 'sampleSizeUnit',

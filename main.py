@@ -44,8 +44,18 @@ def load_config(config_path="config.yaml"):
         params['excel_file'] = config['excel_file']
         params['FAIRe_NOAA_checklist'] = config['FAIRe_NOAA_checklist']
         params['datafiles'] = config['datafiles']
-        params['skip_sample_types'] = config['skip_sample_types']
-        params['skip_columns'] = config['skip_columns']
+        params['skip_columns'] = config.get('skip_columns', [])
+        
+        # Handle control sample detection
+        if 'control_sample_detection' in config and config['control_sample_detection']:
+            params['control_sample_column'] = config['control_sample_detection'].get('column_name', 'samp_category')
+            params['control_sample_values'] = config['control_sample_detection'].get('control_values', [])
+            params['skip_sample_types'] = config['control_sample_detection'].get('control_values', [])
+        else:
+            params['control_sample_column'] = 'samp_category'
+            params['skip_sample_types'] = config.get('skip_sample_types', [])
+            params['control_sample_values'] = config.get('skip_sample_types', [])
+        
         params['taxonomic_api_source'] = config['taxonomic_api_source']
         params['assays_to_skip_species_match'] = config['assays_to_skip_species_match']
         
@@ -167,33 +177,33 @@ def load_asv_data(params, reporter):
                     reporter.add_error(f"Failed to load taxonomy file {tax_path}: {e}")
                     raise
             
-            # Load occurrence file  
+            # Load abundance table file  
             if 'occurrence_file' in file_paths:
-                occ_path = file_paths['occurrence_file']
+                abundance_path = file_paths['occurrence_file']
                 try:
                     # Skip comment line and use proper header
-                    df_occ = pd.read_table(occ_path, sep='\t', skiprows=1, header=0, low_memory=False)
+                    df_abundance = pd.read_table(abundance_path, sep='\t', skiprows=1, header=0, low_memory=False)
                     
                     # Remove leading '#' from first column if present
-                    if df_occ.columns[0].startswith('#'):
-                        df_occ.rename(columns={df_occ.columns[0]: df_occ.columns[0][1:]}, inplace=True)
+                    if df_abundance.columns[0].startswith('#'):
+                        df_abundance.rename(columns={df_abundance.columns[0]: df_abundance.columns[0][1:]}, inplace=True)
                     
-                    raw_data_tables[analysis_run_name]['occurrence'] = df_occ
-                    occ_shape = raw_data_tables[analysis_run_name]['occurrence'].shape
-                    reporter.add_success(f"Loaded occurrence file: {occ_path} (shape: {occ_shape})")
+                    raw_data_tables[analysis_run_name]['occurrence'] = df_abundance
+                    abundance_shape = raw_data_tables[analysis_run_name]['occurrence'].shape
+                    reporter.add_success(f"Loaded abundance table file: {abundance_path} (shape: {abundance_shape})")
                 except Exception as e:
-                    reporter.add_error(f"Failed to load occurrence file {occ_path}: {e}")
+                    reporter.add_error(f"Failed to load abundance table file {abundance_path}: {e}")
                     raise
         
-        # Show preview of occurrence data
+        # Show preview of abundance data
         # Choose the first analysis run to inspect
         if raw_data_tables:
             first_analysis = list(raw_data_tables.keys())[0]
             if 'occurrence' in raw_data_tables[first_analysis]:
-                reporter.add_text(f"<h4>Preview of OCCURRENCE table for '{first_analysis}':</h4>")
+                reporter.add_text(f"<h4>Preview of ABUNDANCE TABLE for '{first_analysis}':</h4>")
                 # Show first 5 rows and first 20 columns like in notebook
                 preview_df = raw_data_tables[first_analysis]['occurrence'].iloc[:5, :20]
-                reporter.add_dataframe(preview_df, f"Occurrence data preview for {first_analysis}")
+                reporter.add_dataframe(preview_df, f"Abundance table data preview for {first_analysis}")
         
         reporter.add_success(f"Successfully loaded ASV data for {len(raw_data_tables)} analysis runs")
         return raw_data_tables
@@ -209,44 +219,56 @@ def remove_control_samples(data, raw_data_tables, params, reporter):
     reporter.add_section("Removing Control Samples", level=2)
     
     try:
+        # Get control detection configuration
+        control_column = params.get('control_sample_column', 'samp_category')
+        control_values = params.get('control_sample_values', [])
+        
+        if not control_values:
+            reporter.add_text("No control sample values specified - skipping control sample removal")
+            return data, raw_data_tables
+        
+        # Check if the specified column exists
+        if control_column not in data['sampleMetadata'].columns:
+            reporter.add_text(f"⚠️ Warning: Control detection column '{control_column}' not found in sampleMetadata. Available columns: {list(data['sampleMetadata'].columns)}")
+            reporter.add_text("Skipping control sample removal")
+            return data, raw_data_tables
+        
         # Identify samples to remove
-        samps_to_remove = data['sampleMetadata']['samp_category'].isin(params['skip_sample_types'])
+        samps_to_remove = data['sampleMetadata'][control_column].isin(control_values)
         samples_to_drop = data['sampleMetadata']['samp_name'][samps_to_remove].astype(str).str.strip().tolist()
         
+        reporter.add_text(f"Using column '{control_column}' to detect control samples")
+        reporter.add_text(f"Looking for these control values: {control_values}")
         reporter.add_text(f"Found {len(samples_to_drop)} control/blank samples to remove")
         
         # Show the complete list of samples to be dropped
-        reporter.add_text("You can view the list of samples to be dropped below:")
-        reporter.add_list(samples_to_drop, "Complete list of samples being removed:")
+        if samples_to_drop:
+            reporter.add_text("You can view the list of samples to be dropped below:")
+            reporter.add_list(samples_to_drop, "Complete list of samples being removed:")
         
         # Remove from sampleMetadata
         data['sampleMetadata'] = data['sampleMetadata'][~samps_to_remove]
         reporter.add_text(f"Sample metadata shape after removal: {data['sampleMetadata'].shape}")
         
         # Check remaining sample categories
-        remaining_categories = data['sampleMetadata']['samp_category'].unique()
-        reporter.add_text("Check the samp_category values left in your sampleMetadata. We only want 'sample' (indicating it is not a control or blank).")
-        reporter.add_text(f"Remaining sample categories: {', '.join(remaining_categories)}")
-        
-        if len(remaining_categories) == 1 and remaining_categories[0] == 'sample':
-            reporter.add_success("✓ Only 'sample' category remains - this is correct!")
-        else:
-            reporter.add_text("⚠️ Warning: Expected only 'sample' category to remain")
+        remaining_categories = data['sampleMetadata'][control_column].unique()
+        reporter.add_text(f"Check the {control_column} values left in your sampleMetadata.")
+        reporter.add_text(f"Remaining {control_column} values: {', '.join(map(str, remaining_categories))}")
         
         # Remove from experimentRunMetadata
         prep_samps_to_remove = data['experimentRunMetadata']['samp_name'].isin(samples_to_drop)
         data['experimentRunMetadata'] = data['experimentRunMetadata'][~prep_samps_to_remove]
         reporter.add_text(f"Experiment run metadata shape after removal: {data['experimentRunMetadata'].shape}")
         
-        # Remove from ASV occurrence tables
+        # Remove from ASV abundance tables
         for analysis_run_name, tables_dict in raw_data_tables.items():
             if 'occurrence' in tables_dict:
-                occ_df = tables_dict['occurrence']
-                original_cols = len(occ_df.columns)
+                abundance_df = tables_dict['occurrence']
+                original_cols = len(abundance_df.columns)
                 
-                cols_to_remove = [col for col in samples_to_drop if col in occ_df.columns]
+                cols_to_remove = [col for col in samples_to_drop if col in abundance_df.columns]
                 if cols_to_remove:
-                    raw_data_tables[analysis_run_name]['occurrence'] = occ_df.drop(columns=cols_to_remove)
+                    raw_data_tables[analysis_run_name]['occurrence'] = abundance_df.drop(columns=cols_to_remove)
                     new_cols = len(raw_data_tables[analysis_run_name]['occurrence'].columns)
                     reporter.add_text(f"Analysis '{analysis_run_name}': removed {len(cols_to_remove)} columns ({original_cols} → {new_cols})")
         
@@ -492,7 +514,12 @@ def main():
     """Main execution function"""
     # Initialize HTML reporter
     global reporter
-    reporter = HTMLReporter("edna2obis_report.html")
+    
+    # Set up output directory and report path
+    output_dir = "processed-v3/"
+    os.makedirs(output_dir, exist_ok=True)
+    report_path = os.path.join(output_dir, "edna2obis_report.html")
+    reporter = HTMLReporter(report_path)
     
     print("Starting edna2obis conversion...")
     print("="*50)
@@ -555,9 +582,31 @@ def main():
         assign_taxonomy(params, data, raw_data_tables, reporter)
         
         # Create taxa assignment info file
-        print("📊 Creating taxa assignment info file...")
         from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
         create_taxa_assignment_info(params, reporter)
+        
+        # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
+        api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
+        final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_{api_source}_matched.csv')
+        try:
+            if os.path.exists(final_occurrence_path):
+                # Read the file, remove match_type_debug column, and save back
+                final_df = pd.read_csv(final_occurrence_path)
+                if 'match_type_debug' in final_df.columns:
+                    final_df = final_df.drop(columns=['match_type_debug'])
+                    final_df.to_csv(final_occurrence_path, index=False, na_rep='')
+                    reporter.add_text(f"🔧 Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)")
+        except Exception as e:
+            reporter.add_text(f"⚠️ Warning: Could not remove match_type_debug from final file: {e}")
+        
+        # Delete intermediate occurrence.csv file
+        intermediate_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), 'occurrence.csv')
+        try:
+            if os.path.exists(intermediate_occurrence_path):
+                os.remove(intermediate_occurrence_path)
+                reporter.add_text(f"🗑️ Deleted intermediate file: {intermediate_occurrence_path}")
+        except Exception as e:
+            reporter.add_text(f"⚠️ Warning: Could not delete intermediate occurrence.csv: {e}")
         
         # Create DNA derived extension
         print("📄 Creating DNA derived extension...")
