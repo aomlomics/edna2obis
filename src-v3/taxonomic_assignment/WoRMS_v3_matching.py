@@ -241,12 +241,18 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         if all_terms_to_match:
             chunk_size = 50
             batch_data = [( (i // chunk_size) + 1, all_terms_to_match[i:i+chunk_size] ) for i in range(0, len(all_terms_to_match), chunk_size)]
+            total_batches = len(batch_data)
             
-            logging.info(f"Processing {len(batch_data)} batches with {n_proc} processes...")
+            logging.info(f"Processing {total_batches} batches with {n_proc} processes...")
             
+            processed_batches = 0
             with mp.Pool(processes=n_proc) as pool:
-                for _, batch_result in pool.map(get_worms_batch_worker, batch_data):
+                # Use imap_unordered to get results as they complete, allowing for progress reporting
+                for batch_num, batch_result in pool.imap_unordered(get_worms_batch_worker, batch_data):
                     batch_lookup.update(batch_result)
+                    processed_batches += 1
+                    logging.info(f"  ... Progress: {processed_batches}/{total_batches} batches completed (Batch ID: {batch_num}).")
+
             logging.info(f"Smart parallel processing complete! Found matches for {len(batch_lookup)} terms.")
 
             still_unmatched_batch = []
