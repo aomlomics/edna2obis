@@ -22,7 +22,7 @@ The latest version of edna2obis (version 3) builds upon the original edna2obis, 
 - Improved taxonomic assignment accuracy and performance, with new caching methods
 - Users can specify which assays to NOT include species rank for taxonomic assignment (for example, Bacterial taxonomies often have the HOST organism as the species)
 - A new output file is created, `taxa_assignment_INFO.csv`, which gives information on how the taxonomies were assigned
-- Generates an HTML output report to document your edna2obis run
+- Generates an HTML output report, `edna2obis_report.html` to document your run
 
 
 ### Example data abstract:
