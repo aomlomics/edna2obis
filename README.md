@@ -48,6 +48,8 @@ You must have 2 raw data files associated with each analysis (analysisMetadata) 
 | 1ce3b5c6d... | TACGA... | Bacteria;Proteobacteria;Alphaproteoba... | d__Bacteria;p__Proteoba... | Bacteria | Proteobacteria | ... | Clade_Ia | 0.88 |
 | 4e38e8ced... | GCTACTAC... | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota | Obazoa | ... | Clausocalanus furcatus | 0.999 |
 
+NOTE: We understand taxonomy is complicated, so edna2obis is flexible and can receive any list of taxonomic ranks (as long as they are between columns `verbatimIdentification` and `Confidence`). For example, our 16S and 18S assay data use different taxonomic ranks, and even have a different number of taxonomic ranks. The code can account for this, and assigns taxonomies based on what ranks each API returns.
+
 The verbatimIdentification strings may or may not have the prepending rank with underscores. The code will remove them during processing if they exist.
 
 `featureid` is a hash of the DNA sequence, and they are unique identifiers.
@@ -166,8 +168,7 @@ The pipeline will:
 
 The pipeline generates several files in your `output_dir`:
 
-- `occurrence.csv` - Initial occurrence data (intermediate file)
-- `occurrence_worms_matched.csv` / `occurrence_gbif_matched.csv` - Final Occurrence Core with taxonomy
+- `occurrence_worms_matched.csv` / `occurrence_gbif_matched.csv` - Final Occurrence Core with assigned taxonomies
 - `taxa_assignment_INFO.csv` - Summary of HOW taxonomies were assigned
 - `dna_derived_extension.csv` - DNA-Derived data extension
 - `edna2obis_report.html` - HTML output report
@@ -184,9 +185,7 @@ The pipeline generates several files in your `output_dir`:
    ```
 
 2. **API timeout errors**
-   - Check internet connection
    - Reduce worms_n_proc or gbif_n_proc in `config.yaml`
-   - The pipeline has built-in retry logic
 
 3. **Missing data files**
    - Verify all file paths in config.yaml are correct
