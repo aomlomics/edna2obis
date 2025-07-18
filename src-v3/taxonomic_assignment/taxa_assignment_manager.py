@@ -133,7 +133,9 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         
         # Get the logger used by the API scripts (they likely use logging)
         logger = logging.getLogger()
-        logger.addHandler(ch)
+        # The following line is the root cause of the logs not appearing on the console.
+        # It is temporarily disabled to allow for real-time debugging in the terminal.
+        # logger.addHandler(ch)
         logger.setLevel(logging.INFO)
         
         # Also capture stdout/stderr for any print statements
@@ -158,12 +160,16 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 params['taxa_info_df'] = worms_results['info_df']
             elif api_source == 'GBIF':
                 print("Running GBIF API matching...")
-                with redirect_stdout(captured_output), redirect_stderr(captured_output):
-                    matched_df = GBIF_matching.get_gbif_match_for_dataframe(
-                        occurrence_df=df_to_match,
-                        params_dict=params,
-                        n_proc=params.get('gbif_n_proc', 0)
-                    )
+                # The 'with' block that captures output is temporarily disabled for debugging
+                # to allow real-time logs to appear on the console.
+                # with redirect_stdout(captured_output), redirect_stderr(captured_output):
+                gbif_results = GBIF_matching.get_gbif_match_for_dataframe(
+                    occurrence_df=df_to_match,
+                    params_dict=params,
+                    n_proc=params.get('gbif_n_proc', 0)
+                )
+                matched_df = gbif_results['main_df']
+                params['taxa_info_df'] = gbif_results['info_df']
             else:
                 raise ValueError(f"Unknown taxonomic API source: {api_source}")
             
@@ -205,7 +211,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             raise e
         finally:
             # Clean up the logger
-            logger.removeHandler(ch)
+            # logger.removeHandler(ch)
+            pass
         
         if matched_df is not None and not matched_df.empty:
             # Apply post-processing for WoRMS (the manual corrections)
@@ -388,13 +395,13 @@ def create_taxa_assignment_info(params, reporter):
         taxa_info = pd.DataFrame()
         
         # --- Data Loading ---
-        if api_source == 'worms' and 'taxa_info_df' in params:
-            # NEW WoRMS PATH: Use the detailed info_df created during matching
-            reporter.add_text("Using detailed match data from WoRMS process for info file.")
+        if api_source in ['worms', 'gbif'] and 'taxa_info_df' in params:
+            # For WoRMS and GBIF, use the detailed info_df created during the matching process
+            reporter.add_text(f"Using detailed match data from {api_source.upper()} process for info file.")
             taxa_info = params['taxa_info_df'].copy()
         else:
-            # ORIGINAL PATH (for GBIF or if WoRMS fallback is needed)
-            reporter.add_text("Using standard method (one row per unique verbatim ID) for info file.")
+            # ORIGINAL PATH (Fallback if info_df is missing)
+            reporter.add_text(f"Using standard method (one row per unique verbatim ID) for info file. Note: Ambiguous matches may not be shown.")
             occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_{api_source}_matched.csv')
             if not os.path.exists(occurrence_path):
                 reporter.add_error(f"Taxonomically matched occurrence file not found at {occurrence_path}")
@@ -427,11 +434,11 @@ def create_taxa_assignment_info(params, reporter):
                 'scientificName', 'scientificNameID', 'taxonRank', 
                 'match_type_debug', 'nameAccordingTo'
             ]
-        else: # GBIF
+        else: # GBIF, includes confidence
             final_column_order = [
                 'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous',
+                'scientificName', 'confidence', 'taxonRank', 'taxonID', 
                 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
-                'scientificName', 'taxonID', 'taxonRank', 
                 'match_type_debug', 'nameAccordingTo'
             ]
         

@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-07-08 13:46:21</p>
-            <p><strong>End Time:</strong> 2025-07-08 13:47:29</p>
-            <p><strong>Duration:</strong> 0:01:08</p>
+            <p><strong>Start Time:</strong> 2025-07-17 17:12:03</p>
+            <p><strong>End Time:</strong> 2025-07-17 17:32:11</p>
+            <p><strong>Duration:</strong> 0:20:08</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report.html</p>
         </div>
         
@@ -1744,17 +1744,9 @@
 <p>  - Assay 'ssu16sv4v5-emp': 7 rank columns</p>
 <p>  - Assay 'ssu16sv4v5-emp': 7 rank columns</p>
 <p>Starting taxonomic matching process...</p>
-<p>Taxonomic matching progress:</p>
-<p><pre>Log Output:
-INFO - Loaded 3906 results from GBIF cache file: processed-v3/gbif_matches.pkl
-INFO - Found 0 new unique taxonomic strings to match against GBIF.
-INFO - Assigned 2 cases (unassigned/empty/simple kingdoms) to 'incertae sedis'.
-INFO - Saved 3906 total results to GBIF cache.
-INFO - Merging GBIF results back into the main DataFrame...
-INFO - GBIF matching and merging complete.</pre></p>
+<p>Taxonomic matching completed</p>
 <p>Applying manual taxonomic corrections for GBIF...</p>
-<p>Found 41,376 records assigned to 'incertae sedis' due to no GBIF match.</p>
-<p>Found 11,114 pre-handled cases (unassigned/empty/simple kingdoms) assigned to 'incertae sedis'.</p>
+<p>Found 11,987 records assigned to 'incertae sedis' due to no GBIF match.</p>
 <p>Reassigned 0 complex Eukaryota records to 'incertae sedis'.</p>
 <p>Starting post-matching processing.</p>
 <p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
@@ -1763,198 +1755,219 @@ INFO - GBIF matching and merging complete.</pre></p>
 <div class="alert alert-success">Taxonomic assignment completed successfully</div>
 <p>Saved taxonomically matched data: 312,214 records</p>
 <p>Output file: occurrence_gbif_matched.csv</p>
-<p>Summary: 1,597 unique taxa identified</p>
+<p>Summary: 1,652 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
-<p>Loaded taxonomically matched data: 312,214 records</p>
-<p>Found 3,906 unique taxonomy strings</p>
+<p>Using detailed match data from GBIF process for info file.</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
-<p>Saved taxa assignment info: 3,906 unique taxonomy strings</p>
+<p>Saved taxa assignment info: 17,635 total rows (3,906 unique strings)</p>
 <p>Output file: taxa_assignment_INFO.csv</p>
-<p>File size: 1.17 MB</p>
+<p>File size: 5.63 MB</p>
 <p><h4>Taxa Assignment Info Preview:</h4></p>
-<h4>First 10 entries from taxa_assignment_INFO.csv</h4><p><strong>Shape:</strong> 10 rows × 13 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>First 10 entries from taxa_assignment_INFO.csv</h4><p><strong>Shape:</strong> 10 rows × 15 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
       <th>verbatimIdentification</th>
       <th>cleanedTaxonomy</th>
+      <th>ambiguous</th>
+      <th>scientificName</th>
+      <th>confidence</th>
+      <th>taxonRank</th>
+      <th>taxonID</th>
       <th>kingdom</th>
       <th>phylum</th>
       <th>class</th>
       <th>order</th>
       <th>family</th>
       <th>genus</th>
-      <th>scientificName</th>
-      <th>taxonID</th>
-      <th>taxonRank</th>
       <th>match_type_debug</th>
       <th>nameAccordingTo</th>
     </tr>
   </thead>
   <tbody>
     <tr>
-      <th>157362</th>
+      <th>0</th>
       <td>Archaea</td>
       <td>Archaea</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>incertae sedis</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>No_GBIF_Match</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>230831</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>incertae sedis</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>No_GBIF_Match</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>234465</th>
-      <td>Archaea;Aenigmarchaeota;Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG)</td>
-      <td>Archaea;Aenigmarchaeota;Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG)</td>
-      <td>Animalia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Deep</td>
-      <td>Deep</td>
-      <td>gbif:11142814</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
       <td>genus</td>
-      <td>GBIF_HIGHERRANK</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>165600</th>
-      <td>Archaea;Aenigmarchaeota;Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG);Deep_Sea_Euryarchaeotic_Group(DSEG);uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG);Deep Sea Euryarchaeotic Group(DSEG);uncultured archaeon</td>
+      <td>gbif:6101330</td>
       <td>Animalia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Deep</td>
-      <td>Deep</td>
-      <td>gbif:11142814</td>
-      <td>genus</td>
-      <td>GBIF_HIGHERRANK</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>214970</th>
-      <td>Archaea;Altiarchaeota;Altiarchaeia;Altiarchaeales;Altiarchaeaceae;Candidatus_Altiarchaeum;uncultured_archaeon</td>
-      <td>Archaea;Altiarchaeota;Altiarchaeia;Altiarchaeales;Altiarchaeaceae;Candidatus Altiarchaeum;uncultured archaeon</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
       <td>Archaea</td>
-      <td>Altiarchaeota</td>
-      <td>Altiarchaeia</td>
-      <td>Altiarchaeales</td>
-      <td>Altiarchaeaceae</td>
-      <td>NaN</td>
-      <td>Altiarchaeaceae</td>
-      <td>gbif:11706153</td>
-      <td>family</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>219378</th>
-      <td>Archaea;Asgardarchaeota;Heimdallarchaeia;Heimdallarchaeia;Heimdallarchaeia;Heimdallarchaeia;uncultured_archaeon</td>
-      <td>Archaea;Asgardarchaeota;Heimdallarchaeia;Heimdallarchaeia;Heimdallarchaeia;Heimdallarchaeia;uncultured archaeon</td>
+      <th>1</th>
       <td>Archaea</td>
-      <td>Asgardarchaeota</td>
-      <td>Heimdallarchaeia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Heimdallarchaeia</td>
-      <td>gbif:10872566</td>
-      <td>class</td>
-      <td>GBIF_HIGHERRANK</td>
+      <td>Archaea</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>218532</th>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia</td>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia</td>
+      <th>2</th>
       <td>Archaea</td>
-      <td>Thermoproteota</td>
-      <td>Bathyarchaeia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Bathyarchaeia</td>
-      <td>gbif:10705856</td>
-      <td>class</td>
-      <td>GBIF_HIGHERRANK</td>
+      <td>Archaea</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>210149</th>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;marine_metagenome</td>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;marine metagenome</td>
+      <th>3</th>
       <td>Archaea</td>
-      <td>Thermoproteota</td>
-      <td>Bathyarchaeia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Bathyarchaeia</td>
-      <td>gbif:10705856</td>
-      <td>class</td>
-      <td>GBIF_HIGHERRANK</td>
+      <td>Archaea</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>261301</th>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;uncultured_archaeon</td>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;uncultured archaeon</td>
+      <th>4</th>
       <td>Archaea</td>
-      <td>Thermoproteota</td>
-      <td>Bathyarchaeia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Bathyarchaeia</td>
-      <td>gbif:10705856</td>
-      <td>class</td>
-      <td>GBIF_HIGHERRANK</td>
+      <td>Archaea</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>100.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>198930</th>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;uncultured_crenarchaeote</td>
-      <td>Archaea;Crenarchaeota;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;Bathyarchaeia;uncultured crenarchaeote</td>
+      <th>5</th>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
       <td>Archaea</td>
-      <td>Thermoproteota</td>
-      <td>Bathyarchaeia</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>Bathyarchaeia</td>
-      <td>gbif:10705856</td>
-      <td>class</td>
-      <td>GBIF_HIGHERRANK</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>97.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
+      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>True</td>
+      <td>Archaea Koch & Berendt, 1854</td>
+      <td>100.0</td>
+      <td>genus</td>
+      <td>gbif:6101330</td>
+      <td>Animalia</td>
+      <td>Arthropoda</td>
+      <td>Arachnida</td>
+      <td>Araneae</td>
+      <td>Archaeidae</td>
+      <td>Archaea</td>
+      <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<p>Summary: 3,906 taxa with cleaned taxonomy, 0 empty/unassigned</p>
+<p>Summary: Found 3,724 unique verbatim strings with ambiguous matches.</p>
 <p>🔧 Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)</p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
@@ -1976,8 +1989,8 @@ INFO - GBIF matching and merging complete.</pre></p>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
 <p>✗ occurrence.csv (not found)</p>
-<p>✓ occurrence_gbif_matched.csv (251.58 MB)</p>
-<p>✓ taxa_assignment_INFO.csv (1.17 MB)</p>
+<p>✓ occurrence_gbif_matched.csv (257.05 MB)</p>
+<p>✓ taxa_assignment_INFO.csv (5.63 MB)</p>
 <p>✓ dna_derived_extension.csv (338.29 MB)</p>
 
     </div>
