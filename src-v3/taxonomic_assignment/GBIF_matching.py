@@ -10,6 +10,9 @@ import re
 # --- Setup logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# --- Constants ---
+AMBIGUOUS_KINGDOMS = ['bacteria', 'plantae', 'fungi', 'animalia', 'archaea', 'protista', 'chromista']
+
 def parse_semicolon_taxonomy(tax_string):
     """
     Helper function to parse and aggressively clean a semicolon-separated taxonomy string.
@@ -72,6 +75,8 @@ def _gbif_worker(args):
     cleaned_parts = parse_semicolon_taxonomy(lookup_key)
     if not cleaned_parts:
         return args, []
+        
+    expected_kingdom = cleaned_parts[0] if cleaned_parts else None
 
     if skip_species and len(cleaned_parts) >= 6:
         cleaned_parts = cleaned_parts[:-1]
@@ -88,9 +93,14 @@ def _gbif_worker(args):
             continue
             
         try:
+            # For single-word kingdom names, specify the rank to avoid homonyms. (stick bug named 'Bacteria')
+            api_params = {'q': taxon_to_search, 'status': 'ACCEPTED', 'limit': 3, 'higherTaxonKey': None}
+            if len(cleaned_parts) == 1 and taxon_to_search.lower() in AMBIGUOUS_KINGDOMS:
+                api_params['rank'] = 'kingdom'
+
             # Use name_lookup which can return multiple results
             # Change the 'limit' parameter to set how many matches per unique taxon string are returned. The code will select the highest confidence match
-            lookup_data = species.name_lookup(q=taxon_to_search, status='ACCEPTED', limit=3, higherTaxonKey=None)
+            lookup_data = species.name_lookup(**api_params)
             
             if lookup_data and lookup_data.get('results'):
                 for record in lookup_data['results']:
@@ -115,6 +125,19 @@ def _gbif_worker(args):
             print(f"FAIL: General error during name_lookup for '{taxon_to_search}': {e}")
             logging.warning(f"GBIF API call (walk-up/name_lookup) for '{taxon_to_search}' failed with error: {e}")
             continue
+
+    # HYBRID PLAN (PART 2): Post-search sanity check on all found matches
+    if expected_kingdom:
+        for match in all_accepted_matches:
+            returned_kingdom = match.get('kingdom')
+            # A match is inconsistent if the returned kingdom exists and directly contradicts the expected kingdom.
+            if returned_kingdom and returned_kingdom != expected_kingdom:
+                match['consistency_check'] = 'Inconsistent Kingdom'
+            else:
+                match['consistency_check'] = 'Consistent'
+    else:
+        for match in all_accepted_matches:
+            match['consistency_check'] = 'N/A' # No basis for comparison
 
     return args, all_accepted_matches
 
@@ -205,7 +228,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             # No match found, use incertae sedis
             best_match = {
                 **incertae_sedis_record, 'match_type_debug': 'No_GBIF_Match',
-                'cleanedTaxonomy': ';'.join(parse_semicolon_taxonomy(verbatim_id))
+                'cleanedTaxonomy': ';'.join(parse_semicolon_taxonomy(verbatim_id)),
+                'consistency_check': 'N/A'
             }
             info_record = {'verbatimIdentification': verbatim_id, **best_match, 'ambiguous': False}
             
@@ -213,11 +237,24 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             info_df_records.append(info_record)
         else:
             # Matches found, determine best one and add all to info
-            # Sort by confidence descending, highest first. NaNs (None) go last.
-            sorted_matches = sorted(matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
-            best_match = sorted_matches[0]
             
-            main_df_records.append({'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **best_match})
+            # HYBRID PLAN (PART 2): Select best match based on consistency
+            consistent_matches = [m for m in matches if m.get('consistency_check') != 'Inconsistent Kingdom']
+            
+            if consistent_matches:
+                # Sort by confidence descending, highest first.
+                sorted_matches = sorted(consistent_matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
+                best_match = sorted_matches[0]
+            else:
+                # If no consistent matches, log a warning and fall back to the best of the inconsistent ones.
+                logging.warning(f"For '{verbatim_id}', no consistent kingdom match found. Using best available inconsistent match.")
+                sorted_matches = sorted(matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
+                best_match = sorted_matches[0] if sorted_matches else None
+
+            if best_match:
+                main_df_records.append({'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **best_match})
+            
+            is_ambiguous = len(matches) > 1
             
             for match in matches:
                 info_record = {'verbatimIdentification': verbatim_id, **match, 'ambiguous': is_ambiguous}
@@ -240,7 +277,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         how='left'
     )
     
-    final_df.drop(columns=['skip_species_flag'], inplace=True, errors='ignore')
+    # Do not include the consistency_check in the final occurrence file, only in the INFO file.
+    final_df.drop(columns=['skip_species_flag', 'consistency_check'], inplace=True, errors='ignore')
     
     logging.info("GBIF matching and merging complete.")
     return {'main_df': final_df, 'info_df': info_df}
