@@ -181,13 +181,35 @@ def load_asv_data(params, reporter):
             if 'occurrence_file' in file_paths:
                 abundance_path = file_paths['occurrence_file']
                 try:
-                    # Skip comment line and use proper header
-                    df_abundance = pd.read_table(abundance_path, sep='\t', skiprows=1, header=0, low_memory=False)
+                    # --- Smartly handle old and new Tourmaline formats ---
                     
-                    # Remove leading '#' from first column if present
-                    if df_abundance.columns[0].startswith('#'):
-                        df_abundance.rename(columns={df_abundance.columns[0]: df_abundance.columns[0][1:]}, inplace=True)
+                    # 1. Check the first line to see if we need to skip it.
+                    with open(abundance_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        first_line = f.readline()
                     
+                    # The old format has a comment line, the new one starts with the header.
+                    rows_to_skip = 1 if '# Constructed from biom file' in first_line else 0
+
+                    # 2. Load the table, skipping the comment line only if it exists.
+                    df_abundance = pd.read_table(abundance_path,
+                                                 sep='\t',
+                                                 skiprows=rows_to_skip,
+                                                 header=0,
+                                                 low_memory=False)
+                    
+                    # 3. Standardize the first column name to 'featureid'.
+                    first_col_name = df_abundance.columns[0]
+                    
+                    # First, remove the leading '#' if it exists.
+                    if first_col_name.startswith('#'):
+                        clean_col_name = first_col_name[1:]
+                        df_abundance.rename(columns={first_col_name: clean_col_name}, inplace=True)
+                        first_col_name = clean_col_name # Update for the next check
+                    
+                    # Now, if the column is 'OTU ID', rename it to 'featureid'.
+                    if first_col_name.lower() == 'otu id':
+                        df_abundance.rename(columns={first_col_name: 'featureid'}, inplace=True)
+
                     raw_data_tables[analysis_run_name]['occurrence'] = df_abundance
                     abundance_shape = raw_data_tables[analysis_run_name]['occurrence'].shape
                     reporter.add_success(f"Loaded abundance table file: {abundance_path} (shape: {abundance_shape})")
@@ -585,6 +607,19 @@ def main():
         from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
         create_taxa_assignment_info(params, reporter)
         
+        # After creating the GBIF info file, remove any duplicate rows
+        if params.get('taxonomic_api_source') == 'GBIF':
+            from taxonomic_assignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
+            print("Removing duplicate rows from GBIF taxa info file...")
+            remove_duplicates_from_gbif_taxa_info(params)
+
+            from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
+            print("Marking selected matches in GBIF taxa info file...")
+            mark_selected_gbif_matches(params)
+
+        elif params.get('taxonomic_api_source') == 'WoRMS':
+            from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
+            print("Marking selected matches in WoRMS taxa info file...")
         # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
         final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_{api_source}_matched.csv')

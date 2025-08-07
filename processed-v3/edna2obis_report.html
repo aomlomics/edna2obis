@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-07-17 17:12:03</p>
-            <p><strong>End Time:</strong> 2025-07-17 17:32:11</p>
-            <p><strong>Duration:</strong> 0:20:08</p>
+            <p><strong>Start Time:</strong> 2025-08-07 17:09:01</p>
+            <p><strong>End Time:</strong> 2025-08-07 17:09:03</p>
+            <p><strong>Duration:</strong> 0:00:01</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report.html</p>
         </div>
         
@@ -58,22 +58,26 @@
         
 <h2>Loading Configuration</h2>
 <div class="alert alert-success">Configuration loaded successfully</div>
-<h4>Configuration Summary:</h4><ul><li>API Source: GBIF</li><li>Excel file: raw-v3/FAIRe_NOAA_noaa-aoml-gomecc4_SHARING.xlsx</li><li>Number of analysis runs: 3</li><li>Output directory: processed-v3/</li><li>Local reference database: False</li></ul>
+<h4>Configuration Summary:</h4><ul><li>API Source: GBIF</li><li>Excel file: raw-v3/FAIRe-noaa-sefsc-gu1901_forGBIF.xlsx</li><li>Number of analysis runs: 2</li><li>Output directory: processed-v3/</li><li>Local reference database: False</li></ul>
 <h2>Loading Project Data</h2>
-<p>Found 8 sheets in Excel file: README, projectMetadata, sampleMetadata, Drop-down values, experimentRunMetadata, analysisMetadata_gomecc4_16s_p1, analysisMetadata_gomecc4_16s_p3, analysisMetadata_gomecc4_18s_p1</p>
-<p>Found 3 analysis metadata sheets: analysisMetadata_gomecc4_16s_p1, analysisMetadata_gomecc4_16s_p3, analysisMetadata_gomecc4_18s_p1</p>
-<p>Processing sheet 'analysisMetadata_gomecc4_16s_p1': assay 'ssu16sv4v5-emp', run 'gomecc4_16s_p1-2_v2024.10_241122'</p>
-<p>Processing sheet 'analysisMetadata_gomecc4_16s_p3': assay 'ssu16sv4v5-emp', run 'gomecc4_16s_p3-6_v2024.10_241122'</p>
-<p>Processing sheet 'analysisMetadata_gomecc4_18s_p1': assay 'ssu18sv9-emp', run 'gomecc4_18s_p1-6_v2024.10_241122'</p>
+<p>Found 9 sheets in Excel file: README, projectMetadata, sampleMetadata, experimentRunMetadata, analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz, taxaRaw, taxaFinal, Drop-down values</p>
+<p>Found 2 analysis metadata sheets: analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz</p>
+<p>Processing sheet 'analysisMetadata_rosel-ctd-mifi': assay 'ssu12sv5v6_mifish_u', run 'rosel-ctd-mifish-addMFtrawlJfish-241001'</p>
+<p>Processing sheet 'analysisMetadata_rosel-ctd-riaz': assay 'ssu12sv5_riaz', run 'rosel-ctd-riaz-addMFtrawlJfish-241001'</p>
 <div class="alert alert-success">Successfully loaded project data:</div>
-<ul><li>Sample metadata: 502 rows</li><li>Experiment run metadata: 1008 rows</li><li>Project metadata: 90 rows</li><li>Analysis assays: 2</li></ul>
+<ul><li>Sample metadata: 29 rows</li><li>Experiment run metadata: 58 rows</li><li>Project metadata: 90 rows</li><li>Analysis assays: 2</li></ul>
 <p><h4>sampleMetadata preview:</h4></p>
 <p>Contextual data about the samples collected, such as when it was collected, where it was collected from, what kind of sample it is, and what were the properties of the environment or experimental condition from which the sample was taken. Each row is a distinct sample, or Event. Most of this information is recorded during sample collection. This sheet contains terms from the FAIRe NOAA data template.</p>
-<h4>sampleMetadata (first 5 rows)</h4><p><strong>Shape:</strong> 502 rows × 166 columns</p><p><em>Showing first 5 rows of 502 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>sampleMetadata (first 5 rows)</h4><p><strong>Shape:</strong> 29 rows × 95 columns</p><p><em>Showing first 5 rows of 29 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
       <th>samp_name</th>
+      <th>expedition_id</th>
+      <th>ctd_bottle_number</th>
+      <th>depth_category</th>
+      <th>lab_note</th>
+      <th>serial_number</th>
       <th>samp_category</th>
       <th>neg_cont_type</th>
       <th>pos_cont_type</th>
@@ -82,6 +86,11 @@
       <th>sample_composed_of</th>
       <th>rel_cont_id</th>
       <th>biological_rep_relation</th>
+      <th>extract_number</th>
+      <th>plate_number</th>
+      <th>well_number</th>
+      <th>well_position</th>
+      <th>extraction_status</th>
       <th>decimalLongitude</th>
       <th>decimalLatitude</th>
       <th>verbatimLongitude</th>
@@ -122,7 +131,6 @@
       <th>precip_chem_prep</th>
       <th>precip_force_prep</th>
       <th>precip_time_prep</th>
-      <th>precip_temp_prep</th>
       <th>prepped_samp_store_temp</th>
       <th>prepped_samp_store_sol</th>
       <th>prepped_samp_store_dur</th>
@@ -148,119 +156,49 @@
       <th>minimumDepthInMeters</th>
       <th>maximumDepthInMeters</th>
       <th>tot_depth_water_col</th>
-      <th>elev</th>
       <th>temp</th>
       <th>chlorophyll</th>
       <th>light_intensity</th>
       <th>ph</th>
       <th>ph_meth</th>
       <th>salinity</th>
-      <th>suspend_part_matter</th>
-      <th>tidal_stage</th>
       <th>turbidity</th>
-      <th>water_current</th>
-      <th>solar_irradiance</th>
-      <th>wind_direction</th>
-      <th>wind_speed</th>
-      <th>diss_inorg_carb</th>
-      <th>diss_inorg_carb_unit</th>
-      <th>diss_inorg_nitro</th>
-      <th>diss_inorg_nitro_unit</th>
-      <th>diss_org_carb</th>
-      <th>diss_org_carb_unit</th>
-      <th>diss_org_nitro</th>
-      <th>diss_org_nitro_unit</th>
       <th>diss_oxygen</th>
       <th>diss_oxygen_unit</th>
-      <th>tot_diss_nitro</th>
-      <th>tot_diss_nitro_unit</th>
-      <th>tot_inorg_nitro</th>
-      <th>tot_inorg_nitro_unit</th>
-      <th>tot_nitro</th>
-      <th>tot_nitro_unit</th>
-      <th>tot_part_carb</th>
-      <th>tot_part_carb_unit</th>
-      <th>tot_org_carb</th>
-      <th>tot_org_carb_unit</th>
-      <th>tot_org_c_meth</th>
-      <th>tot_nitro_content</th>
-      <th>tot_nitro_content_unit</th>
-      <th>tot_nitro_cont_meth</th>
-      <th>tot_carb</th>
-      <th>tot_carb_unit</th>
-      <th>part_org_carb</th>
-      <th>part_org_carb_unit</th>
-      <th>part_org_nitro</th>
-      <th>part_org_nitro_unit</th>
-      <th>nitrate</th>
-      <th>nitrate_unit</th>
-      <th>nitrite</th>
-      <th>nitrite_unit</th>
-      <th>nitro</th>
-      <th>nitro_unit</th>
-      <th>org_carb</th>
-      <th>org_carb_unit</th>
-      <th>org_matter</th>
-      <th>org_matter_unit</th>
-      <th>org_nitro</th>
-      <th>org_nitro_unit</th>
-      <th>ammonium</th>
-      <th>ammonium_unit</th>
-      <th>carbonate</th>
-      <th>carbonate_unit</th>
-      <th>hydrogen_ion</th>
-      <th>nitrate_plus_nitrite</th>
-      <th>nitrate_plus_nitrite_unit</th>
-      <th>omega_arag</th>
-      <th>pco2</th>
-      <th>pco2_unit</th>
-      <th>phosphate</th>
-      <th>phosphate_unit</th>
-      <th>pressure</th>
-      <th>pressure_unit</th>
-      <th>silicate</th>
-      <th>silicate_unit</th>
-      <th>tot_alkalinity</th>
-      <th>tot_alkalinity_unit</th>
-      <th>transmittance</th>
-      <th>transmittance_unit</th>
-      <th>serial_number</th>
-      <th>line_id</th>
-      <th>station_id</th>
-      <th>ctd_cast_number</th>
-      <th>ctd_bottle_number</th>
-      <th>replicate_number</th>
-      <th>extract_id</th>
-      <th>extract_plate</th>
-      <th>extract_well_number</th>
-      <th>extract_well_position</th>
-      <th>biosample_accession</th>
-      <th>organism</th>
-      <th>samp_collect_notes</th>
-      <th>dna_yield</th>
-      <th>dna_yield_unit</th>
+      <th>transmission</th>
+      <th>density</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>GOMECC4_27N_Sta1_Deep_A</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU19-01</td>
+      <td>CTD11</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>sample</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>GOMECC4_27N_Sta1_Deep</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-79.618</td>
-      <td>26.997</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190706-CTD11-220</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>WGS84</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>2021-09-14T11:00-04:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.662</td>
+      <td>-85.793</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-06 00:00:00</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -268,168 +206,97 @@
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
       <td>0</td>
-      <td>https://zenodo.org/records/14224755 (v1.1.0) protocol_sampling_sterivex_dry.md</td>
-      <td>Niskin bottle on CTD rosette</td>
-      <td>1920</td>
-      <td>mL</td>
-      <td>-80</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
       <td>none</td>
-      <td>P6M</td>
-      <td>AOML Room 248</td>
-      <td>AOML Room 248</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td>NaN</td>
-      <td>Pumped through Sterivex filter (0.22-µm) using peristaltic pump</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
       <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>no pre-filter</td>
-      <td>0.22</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>polyethersulfone</td>
-      <td>Millipore Sigma Sterivex-GP Pressure Filter Unit, 0.22 µm pore size, polyethersulfone membrane, with Luer outlet, gamma irradiated, sterile</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
       <td>not applicable</td>
       <td>not applicable</td>
       <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1920</td>
-      <td>mL</td>
-      <td>physical | chemical | enzymatic</td>
-      <td>magnetic beads</td>
-      <td>https://zenodo.org/records/14224755 (v1.0.0) protocol_extractdna_sterivex_kingfisher.md</td>
-      <td>ZymoBIOMICS 96 MagBead DNA Kit</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.08038</td>
-      <td>ng/µl</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>ssu16sv4v5-emp | ssu18sv9-emp</td>
-      <td>NaN</td>
-      <td>618</td>
-      <td>618</td>
-      <td>628</td>
-      <td>NaN</td>
-      <td>7.479</td>
-      <td>0.0308</td>
-      <td>NaN</td>
-      <td>7.849</td>
-      <td>NaN</td>
-      <td>34.946</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2215.45</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>129.44</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>29.3256</td>
-      <td>µmol/kg</td>
-      <td>0.00391</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.25971</td>
-      <td>µmol/kg</td>
-      <td>88.434</td>
-      <td>μmol/kg</td>
-      <td>0.0</td>
-      <td>29.3295</td>
-      <td>µmol/kg</td>
-      <td>1.168</td>
-      <td>624</td>
-      <td>µatm</td>
-      <td>1.94489</td>
-      <td>µmol/kg</td>
-      <td>623</td>
-      <td>dbar</td>
-      <td>20.3569</td>
-      <td>µmol/kg</td>
-      <td>2318.9</td>
-      <td>µmol/kg</td>
-      <td>4.7221</td>
-      <td>NaN</td>
-      <td>GOMECC4_001</td>
-      <td>27N</td>
-      <td>Sta1</td>
       <td>not provided</td>
-      <td>3</td>
-      <td>A</td>
-      <td>Plate4_52</td>
-      <td>GOMECC2021_Plate4</td>
-      <td>52</td>
-      <td>D7</td>
-      <td>SAMN37516091</td>
-      <td>seawater metagenome</td>
-      <td>DCM = deep chlorophyl max.</td>
-      <td>12.057</td>
-      <td>ng</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>220</td>
+      <td>220</td>
+      <td>NaN</td>
+      <td>15.5415</td>
+      <td>0.038</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>36.0742</td>
+      <td>NaN</td>
+      <td>4.397</td>
+      <td>mg/L</td>
+      <td>95.41</td>
+      <td>1027.6571</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>GOMECC4_27N_Sta1_Deep_B</td>
+      <td>GU190707-CTD13-310</td>
+      <td>GU19-01</td>
+      <td>CTD13</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>sample</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>GOMECC4_27N_Sta1_Deep</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-79.618</td>
-      <td>26.997</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190707-CTD13-310</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>WGS84</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>2021-09-14T11:00-04:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.501</td>
+      <td>-85.94</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-07 00:00:00</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -437,168 +304,97 @@
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
       <td>0</td>
-      <td>https://zenodo.org/records/14224755 (v1.1.0) protocol_sampling_sterivex_dry.md</td>
-      <td>Niskin bottle on CTD rosette</td>
-      <td>1940</td>
-      <td>mL</td>
-      <td>-80</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
       <td>none</td>
-      <td>P6M</td>
-      <td>AOML Room 248</td>
-      <td>AOML Room 248</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td>NaN</td>
-      <td>Pumped through Sterivex filter (0.22-µm) using peristaltic pump</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
       <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>no pre-filter</td>
-      <td>0.22</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>polyethersulfone</td>
-      <td>Millipore Sigma Sterivex-GP Pressure Filter Unit, 0.22 µm pore size, polyethersulfone membrane, with Luer outlet, gamma irradiated, sterile</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
       <td>not applicable</td>
       <td>not applicable</td>
       <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1940</td>
-      <td>mL</td>
-      <td>physical | chemical | enzymatic</td>
-      <td>magnetic beads</td>
-      <td>https://zenodo.org/records/14224755 (v1.0.0) protocol_extractdna_sterivex_kingfisher.md</td>
-      <td>ZymoBIOMICS 96 MagBead DNA Kit</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.1141</td>
-      <td>ng/µl</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>ssu16sv4v5-emp | ssu18sv9-emp</td>
-      <td>NaN</td>
-      <td>618</td>
-      <td>618</td>
-      <td>628</td>
-      <td>NaN</td>
-      <td>7.479</td>
-      <td>0.0308</td>
-      <td>NaN</td>
-      <td>7.849</td>
-      <td>NaN</td>
-      <td>34.946</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2215.45</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>129.44</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>29.3256</td>
-      <td>µmol/kg</td>
-      <td>0.00391</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.25971</td>
-      <td>µmol/kg</td>
-      <td>88.434</td>
-      <td>μmol/kg</td>
-      <td>0.0</td>
-      <td>29.3295</td>
-      <td>µmol/kg</td>
-      <td>1.168</td>
-      <td>624</td>
-      <td>µatm</td>
-      <td>1.94489</td>
-      <td>µmol/kg</td>
-      <td>623</td>
-      <td>dbar</td>
-      <td>20.3569</td>
-      <td>µmol/kg</td>
-      <td>2318.9</td>
-      <td>µmol/kg</td>
-      <td>4.7221</td>
-      <td>NaN</td>
-      <td>GOMECC4_002</td>
-      <td>27N</td>
-      <td>Sta1</td>
       <td>not provided</td>
-      <td>3</td>
-      <td>B</td>
-      <td>Plate4_60</td>
-      <td>GOMECC2021_Plate4</td>
-      <td>60</td>
-      <td>D8</td>
-      <td>SAMN37516092</td>
-      <td>seawater metagenome</td>
-      <td>DCM was around 80 m and not well defined.</td>
-      <td>17.115</td>
-      <td>ng</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>1.72</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>310</td>
+      <td>310</td>
+      <td>NaN</td>
+      <td>12.8806</td>
+      <td>0.0336</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.6354</td>
+      <td>NaN</td>
+      <td>3.9773</td>
+      <td>mg/L</td>
+      <td>95.1722</td>
+      <td>1028.3006</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>GOMECC4_27N_Sta1_Deep_C</td>
+      <td>GU190707-CTD14-315</td>
+      <td>GU19-01</td>
+      <td>CTD14</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>sample</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>GOMECC4_27N_Sta1_Deep</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-79.618</td>
-      <td>26.997</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190707-CTD14-315</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>WGS84</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>2021-09-14T11:00-04:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.856</td>
+      <td>-86.225</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-07 00:00:00</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -606,492 +402,269 @@
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
       <td>0</td>
-      <td>https://zenodo.org/records/14224755 (v1.1.0) protocol_sampling_sterivex_dry.md</td>
-      <td>Niskin bottle on CTD rosette</td>
-      <td>2000</td>
-      <td>mL</td>
-      <td>-80</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
       <td>none</td>
-      <td>P6M</td>
-      <td>AOML Room 248</td>
-      <td>AOML Room 248</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td>NaN</td>
-      <td>Pumped through Sterivex filter (0.22-µm) using peristaltic pump</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
       <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>no pre-filter</td>
-      <td>0.22</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>polyethersulfone</td>
-      <td>Millipore Sigma Sterivex-GP Pressure Filter Unit, 0.22 µm pore size, polyethersulfone membrane, with Luer outlet, gamma irradiated, sterile</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
       <td>not applicable</td>
       <td>not applicable</td>
       <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2000</td>
-      <td>mL</td>
-      <td>physical | chemical | enzymatic</td>
-      <td>magnetic beads</td>
-      <td>https://zenodo.org/records/14224755 (v1.0.0) protocol_extractdna_sterivex_kingfisher.md</td>
-      <td>ZymoBIOMICS 96 MagBead DNA Kit</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.07223</td>
-      <td>ng/µl</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>ssu16sv4v5-emp | ssu18sv9-emp</td>
-      <td>NaN</td>
-      <td>618</td>
-      <td>618</td>
-      <td>628</td>
-      <td>NaN</td>
-      <td>7.479</td>
-      <td>0.0308</td>
-      <td>NaN</td>
-      <td>7.849</td>
-      <td>NaN</td>
-      <td>34.946</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2215.45</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>129.44</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>29.3256</td>
-      <td>µmol/kg</td>
-      <td>0.00391</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.25971</td>
-      <td>µmol/kg</td>
-      <td>88.434</td>
-      <td>μmol/kg</td>
-      <td>0.0</td>
-      <td>29.3295</td>
-      <td>µmol/kg</td>
-      <td>1.168</td>
-      <td>624</td>
-      <td>µatm</td>
-      <td>1.94489</td>
-      <td>µmol/kg</td>
-      <td>623</td>
-      <td>dbar</td>
-      <td>20.3569</td>
-      <td>µmol/kg</td>
-      <td>2318.9</td>
-      <td>µmol/kg</td>
-      <td>4.7221</td>
-      <td>NaN</td>
-      <td>GOMECC4_003</td>
-      <td>27N</td>
-      <td>Sta1</td>
       <td>not provided</td>
-      <td>3</td>
-      <td>C</td>
-      <td>Plate4_62</td>
-      <td>GOMECC2021_Plate4</td>
-      <td>62</td>
-      <td>F8</td>
-      <td>SAMN37516093</td>
-      <td>seawater metagenome</td>
-      <td>Surface CTD bottles did not fire correctly; hand niskin bottle used for the surface cast. PM cast.</td>
-      <td>10.8345</td>
-      <td>ng</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>2.12</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>315</td>
+      <td>315</td>
+      <td>NaN</td>
+      <td>11.9299</td>
+      <td>0.0589</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.4849</td>
+      <td>NaN</td>
+      <td>3.7739</td>
+      <td>mg/L</td>
+      <td>93.7082</td>
+      <td>1028.3984</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
+      <td>GU190708-CTD16-252</td>
+      <td>GU19-01</td>
+      <td>CTD16</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>sample</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>GOMECC4_27N_Sta1_DCM</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-79.618</td>
-      <td>26.997</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190708-CTD16-252</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>WGS84</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>2021-09-14T11:00-04:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>29.452</td>
+      <td>-86.548</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-08 00:00:00</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>marine biome [ENVO:00000447]</td>
-      <td>marine photic zone [ENVO:00000209]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
       <td>0</td>
-      <td>https://zenodo.org/records/14224755 (v1.1.0) protocol_sampling_sterivex_dry.md</td>
-      <td>Niskin bottle on CTD rosette</td>
-      <td>1540</td>
-      <td>mL</td>
-      <td>-80</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
       <td>none</td>
-      <td>P6M</td>
-      <td>AOML Room 248</td>
-      <td>AOML Room 248</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td>NaN</td>
-      <td>Pumped through Sterivex filter (0.22-µm) using peristaltic pump</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
       <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>no pre-filter</td>
-      <td>0.22</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>polyethersulfone</td>
-      <td>Millipore Sigma Sterivex-GP Pressure Filter Unit, 0.22 µm pore size, polyethersulfone membrane, with Luer outlet, gamma irradiated, sterile</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
       <td>not applicable</td>
       <td>not applicable</td>
       <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1540</td>
-      <td>mL</td>
-      <td>physical | chemical | enzymatic</td>
-      <td>magnetic beads</td>
-      <td>https://zenodo.org/records/14224755 (v1.0.0) protocol_extractdna_sterivex_kingfisher.md</td>
-      <td>ZymoBIOMICS 96 MagBead DNA Kit</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1.49</td>
-      <td>ng/µl</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>ssu16sv4v5-emp | ssu18sv9-emp</td>
-      <td>NaN</td>
-      <td>49</td>
-      <td>49</td>
-      <td>628</td>
-      <td>NaN</td>
-      <td>28.592</td>
-      <td>0.036</td>
-      <td>NaN</td>
-      <td>8.027</td>
-      <td>NaN</td>
-      <td>36.325</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2033.19</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>193.443</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.32968</td>
-      <td>µmol/kg</td>
-      <td>229.99</td>
-      <td>μmol/kg</td>
-      <td>0.0</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>3.805</td>
-      <td>423</td>
-      <td>µatm</td>
-      <td>0.0517</td>
-      <td>µmol/kg</td>
-      <td>49</td>
-      <td>dbar</td>
-      <td>1.05635</td>
-      <td>µmol/kg</td>
-      <td>2371</td>
-      <td>µmol/kg</td>
-      <td>4.665</td>
-      <td>NaN</td>
-      <td>GOMECC4_004</td>
-      <td>27N</td>
-      <td>Sta1</td>
       <td>not provided</td>
-      <td>14</td>
-      <td>A</td>
-      <td>Plate4_53</td>
-      <td>GOMECC2021_Plate4</td>
-      <td>53</td>
-      <td>E7</td>
-      <td>SAMN37516094</td>
-      <td>seawater metagenome</td>
-      <td>Only enough water for 2 surface replicates.</td>
-      <td>223.5</td>
-      <td>ng</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>3.79</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>252</td>
+      <td>252</td>
+      <td>NaN</td>
+      <td>13.1233</td>
+      <td>0.0655</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.6748</td>
+      <td>NaN</td>
+      <td>3.9586</td>
+      <td>mg/L</td>
+      <td>94.5554</td>
+      <td>1028.0212</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>GOMECC4_27N_Sta1_DCM_B</td>
+      <td>GU190708-CTD17-171</td>
+      <td>GU19-01</td>
+      <td>CTD17</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
       <td>sample</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>GOMECC4_27N_Sta1_DCM</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>-79.618</td>
-      <td>26.997</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190708-CTD17-171</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>WGS84</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>2021-09-14T11:00-04:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>29.439</td>
+      <td>-86.342</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-08 00:00:00</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>marine biome [ENVO:00000447]</td>
-      <td>marine photic zone [ENVO:00000209]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
       <td>0</td>
-      <td>https://zenodo.org/records/14224755 (v1.1.0) protocol_sampling_sterivex_dry.md</td>
-      <td>Niskin bottle on CTD rosette</td>
-      <td>1720</td>
-      <td>mL</td>
-      <td>-80</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
       <td>none</td>
-      <td>P6M</td>
-      <td>AOML Room 248</td>
-      <td>AOML Room 248</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td>NaN</td>
-      <td>Pumped through Sterivex filter (0.22-µm) using peristaltic pump</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
       <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
       <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>no pre-filter</td>
-      <td>0.22</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>polyethersulfone</td>
-      <td>Millipore Sigma Sterivex-GP Pressure Filter Unit, 0.22 µm pore size, polyethersulfone membrane, with Luer outlet, gamma irradiated, sterile</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
       <td>not applicable</td>
       <td>not applicable</td>
       <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>1720</td>
-      <td>mL</td>
-      <td>physical | chemical | enzymatic</td>
-      <td>magnetic beads</td>
-      <td>https://zenodo.org/records/14224755 (v1.0.0) protocol_extractdna_sterivex_kingfisher.md</td>
-      <td>ZymoBIOMICS 96 MagBead DNA Kit</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.6884</td>
-      <td>ng/µl</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>ssu16sv4v5-emp | ssu18sv9-emp</td>
-      <td>NaN</td>
-      <td>49</td>
-      <td>49</td>
-      <td>628</td>
-      <td>NaN</td>
-      <td>28.592</td>
-      <td>0.036</td>
-      <td>NaN</td>
-      <td>8.027</td>
-      <td>NaN</td>
-      <td>36.325</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>2033.19</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>193.443</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>0.32968</td>
-      <td>µmol/kg</td>
-      <td>229.99</td>
-      <td>μmol/kg</td>
-      <td>0.0</td>
-      <td>0</td>
-      <td>µmol/kg</td>
-      <td>3.805</td>
-      <td>423</td>
-      <td>µatm</td>
-      <td>0.0517</td>
-      <td>µmol/kg</td>
-      <td>49</td>
-      <td>dbar</td>
-      <td>1.05635</td>
-      <td>µmol/kg</td>
-      <td>2371</td>
-      <td>µmol/kg</td>
-      <td>4.665</td>
-      <td>NaN</td>
-      <td>GOMECC4_005</td>
-      <td>27N</td>
-      <td>Sta1</td>
       <td>not provided</td>
-      <td>14</td>
-      <td>B</td>
-      <td>Plate4_46</td>
-      <td>GOMECC2021_Plate4</td>
-      <td>46</td>
-      <td>F6</td>
-      <td>SAMN37516095</td>
-      <td>seawater metagenome</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>2.37</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
       <td>NaN</td>
-      <td>103.26</td>
-      <td>ng</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>171</td>
+      <td>171</td>
+      <td>NaN</td>
+      <td>17.829</td>
+      <td>0.0629</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>36.3846</td>
+      <td>NaN</td>
+      <td>4.0485</td>
+      <td>mg/L</td>
+      <td>94.0212</td>
+      <td>1027.13</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p><h4>experimentRunMetadata preview:</h4></p>
 <p>Contextual data about how the samples were prepared for sequencing. Includes how they were extracted, what amplicon was targeted, how they were sequenced. Each row is a separate sequencing library preparation, distinguished by a unique lib_id.</p>
-<h4>experimentRunMetadata (first 2 rows)</h4><p><strong>Shape:</strong> 1,008 rows × 17 columns</p><p><em>Showing first 2 rows of 1,008 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>experimentRunMetadata (first 2 rows)</h4><p><strong>Shape:</strong> 58 rows × 17 columns</p><p><em>Showing first 2 rows of 58 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1117,219 +690,215 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>GOMECC4_NegativeControl_1</td>
-      <td>ssu16sv4v5-emp</td>
-      <td>not applicable</td>
-      <td>GOMECC16S_Neg1</td>
-      <td>20220613_Amplicon_PE250</td>
+      <td>Control10_20190721</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>not provided</td>
+      <td>Control10_20190721_MiFish_S52</td>
+      <td>rosel_mifish</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000 and Invitrogen Collibri Library Quantification qPCR assays</td>
+      <td>10</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Control10_20190721_MiFish_S52_L001_R1_001.fastq.gz</td>
+      <td>Control10_20190721_MiFish_S52_L001_R2_001.fastq.gz</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>TAGCAGCT</td>
-      <td>CGTCGCTA</td>
-      <td>GOMECC16S_Neg1_S499_L001_R1_001.fastq.gz</td>
-      <td>GOMECC16S_Neg1_S499_L001_R2_001.fastq.gz</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>https://www.ncbi.nlm.nih.gov/sra/SRR26148505 | https://www.ncbi.nlm.nih.gov/biosample/SAMN37516589 | https://www.ncbi.nlm.nih.gov/bioproject/PRJNA887898</td>
-      <td>29319</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>GOMECC4_NegativeControl_2</td>
-      <td>ssu16sv4v5-emp</td>
-      <td>not applicable</td>
-      <td>GOMECC16S_Neg2</td>
-      <td>20220613_Amplicon_PE250</td>
+      <td>Control12_20190731</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>not provided</td>
+      <td>Control12_20190731_MiFish_S53</td>
+      <td>rosel_mifish</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000 and Invitrogen Collibri Library Quantification qPCR assays</td>
+      <td>10</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Control12_20190731_MiFish_S53_L001_R1_001.fastq.gz</td>
+      <td>Control12_20190731_MiFish_S53_L001_R2_001.fastq.gz</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>TAGCAGCT</td>
-      <td>CTAGAGCT</td>
-      <td>GOMECC16S_Neg2_S500_L001_R1_001.fastq.gz</td>
-      <td>GOMECC16S_Neg2_S500_L001_R2_001.fastq.gz</td>
-      <td>NaN</td>
-      <td>NaN</td>
-      <td>https://www.ncbi.nlm.nih.gov/sra/SRR26148503 | https://www.ncbi.nlm.nih.gov/biosample/SAMN37516590 | https://www.ncbi.nlm.nih.gov/bioproject/PRJNA887898</td>
-      <td>30829</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <h2>Loading ASV Data</h2>
-<p>Processing analysis run: gomecc4_18s_p1-6_v2024.10_241122</p>
-<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_18s_p1-6_v2024.10_241122.tsv (shape: (24473, 14))</div>
-<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_18s_p1-6_v2024.10_241122.tsv (shape: (24473, 501))</div>
-<p>Processing analysis run: gomecc4_16s_p3-6_v2024.10_241122</p>
-<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_16s_p3-6_v2024.10_241122.tsv (shape: (49523, 12))</div>
-<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv (shape: (49523, 312))</div>
-<p>Processing analysis run: gomecc4_16s_p1-2_v2024.10_241122</p>
-<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv (shape: (19540, 12))</div>
-<div class="alert alert-success">Loaded abundance table file: raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv (shape: (19540, 198))</div>
-<p><h4>Preview of ABUNDANCE TABLE for 'gomecc4_18s_p1-6_v2024.10_241122':</h4></p>
-<h4>Abundance table data preview for gomecc4_18s_p1-6_v2024.10_241122</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Processing analysis run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 12))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 30))</div>
+<p>Processing analysis run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 12))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 30))</div>
+<p><h4>Preview of ABUNDANCE TABLE for 'rosel-ctd-mifish-addMFtrawlJfish-241001':</h4></p>
+<h4>Abundance table data preview for rosel-ctd-mifish-addMFtrawlJfish-241001</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>OTU ID</th>
-      <th>GOMECC4_27N_Sta1_DCM_A</th>
-      <th>GOMECC4_27N_Sta1_DCM_B</th>
-      <th>GOMECC4_27N_Sta1_DCM_C</th>
-      <th>GOMECC4_27N_Sta1_Deep_A</th>
-      <th>GOMECC4_27N_Sta1_Deep_B</th>
-      <th>GOMECC4_27N_Sta1_Deep_C</th>
-      <th>GOMECC4_27N_Sta1_Surface_A</th>
-      <th>GOMECC4_27N_Sta1_Surface_B</th>
-      <th>GOMECC4_27N_Sta4_DCM_A</th>
-      <th>GOMECC4_27N_Sta4_DCM_B</th>
-      <th>GOMECC4_27N_Sta4_DCM_C</th>
-      <th>GOMECC4_27N_Sta4_Deep_A</th>
-      <th>GOMECC4_27N_Sta4_Deep_B</th>
-      <th>GOMECC4_27N_Sta4_Deep_C</th>
-      <th>GOMECC4_27N_Sta4_Surface_A</th>
-      <th>GOMECC4_27N_Sta4_Surface_B</th>
-      <th>GOMECC4_27N_Sta4_Surface_C</th>
-      <th>GOMECC4_27N_Sta6_DCM_A</th>
-      <th>GOMECC4_27N_Sta6_DCM_B</th>
+      <th>featureid</th>
+      <th>Control10_20190721</th>
+      <th>Control12_20190731</th>
+      <th>Control9_20190715</th>
+      <th>ExtNeg_20190910</th>
+      <th>ExtNeg_20190918</th>
+      <th>ExtNeg_20191028</th>
+      <th>ExtNeg_20191031</th>
+      <th>GU190706-CTD11-220</th>
+      <th>GU190707-CTD13-310</th>
+      <th>GU190707-CTD14-315</th>
+      <th>GU190708-CTD16-252</th>
+      <th>GU190708-CTD17-171</th>
+      <th>GU190709-CTD20-280</th>
+      <th>GU190710-CTD22-245</th>
+      <th>GU190710-CTD23-190</th>
+      <th>GU190714-CTD25-185</th>
+      <th>GU190714-CTD26-260</th>
+      <th>GU190715-CTD28-310</th>
+      <th>GU190721-CTD31-205</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>36aa75f9b28f5f831c2d631ba65c2bcb</td>
-      <td>1518.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>6.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>4268.0</td>
-      <td>2002.0</td>
-      <td>0.0</td>
-      <td>14.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>9532.0</td>
-      <td>1930.0</td>
-      <td>2037.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
+      <td>010e7a145bf6d7824c0afab445d912db</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>4e38e8ced9070952b314e1880bede1ca</td>
-      <td>963.0</td>
-      <td>316.0</td>
-      <td>543.0</td>
-      <td>19.0</td>
-      <td>10.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>613.0</td>
-      <td>561.0</td>
-      <td>434.0</td>
-      <td>0.0</td>
-      <td>395.0</td>
-      <td>297.0</td>
-      <td>76.0</td>
-      <td>915.0</td>
-      <td>1447.0</td>
-      <td>140.0</td>
-      <td>0.0</td>
+      <td>01b20b363c6b6b8077f7938f81522554</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2013</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>5d4df37251121c08397c6fbc27b06175</td>
-      <td>0.0</td>
-      <td>4.0</td>
-      <td>0.0</td>
-      <td>12.0</td>
-      <td>5.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>9.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>300.0</td>
-      <td>0.0</td>
-      <td>864.0</td>
-      <td>409.0</td>
+      <td>04722aea39fdae29b213552fb69c7cee</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>f863f671a575c6ab587e8de0190d3335</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>5.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>92.0</td>
-      <td>2672.0</td>
-      <td>2424.0</td>
-      <td>2605.0</td>
-      <td>1918.0</td>
+      <td>0518a354c0e4e9fede9f4f671962be3b</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>66</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>2a31e5c01634165da99e7381279baa75</td>
-      <td>1165.0</td>
-      <td>2267.0</td>
-      <td>2206.0</td>
-      <td>2.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>0.0</td>
-      <td>2.0</td>
-      <td>0.0</td>
-      <td>1103.0</td>
-      <td>157.0</td>
-      <td>0.0</td>
-      <td>104.0</td>
-      <td>941.0</td>
+      <td>06faf9ae3ac3f725585afaad1bb1084d</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<div class="alert alert-success">Successfully loaded ASV data for 3 analysis runs</div>
+<div class="alert alert-success">Successfully loaded ASV data for 2 analysis runs</div>
 <h2>Removing Control Samples</h2>
 <p>Using column 'samp_category' to detect control samples</p>
 <p>Looking for these control values: ['negative control', 'positive control']</p>
-<p>Found 30 control/blank samples to remove</p>
+<p>Found 8 control/blank samples to remove</p>
 <p>You can view the list of samples to be dropped below:</p>
-<h4>Complete list of samples being removed:</h4><ul><li>GOMECC4_Blank_DIW_20210915_A</li><li>GOMECC4_Blank_DIW_20210915_B</li><li>GOMECC4_Blank_DIW_20210915_C</li><li>GOMECC4_Blank_DIW_20210930_A</li><li>GOMECC4_Blank_DIW_20210930_B</li><li>GOMECC4_Blank_DIW_20210930_C</li><li>GOMECC4_Blank_DIW_20211011_A</li><li>GOMECC4_Blank_DIW_20211011_B</li><li>GOMECC4_Blank_DIW_20211011_C</li><li>GOMECC4_Blank_DIW_20211016_A</li><li>GOMECC4_Blank_DIW_20211016_B</li><li>GOMECC4_Blank_DIW_20211016_C</li><li>GOMECC4_ExtractionBlank_1</li><li>GOMECC4_ExtractionBlank_11</li><li>GOMECC4_ExtractionBlank_12</li><li>GOMECC4_ExtractionBlank_3</li><li>GOMECC4_ExtractionBlank_5</li><li>GOMECC4_ExtractionBlank_7</li><li>GOMECC4_ExtractionBlank_9</li><li>GOMECC4_MSUControl_1</li><li>GOMECC4_MSUControl_2</li><li>GOMECC4_MSUControl_3</li><li>GOMECC4_MSUControl_4</li><li>GOMECC4_MSUControl_5</li><li>GOMECC4_MSUControl_6</li><li>GOMECC4_MSUControl_7</li><li>GOMECC4_NegativeControl_1</li><li>GOMECC4_NegativeControl_2</li><li>GOMECC4_PositiveControl_1</li><li>GOMECC4_PositiveControl_2</li></ul>
-<p>Sample metadata shape after removal: (472, 166)</p>
+<h4>Complete list of samples being removed:</h4><ul><li>Control9_20190715</li><li>Control10_20190721</li><li>Control12_20190731</li><li>PCRNeg</li><li>ExtNeg_20190910</li><li>ExtNeg_20190918</li><li>ExtNeg_20191028</li><li>ExtNeg_20191031</li></ul>
+<p>Sample metadata shape after removal: (21, 95)</p>
 <p>Check the samp_category values left in your sampleMetadata.</p>
 <p>Remaining samp_category values: sample</p>
-<p>Experiment run metadata shape after removal: (944, 17)</p>
-<p>Analysis 'gomecc4_18s_p1-6_v2024.10_241122': removed 28 columns (501 → 473)</p>
-<p>Analysis 'gomecc4_16s_p3-6_v2024.10_241122': removed 21 columns (312 → 291)</p>
-<p>Analysis 'gomecc4_16s_p1-2_v2024.10_241122': removed 15 columns (198 → 183)</p>
+<p>Experiment run metadata shape after removal: (42, 17)</p>
+<p>Analysis 'rosel-ctd-mifish-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
+<p>Analysis 'rosel-ctd-riaz-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
 <div class="alert alert-success">Successfully removed control samples from all datasets</div>
 <h2>Drop columns with all NAs</h2>
 <p>Which columns in each sheet have only NA values?</p>
-<h4>Columns with all NAs by sheet</h4><p><strong>Shape:</strong> 76 rows × 2 columns</p><p><em>Showing first 10 rows of 76 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Columns with all NAs by sheet</h4><p><strong>Shape:</strong> 31 rows × 2 columns</p><p><em>Showing first 10 rows of 31 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1340,23 +909,23 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>neg_cont_type</td>
+      <td>lab_note</td>
       <td>lib_conc</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>pos_cont_type</td>
+      <td>serial_number</td>
       <td>lib_conc_unit</td>
     </tr>
     <tr>
       <th>2</th>
       <td>sample_derived_from</td>
-      <td>lib_conc_meth</td>
+      <td>mid_forward</td>
     </tr>
     <tr>
       <th>3</th>
       <td>sample_composed_of</td>
-      <td>phix_perc</td>
+      <td>mid_reverse</td>
     </tr>
     <tr>
       <th>4</th>
@@ -1370,48 +939,45 @@
     </tr>
     <tr>
       <th>6</th>
-      <td>verbatimLongitude</td>
-      <td>NaN</td>
+      <td>extract_number</td>
+      <td>associatedSequences</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>verbatimLatitude</td>
-      <td>NaN</td>
+      <td>plate_number</td>
+      <td>input_read_count</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>verbatimCoordinateSystem</td>
+      <td>well_number</td>
       <td>NaN</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>eventDurationValue</td>
+      <td>well_position</td>
       <td>NaN</td>
     </tr>
   </tbody>
 </table></div>
-<p>Dropping from data['sampleMetadata']: ['neg_cont_type', 'pos_cont_type', 'sample_derived_from', 'sample_composed_of', 'rel_cont_id', 'biological_rep_relation', 'verbatimLongitude', 'verbatimLatitude', 'verbatimCoordinateSystem', 'eventDurationValue', 'verbatimEventDate', 'verbatimEventTime', 'samp_store_method_additional', 'stationed_sample_dur', 'pump_flow_rate', 'pump_flow_rate_unit', 'prefilter_material', 'filter_diameter', 'filter_surface_area', 'prepped_samp_store_temp', 'prepped_samp_store_sol', 'prepped_samp_store_dur', 'prep_method_additional', 'date_ext', 'nucl_acid_ext_modify', 'dna_cleanup_0_1', 'dna_cleanup_method', 'concentration_method', 'ratioOfAbsorbance260_280', 'pool_dna_num', 'nucl_acid_ext_method_additional', 'samp_weather', 'elev', 'light_intensity', 'suspend_part_matter', 'tidal_stage', 'turbidity', 'water_current', 'solar_irradiance', 'wind_direction', 'wind_speed', 'diss_inorg_nitro', 'diss_inorg_nitro_unit', 'diss_org_carb', 'diss_org_carb_unit', 'diss_org_nitro', 'diss_org_nitro_unit', 'tot_diss_nitro', 'tot_diss_nitro_unit', 'tot_inorg_nitro', 'tot_inorg_nitro_unit', 'tot_nitro', 'tot_nitro_unit', 'tot_part_carb', 'tot_part_carb_unit', 'tot_org_carb', 'tot_org_carb_unit', 'tot_org_c_meth', 'tot_nitro_content', 'tot_nitro_content_unit', 'tot_nitro_cont_meth', 'tot_carb', 'tot_carb_unit', 'part_org_carb', 'part_org_carb_unit', 'part_org_nitro', 'part_org_nitro_unit', 'nitro', 'nitro_unit', 'org_carb', 'org_carb_unit', 'org_matter', 'org_matter_unit', 'org_nitro', 'org_nitro_unit', 'transmittance_unit']</p>
-<p>Dropping from data['experimentRunMetadata']: ['lib_conc', 'lib_conc_unit', 'lib_conc_meth', 'phix_perc', 'checksum_filename', 'checksum_filename2']</p>
+<p>Dropping from data['sampleMetadata']: ['lab_note', 'serial_number', 'sample_derived_from', 'sample_composed_of', 'rel_cont_id', 'biological_rep_relation', 'extract_number', 'plate_number', 'well_number', 'well_position', 'extraction_status', 'verbatimLongitude', 'verbatimLatitude', 'verbatimCoordinateSystem', 'verbatimSRS', 'eventDurationValue', 'verbatimEventDate', 'verbatimEventTime', 'samp_store_method_additional', 'pump_flow_rate_unit', 'filter_surface_area', 'prep_method_additional', 'ratioOfAbsorbance260_280', 'pool_dna_num', 'nucl_acid_ext_method_additional', 'samp_weather', 'tot_depth_water_col', 'light_intensity', 'ph', 'ph_meth', 'turbidity']</p>
+<p>Dropping from data['experimentRunMetadata']: ['lib_conc', 'lib_conc_unit', 'mid_forward', 'mid_reverse', 'checksum_filename', 'checksum_filename2', 'associatedSequences', 'input_read_count']</p>
 <div class="alert alert-success">Successfully dropped all-NA columns</div>
 <h2>Now lets drop NA rows of each analysisMetadata sheet</h2>
 <p>Identifying rows with empty 'values' column in analysisMetadata sheets...</p>
-<p>For Analysis (Assay: 'ssu16sv4v5-emp', Run: 'gomecc4_16s_p1-2_v2024.10_241122'), found 36 empty rows:</p>
-<p>  ['screen_contam_method', 'screen_geograph_method', 'screen_nontarget_method', 'screen_other', 'bioinfo_method_additional', 'output_read_count', 'output_otu_num', 'otu_num_tax_assigned', 'discard_untrimmed', 'qiime2_version', 'tourmaline_asv_method', 'dada2_trunc_len_f', 'dada2pe_trunc_len_r', 'dada2_trim_left_f', 'dada2pe_trim_left_r', 'dada2_max_ee_f', 'dada2pe_max_ee_r', 'dada2_trunc_q', 'dada2_pooling_method', 'dada2_chimera_method', 'dada2_min_fold_parent_over_abundance', 'dada2_n_reads_learn', 'deblur_trim_length', 'deblur_mean_error', 'deblur_indel_prob', 'deblur_indel_max', 'deblur_min_reads', 'deblur_min_size', 'repseqs_min_abundance', 'repseqs_min_length', 'repseqs_max_length', 'repseqs_min_prevalence', 'skl_confidence', 'min_consensus', 'tourmaline_classify_method', 'blca_confidence']</p>
-<p>For Analysis (Assay: 'ssu16sv4v5-emp', Run: 'gomecc4_16s_p3-6_v2024.10_241122'), found 36 empty rows:</p>
-<p>  ['screen_contam_method', 'screen_geograph_method', 'screen_nontarget_method', 'screen_other', 'bioinfo_method_additional', 'output_read_count', 'output_otu_num', 'otu_num_tax_assigned', 'discard_untrimmed', 'qiime2_version', 'tourmaline_asv_method', 'dada2_trunc_len_f', 'dada2pe_trunc_len_r', 'dada2_trim_left_f', 'dada2pe_trim_left_r', 'dada2_max_ee_f', 'dada2pe_max_ee_r', 'dada2_trunc_q', 'dada2_pooling_method', 'dada2_chimera_method', 'dada2_min_fold_parent_over_abundance', 'dada2_n_reads_learn', 'deblur_trim_length', 'deblur_mean_error', 'deblur_indel_prob', 'deblur_indel_max', 'deblur_min_reads', 'deblur_min_size', 'repseqs_min_abundance', 'repseqs_min_length', 'repseqs_max_length', 'repseqs_min_prevalence', 'skl_confidence', 'min_consensus', 'tourmaline_classify_method', 'blca_confidence']</p>
-<p>For Analysis (Assay: 'ssu18sv9-emp', Run: 'gomecc4_18s_p1-6_v2024.10_241122'), found 37 empty rows:</p>
-<p>  ['trim_param', 'screen_contam_method', 'screen_geograph_method', 'screen_nontarget_method', 'screen_other', 'bioinfo_method_additional', 'output_read_count', 'output_otu_num', 'otu_num_tax_assigned', 'discard_untrimmed', 'qiime2_version', 'tourmaline_asv_method', 'dada2_trunc_len_f', 'dada2pe_trunc_len_r', 'dada2_trim_left_f', 'dada2pe_trim_left_r', 'dada2_max_ee_f', 'dada2pe_max_ee_r', 'dada2_trunc_q', 'dada2_pooling_method', 'dada2_chimera_method', 'dada2_min_fold_parent_over_abundance', 'dada2_n_reads_learn', 'deblur_trim_length', 'deblur_mean_error', 'deblur_indel_prob', 'deblur_indel_max', 'deblur_min_reads', 'deblur_min_size', 'repseqs_min_abundance', 'repseqs_min_length', 'repseqs_max_length', 'repseqs_min_prevalence', 'skl_confidence', 'min_consensus', 'tourmaline_classify_method', 'blca_confidence']</p>
+<p>For Analysis (Assay: 'ssu12sv5v6_mifish_u', Run: 'rosel-ctd-mifish-addMFtrawlJfish-241001'), found 3 empty rows:</p>
+<p>  ['screen_other', 'otu_final_description', 'bioinfo_method_additional']</p>
+<p>For Analysis (Assay: 'ssu12sv5_riaz', Run: 'rosel-ctd-riaz-addMFtrawlJfish-241001'), found 3 empty rows:</p>
+<p>  ['screen_other', 'otu_final_description', 'bioinfo_method_additional']</p>
 <p>Summary: The terms listed above will be dropped from their respective sheets.</p>
 <p>Removing identified rows with empty 'values' from analysisMetadata sheets...</p>
-<p>  For Assay: 'ssu16sv4v5-emp', Run: 'gomecc4_16s_p1-2_v2024.10_241122': Removed 36 row(s).</p>
-<p>  For Assay: 'ssu16sv4v5-emp', Run: 'gomecc4_16s_p3-6_v2024.10_241122': Removed 36 row(s).</p>
-<p>  For Assay: 'ssu18sv9-emp', Run: 'gomecc4_18s_p1-6_v2024.10_241122': Removed 37 row(s).</p>
+<p>  For Assay: 'ssu12sv5v6_mifish_u', Run: 'rosel-ctd-mifish-addMFtrawlJfish-241001': Removed 3 row(s).</p>
+<p>  For Assay: 'ssu12sv5_riaz', Run: 'rosel-ctd-riaz-addMFtrawlJfish-241001': Removed 3 row(s).</p>
 <p>Finished removing rows with empty 'values' from analysisMetadata sheets.</p>
 <div class="alert alert-success">Finished removing rows with empty 'values' from analysisMetadata sheets</div>
 <h2>Now lets check for columns or rows with SOME missing values</h2>
 <p>Now let's check which columns have missing values in some of the rows. These should be filled in on the Excel sheet with the appropriate term ('not applicable', 'missing', or 'not collected'). Alternatively, you can drop the column if it is not needed for submission to OBIS.</p>
 <p>Columns with some NAs:</p>
-<h4>Columns with some missing values</h4><p><strong>Shape:</strong> 4 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Columns with some missing values</h4><p><strong>Shape:</strong> 0 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1420,30 +986,10 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <th>0</th>
-      <td>ph_meth</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>carbonate_unit</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>pco2_unit</td>
-      <td>NaN</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>samp_collect_notes</td>
-      <td>NaN</td>
-    </tr>
   </tbody>
 </table></div>
 <p>Here I'm going to drop all the columns with some missing data, as I don't need them for submission to OBIS.</p>
-<p>From data['sampleMetadata']: Dropped columns: ['ph_meth', 'carbonate_unit', 'pco2_unit', 'samp_collect_notes']</p>
+<p>No columns dropped from data['sampleMetadata']</p>
 <p>No columns dropped from data['experimentRunMetadata']</p>
 <div class="alert alert-success">Successfully dropped columns with some missing values</div>
 <h2>Load data dictionary Excel file</h2>
@@ -1625,18 +1171,20 @@
 </table></div>
 <div class="alert alert-success">Loaded Darwin Core mappings</div>
 <h2>Building Combined Occurrence Core</h2>
-<p>🚀 Starting data processing for 3 analysis run(s) to generate occurrence records.</p>
-<p>Processing Analysis Run: gomecc4_18s_p1-6_v2024.10_241122</p>
-<p>  Successfully processed gomecc4_18s_p1-6_v2024.10_241122: Generated 147083 records.</p>
-<p>Processing Analysis Run: gomecc4_16s_p3-6_v2024.10_241122</p>
-<p>  Successfully processed gomecc4_16s_p3-6_v2024.10_241122: Generated 118671 records.</p>
-<p>Processing Analysis Run: gomecc4_16s_p1-2_v2024.10_241122</p>
-<p>  Successfully processed gomecc4_16s_p1-2_v2024.10_241122: Generated 46460 records.</p>
-<p>🏁 LOOP COMPLETED: Successful runs: 3, Failed runs: 0, Total DataFrames to combine: 3</p>
+<p>🚀 Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
+<p>Processing Analysis Run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<p>    Warning: Could not construct 'locationID' using 'line_id' or 'station_id'.</p>
+<p>  Successfully processed rosel-ctd-mifish-addMFtrawlJfish-241001: Generated 491 records.</p>
+<p>Processing Analysis Run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<p>    Warning: Could not construct 'locationID' using 'line_id' or 'station_id'.</p>
+<p>  Successfully processed rosel-ctd-riaz-addMFtrawlJfish-241001: Generated 421 records.</p>
+<p>🏁 LOOP COMPLETED: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
 <p>🔄 No duplicate occurrenceID records found to drop.</p>
-<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 312214 records.</p>
+<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 912 records.</p>
 <p>👀 Preview of final combined occurrence data (first 5 rows, selected columns):</p>
-<h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 312,214 rows × 12 columns</p><p><em>Showing first 5 rows of 312,214 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 912 rows × 12 columns</p><p><em>Showing first 5 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1657,113 +1205,111 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>GOMECC18S_Plate4_53</td>
-      <td>GOMECC18S_Plate4_53_occ_36aa75f9b28f5f831c2d631ba65c2bcb</td>
-      <td>ssu18sv9-emp</td>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
-      <td>noaa-aoml-gomecc4</td>
-      <td>Luke Thompson</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>26.997</td>
-      <td>-79.618</td>
-      <td>WGS84</td>
-      <td>qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1, confidence: 0.99999999990944, against reference database: PR2 v5.0.1; V9 1391f-1510r region; 10.5281/zenodo.8392706</td>
-      <td>27N_Sta1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td><NA></td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.7803327491992637, against reference database: custom</td>
+      <td>not applicable</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>GOMECC18S_Plate4_53</td>
-      <td>GOMECC18S_Plate4_53_occ_4e38e8ced9070952b314e1880bede1ca</td>
-      <td>ssu18sv9-emp</td>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
-      <td>noaa-aoml-gomecc4</td>
-      <td>Luke Thompson</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>26.997</td>
-      <td>-79.618</td>
-      <td>WGS84</td>
-      <td>qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1, confidence: 0.999067062720315, against reference database: PR2 v5.0.1; V9 1391f-1510r region; 10.5281/zenodo.8392706</td>
-      <td>27N_Sta1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td><NA></td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9999122249762034, against reference database: custom</td>
+      <td>not applicable</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>GOMECC18S_Plate4_53</td>
-      <td>GOMECC18S_Plate4_53_occ_2a31e5c01634165da99e7381279baa75</td>
-      <td>ssu18sv9-emp</td>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
-      <td>noaa-aoml-gomecc4</td>
-      <td>Luke Thompson</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>26.997</td>
-      <td>-79.618</td>
-      <td>WGS84</td>
-      <td>qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1, confidence: 0.8911679667827849, against reference database: PR2 v5.0.1; V9 1391f-1510r region; 10.5281/zenodo.8392706</td>
-      <td>27N_Sta1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_3c64823f9fe1b8e3dee560e7bb3b193c</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td><NA></td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9675284290342936, against reference database: custom</td>
+      <td>not applicable</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>GOMECC18S_Plate4_53</td>
-      <td>GOMECC18S_Plate4_53_occ_ecee60339b2fb88ea6d1c8d18054bed4</td>
-      <td>ssu18sv9-emp</td>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
-      <td>noaa-aoml-gomecc4</td>
-      <td>Luke Thompson</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>26.997</td>
-      <td>-79.618</td>
-      <td>WGS84</td>
-      <td>qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1, confidence: 0.9996383713806553, against reference database: PR2 v5.0.1; V9 1391f-1510r region; 10.5281/zenodo.8392706</td>
-      <td>27N_Sta1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_781e1d0cf581569ca761dfb81438b698</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td><NA></td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 1.0, against reference database: custom</td>
+      <td>not applicable</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>GOMECC18S_Plate4_53</td>
-      <td>GOMECC18S_Plate4_53_occ_fa1f1a97dd4ae7c826009186bad26384</td>
-      <td>ssu18sv9-emp</td>
-      <td>GOMECC4_27N_Sta1_DCM_A</td>
-      <td>noaa-aoml-gomecc4</td>
-      <td>Luke Thompson</td>
-      <td>USA: Atlantic Ocean, east of Florida (27 N)</td>
-      <td>26.997</td>
-      <td>-79.618</td>
-      <td>WGS84</td>
-      <td>qiime2-2021.2; naive bayes classifier; scikit-learn 0.23.1, confidence: 0.97066987594629, against reference database: PR2 v5.0.1; V9 1391f-1510r region; 10.5281/zenodo.8392706</td>
-      <td>27N_Sta1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_87fc62ed809caa00b26b8cbf9255c7ac</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td><NA></td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9936370520553596, against reference database: custom</td>
+      <td>not applicable</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p><h4>📝 NOTE:</h4></p>
 <p>The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.</p>
-<div class="alert alert-success">Successfully created occurrence core with 312214 records</div>
+<div class="alert alert-success">Successfully created occurrence core with 912 records</div>
 <h2>Taxonomic Assignment</h2>
-<p>Loaded occurrence data: 312,214 records</p>
+<p>Loaded occurrence data: 912 records</p>
 <p>Using API source: GBIF</p>
 <p>Assays configured to skip species-level matching: None</p>
 <p>Determining maximum taxonomic ranks for each assay...</p>
-<p>  - Assay 'ssu18sv9-emp': 9 rank columns</p>
-<p>  - Assay 'ssu16sv4v5-emp': 7 rank columns</p>
-<p>  - Assay 'ssu16sv4v5-emp': 7 rank columns</p>
+<p>  - Assay 'ssu12sv5v6_mifish_u': 7 rank columns</p>
+<p>  - Assay 'ssu12sv5_riaz': 7 rank columns</p>
 <p>Starting taxonomic matching process...</p>
 <p>Taxonomic matching completed</p>
 <p>Applying manual taxonomic corrections for GBIF...</p>
-<p>Found 11,987 records assigned to 'incertae sedis' due to no GBIF match.</p>
 <p>Reassigned 0 complex Eukaryota records to 'incertae sedis'.</p>
 <p>Starting post-matching processing.</p>
 <p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
 <p>Removed temporary columns: ['assay_name', 'scientificNameID']</p>
 <p>Applied proper column ordering to match WoRMS output format.</p>
 <div class="alert alert-success">Taxonomic assignment completed successfully</div>
-<p>Saved taxonomically matched data: 312,214 records</p>
+<p>Saved taxonomically matched data: 912 records</p>
 <p>Output file: occurrence_gbif_matched.csv</p>
-<p>Summary: 1,652 unique taxa identified</p>
+<p>Summary: 148 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
 <p>Using detailed match data from GBIF process for info file.</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
-<p>Saved taxa assignment info: 17,635 total rows (3,906 unique strings)</p>
-<p>Output file: taxa_assignment_INFO.csv</p>
-<p>File size: 5.63 MB</p>
+<p>Saved taxa assignment info: 451 total rows (151 unique strings)</p>
+<p>Output file: taxa_assignment_INFO_GBIF.csv</p>
+<p>File size: 0.13 MB</p>
 <p><h4>Taxa Assignment Info Preview:</h4></p>
-<h4>First 10 entries from taxa_assignment_INFO.csv</h4><p><strong>Shape:</strong> 10 rows × 15 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>First 10 entries from taxa_assignment_INFO_GBIF.csv</h4><p><strong>Shape:</strong> 10 rows × 15 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1787,211 +1333,211 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>Archaea</td>
-      <td>Archaea</td>
+      <td>Bacteria</td>
+      <td>Bacteria</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
+      <td>Bacteria Berthold, 1827</td>
+      <td>97</td>
       <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>gbif:1411344</td>
       <td>Animalia</td>
       <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Insecta</td>
+      <td>Phasmida</td>
+      <td>Diapheromeridae</td>
+      <td>Bacteria</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>Archaea</td>
-      <td>Archaea</td>
+      <td>Bacteria</td>
+      <td>Bacteria</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
+      <td>Bacteria Berthold, 1827</td>
+      <td>97</td>
       <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>gbif:1411344</td>
       <td>Animalia</td>
       <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Insecta</td>
+      <td>Phasmida</td>
+      <td>Diapheromeridae</td>
+      <td>Bacteria</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>Archaea</td>
-      <td>Archaea</td>
+      <td>Bacteria</td>
+      <td>Bacteria</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
+      <td>Bacteria Berthold, 1827</td>
+      <td>97</td>
       <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>gbif:1411344</td>
       <td>Animalia</td>
       <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Insecta</td>
+      <td>Phasmida</td>
+      <td>Diapheromeridae</td>
+      <td>Bacteria</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>Archaea</td>
-      <td>Archaea</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Chordata</td>
+      <td>97</td>
+      <td>phylum</td>
+      <td>gbif:44</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>Archaea</td>
-      <td>Archaea</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>100.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Chordata</td>
+      <td>97</td>
+      <td>phylum</td>
+      <td>gbif:44</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>5</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Parachondria chordata chordata</td>
+      <td>99</td>
+      <td>subspecies</td>
+      <td>gbif:9154218</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Mollusca</td>
+      <td>Gastropoda</td>
+      <td>Littorinimorpha</td>
+      <td>Annulariidae</td>
+      <td>Parachondria</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>6</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Antigonia capros Lowe, 1843</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2389693</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>Perciformes</td>
+      <td>Caproidae</td>
+      <td>Antigonia</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Antigonia capros Lowe, 1843</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2389693</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>Perciformes</td>
+      <td>Caproidae</td>
+      <td>Antigonia</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>97.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Antigonia capros Lowe, 1843</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2389693</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>Perciformes</td>
+      <td>Caproidae</td>
+      <td>Antigonia</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured_archaeon</td>
-      <td>Archaea;Aenigmarchaeota;Aenigmarchaeia;Aenigmarchaeales;Aenigmarchaeales;Aenigmarchaeales;uncultured archaeon</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae</td>
       <td>True</td>
-      <td>Archaea Koch & Berendt, 1854</td>
-      <td>100.0</td>
-      <td>genus</td>
-      <td>gbif:6101330</td>
+      <td>Acropomatidae</td>
+      <td>97</td>
+      <td>family</td>
+      <td>gbif:8486</td>
       <td>Animalia</td>
-      <td>Arthropoda</td>
-      <td>Arachnida</td>
-      <td>Araneae</td>
-      <td>Archaeidae</td>
-      <td>Archaea</td>
+      <td>Chordata</td>
+      <td>None</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>None</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<p>Summary: Found 3,724 unique verbatim strings with ambiguous matches.</p>
+<p>Summary: Found 151 unique verbatim strings with ambiguous matches.</p>
 <p>🔧 Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)</p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
 <p>DNA derived extension will have 30 columns</p>
-<p>Starting with the Occurrence Core's shape: (312214, 36)</p>
-<p>DNA derived base shape: (312214, 7)</p>
+<p>Starting with the Occurrence Core's shape: (912, 36)</p>
+<p>DNA derived base shape: (912, 7)</p>
 <p>Merging with sample metadata...</p>
-<p>After merge with sample metadata - shape: (312214, 92)</p>
+<p>After merge with sample metadata - shape: (912, 70)</p>
 <p>Processing projectMetadata fields...</p>
 <p>Merging DNA sequences from raw taxonomy files...</p>
 <p>Applying Darwin Core mappings...</p>
-<p>Final DNA derived extension shape: (312214, 30)</p>
+<p>Final DNA derived extension shape: (912, 30)</p>
 <p>Saving DNA derived extension to CSV...</p>
 <div class="alert alert-success">DNA derived extension created successfully</div>
-<p>Saved DNA derived extension: 312,214 records</p>
+<p>Saved DNA derived extension: 912 records</p>
 <p>Output file: dna_derived_extension.csv</p>
-<p>File size: 338.29 MB</p>
+<p>File size: 0.99 MB</p>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
 <p>✗ occurrence.csv (not found)</p>
-<p>✓ occurrence_gbif_matched.csv (257.05 MB)</p>
-<p>✓ taxa_assignment_INFO.csv (5.63 MB)</p>
-<p>✓ dna_derived_extension.csv (338.29 MB)</p>
+<p>✓ occurrence_gbif_matched.csv (0.58 MB)</p>
+<p>✗ taxa_assignment_INFO.csv (not found)</p>
+<p>✓ dna_derived_extension.csv (0.99 MB)</p>
 
     </div>
 </body>

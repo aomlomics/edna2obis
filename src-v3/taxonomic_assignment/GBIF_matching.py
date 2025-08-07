@@ -90,7 +90,7 @@ def _gbif_worker(args):
         try:
             # Use name_lookup which can return multiple results
             # Change the 'limit' parameter to set how many matches per unique taxon string are returned. The code will select the highest confidence match
-            lookup_data = species.name_lookup(q=taxon_to_search, status='ACCEPTED', limit=5, higherTaxonKey=None)
+            lookup_data = species.name_lookup(q=taxon_to_search, status='ACCEPTED', limit=3, higherTaxonKey=None)
             
             if lookup_data and lookup_data.get('results'):
                 for record in lookup_data['results']:

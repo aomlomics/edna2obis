@@ -455,7 +455,8 @@ def create_taxa_assignment_info(params, reporter):
         output_dir = params.get('output_dir', '../processed-v3/')
         os.makedirs(output_dir, exist_ok=True)
         
-        output_filename = "taxa_assignment_INFO.csv"
+        api_choice = params.get('taxonomic_api_source', 'WoRMS')
+        output_filename = f"taxa_assignment_INFO_{api_choice}.csv"
         output_path = os.path.join(output_dir, output_filename)
         taxa_info.to_csv(output_path, index=False, na_rep='')
         
@@ -473,7 +474,7 @@ def create_taxa_assignment_info(params, reporter):
             
         # Show preview of the data
         reporter.add_text("<h4>Taxa Assignment Info Preview:</h4>")
-        reporter.add_dataframe(taxa_info.head(10), "First 10 entries from taxa_assignment_INFO.csv")
+        reporter.add_dataframe(taxa_info.head(10), f"First 10 entries from {output_filename}")
         
         # Summary statistics
         ambiguous_count = taxa_info[taxa_info['ambiguous'] == True]['verbatimIdentification'].nunique()
