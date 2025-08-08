@@ -15,14 +15,17 @@ class HTMLReporter:
         self.status = "RUNNING"
         self.start_time = datetime.datetime.now()
         self.error_message = None
+        self.warnings = [] # To track warning messages
         
     def _get_status_color(self):
         if self.status == "SUCCESS":
             return "#28a745"  # Green
         elif self.status == "FAILED":
             return "#dc3545"  # Red
+        elif self.status == "WARNING":
+            return "#ffc107"  # Yellow for warning
         else:
-            return "#ffc107"  # Yellow for running
+            return "#6c757d"  # Grey for running or other states
     
     def add_section(self, title, level=2):
         """Add a section header"""
@@ -86,10 +89,11 @@ class HTMLReporter:
         })
     
     def add_warning(self, message):
-        """Add a warning message"""
+        """Add a warning message and track it"""
+        self.warnings.append(message)
         self.sections.append({
             'type': 'warning',
-            'content': f'<div class="alert alert-warning">{message}</div>'
+            'content': f'<div class="alert alert-warning"><strong>WARNING:</strong> {message}</div>'
         })
     
     def add_error(self, message):
@@ -111,10 +115,58 @@ class HTMLReporter:
             'content': content
         })
     
+    def update_dataframe_from_file(self, title_identifier, filepath):
+        """
+        Find a previously added dataframe by its title and update it by re-reading from a file.
+        This is crucial for refreshing data in the report after it's been modified on disk.
+        """
+        import pandas as pd
+        
+        found_and_updated = False
+        for section in self.sections:
+            # Check if the section is a dataframe and if its title contains the identifier
+            if section['type'] == 'dataframe' and title_identifier in section.get('content', ''):
+                
+                print(f"Found dataframe section '{title_identifier}' in report. Re-reading from {filepath}...")
+                
+                # Re-read the dataframe from the provided filepath
+                try:
+                    df = pd.read_csv(filepath)
+                    
+                    # Re-create the HTML content for this section, just like in add_dataframe
+                    # This assumes the title is in an h4 tag from the original add_dataframe call
+                    title_html = section['content'].split("</h4>")[0] + "</h4>"
+                    
+                    new_content = title_html
+                    new_content += f"<p><strong>Shape:</strong> {df.shape[0]:,} rows × {df.shape[1]} columns</p>"
+                    table_html = df.to_html(classes="table table-striped", escape=False)
+                    scroll_hint = '<p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
+                    new_content += f'<div class="table-container">{table_html}</div>{scroll_hint}'
+                    
+                    # Update the section's content in place
+                    section['content'] = new_content
+                    print(f"Successfully updated report section for '{title_identifier}'.")
+                    found_and_updated = True
+                    break # Stop after finding and updating the first match
+                
+                except Exception as e:
+                    # If re-reading fails, add a warning in the report instead of crashing
+                    error_html = f'<div class="alert alert-danger"><strong>ERROR:</strong> Could not re-read and update report for {title_identifier}. Error: {e}</div>'
+                    section['content'] += error_html
+                    print(f"Failed to update report section: {e}")
+
+        if not found_and_updated:
+            print(f"Warning: Did not find a report section to update for '{title_identifier}'.")
+
     def set_success(self):
         """Mark the report as successful (only if not already failed)"""
         if self.status != "FAILED":
             self.status = "SUCCESS"
+            
+    def set_warning(self):
+        """Mark the report with a warning status (only if not already failed)"""
+        if self.status != "FAILED":
+            self.status = "WARNING"
     
     def set_failed(self, error_message=None):
         """Mark the report as failed"""
@@ -124,10 +176,10 @@ class HTMLReporter:
     
     def set_status(self, status, error_message=None):
         """Set the status (SUCCESS or FAILED) with optional error message"""
-        # Don't allow overriding FAILED status with SUCCESS
-        if self.status == "FAILED" and status == "SUCCESS":
-            return  # Keep the FAILED status
-        
+        # Don't allow overriding FAILED status with SUCCESS or WARNING
+        if self.status == "FAILED" and status in ["SUCCESS", "WARNING"]:
+            return # Keep the FAILED status
+            
         self.status = status
         if error_message:
             self.error_message = error_message

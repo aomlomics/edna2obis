@@ -20,6 +20,7 @@ from contextlib import redirect_stdout, redirect_stderr
 # Import the API-specific matching scripts
 from . import WoRMS_v3_matching
 from . import GBIF_matching
+from create_occurrence_core.occurrence_builder import get_final_occurrence_column_order
 
 
 def assign_taxonomy(params, data, raw_data_tables, reporter):
@@ -323,49 +324,28 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             matched_df = matched_df.drop(columns=columns_to_drop, errors='ignore')
             reporter.add_text(f"Removed temporary columns: {columns_to_drop}")
             
-            # Define the desired final column order (same as in occurrence_builder.py but without assay_name)
-            # NOTE: cleanedTaxonomy is excluded here - it should only appear in taxa_assignment_INFO.csv
-            # NOTE: match_type_debug is kept temporarily for creating taxa_assignment_INFO.csv, then removed
-            DESIRED_FINAL_COLUMNS_IN_ORDER = [
-                'eventID', 'organismQuantity', 'occurrenceID', 'verbatimIdentification',
-                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
-                'scientificName', 'scientificNameID', 'match_type_debug',
-                'taxonRank', 'identificationRemarks',
-                'taxonID', 'basisOfRecord', 'nameAccordingTo', 'organismQuantityType',
-                'recordedBy', 'materialSampleID', 'sampleSizeValue', 'sampleSizeUnit',
-                'associatedSequences', 'locationID', 'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters',
-                'locality', 'decimalLatitude', 'decimalLongitude',
-                'geodeticDatum', 'parentEventID', 'datasetID', 'occurrenceStatus'
-            ]
+            # Now, save the final matched dataframe with a new name
+            final_occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_{api_source.lower()}_matched.csv')
             
-            # For GBIF, remove scientificNameID from the desired column order
-            if api_source == 'GBIF':
-                DESIRED_FINAL_COLUMNS_IN_ORDER = [col for col in DESIRED_FINAL_COLUMNS_IN_ORDER if col != 'scientificNameID']
+            # --- Reorder columns to final desired spec, removing API-specific IDs that are not relevant ---
+            final_col_order = get_final_occurrence_column_order()
             
-            # Ensure all desired columns exist in the DataFrame, add as NA if missing
-            for col in DESIRED_FINAL_COLUMNS_IN_ORDER:
-                if col not in matched_df.columns:
-                    matched_df[col] = pd.NA
+            # Conditionally remove columns that are not applicable to the current API source
+            if api_source.lower() == 'gbif':
+                if 'scientificNameID' in final_col_order:
+                    final_col_order.remove('scientificNameID')
+            elif api_source.lower() == 'worms':
+                if 'taxonID' in final_col_order:
+                    final_col_order.remove('taxonID')
+
+            # Filter the master list to only include columns that actually exist in the dataframe
+            cols_to_keep = [col for col in final_col_order if col in matched_df.columns]
             
-            # Reorder columns to match the desired order
-            matched_df = matched_df.reindex(columns=DESIRED_FINAL_COLUMNS_IN_ORDER)
-            reporter.add_text("Applied proper column ordering to match WoRMS output format.")
-            
-            # Save the taxonomically matched file
-            output_filename = f"occurrence_{api_source.lower()}_matched.csv"
-            output_dir = params.get('output_dir', '../processed-v3/')
-            
-            # Ensure output directory exists
-            os.makedirs(output_dir, exist_ok=True)
-            
-            output_path = os.path.join(output_dir, output_filename)
-            matched_df.to_csv(output_path, index=False, na_rep='')
-            
-            reporter.add_success(f"Taxonomic assignment completed successfully")
-            reporter.add_text(f"Saved taxonomically matched data: {len(matched_df):,} records")
-            reporter.add_text(f"Output file: {output_filename}")
-            
-            print(f"✅ Taxonomic assignment completed! Saved {len(matched_df):,} records to {output_filename}")
+            # Select and reorder
+            matched_df_final = matched_df[cols_to_keep]
+
+            matched_df_final.to_csv(final_occurrence_path, index=False, na_rep='')
+            reporter.add_success(f"Taxonomic assignment completed! Saved {len(matched_df_final):,} records to occurrence_{api_source.lower()}_matched.csv")
             
             # Add summary statistics
             unique_taxa = matched_df['scientificName'].nunique()
@@ -426,30 +406,37 @@ def create_taxa_assignment_info(params, reporter):
             
         taxa_info['nameAccordingTo'] = params.get('taxonomic_api_source', 'WoRMS')
 
-        # Define final column order
+        # Define final column order, now including selected_match and consistency_check
         if api_source == 'worms':
             final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous',
-                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'selected_match',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'scientificName', 'scientificNameID', 'taxonRank', 
                 'match_type_debug', 'nameAccordingTo'
             ]
-        else: # GBIF, includes confidence
+        else: # GBIF, includes confidence, does not include ambiguous
             final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous',
+                'verbatimIdentification', 'cleanedTaxonomy', 'selected_match',
                 'scientificName', 'confidence', 'taxonRank', 'taxonID', 
-                'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
             ]
         
-        # Ensure all columns exist and are in the correct order
+        # Ensure all required columns exist, adding any that are missing
         for col in final_column_order:
             if col not in taxa_info.columns:
                 taxa_info[col] = pd.NA
+        
+        # Filter to only include the desired columns in the correct order
         taxa_info = taxa_info[final_column_order]
         
-        # Sort for consistency
-        taxa_info = taxa_info.sort_values(['verbatimIdentification', 'scientificName']).reset_index(drop=True)
+        # Sort for consistency and readability
+        if api_source == 'gbif':
+            # For GBIF, group by the original string, then show the best confidence match first
+            taxa_info = taxa_info.sort_values(['verbatimIdentification', 'confidence'], ascending=[True, False]).reset_index(drop=True)
+        else:
+            # For WoRMS, group by original string, then by the scientific name
+            taxa_info = taxa_info.sort_values(['verbatimIdentification', 'scientificName']).reset_index(drop=True)
         
         # --- Save and Report ---
         output_dir = params.get('output_dir', '../processed-v3/')
@@ -476,8 +463,29 @@ def create_taxa_assignment_info(params, reporter):
         reporter.add_text("<h4>Taxa Assignment Info Preview:</h4>")
         reporter.add_dataframe(taxa_info.head(10), f"First 10 entries from {output_filename}")
         
+        # Add detailed explanation and full table view to the report
+        reporter.add_text("<h3>Detailed Taxa Assignment Information</h3>")
+        reporter.add_text(
+            "<p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. "
+            "It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. "
+            "This allows for manual review and complete transparency.</p>"
+            "<ul>"
+            "<li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li>"
+            "<li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li>"
+            "<li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li>"
+            "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
+            "<li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
+            "<li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li>"
+            "<li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li>"
+            "</ul>"
+        )
+        reporter.add_dataframe(taxa_info, f"Full Data from {output_filename}", max_rows=100) # Show more rows for the full view
+        
         # Summary statistics
-        ambiguous_count = taxa_info[taxa_info['ambiguous'] == True]['verbatimIdentification'].nunique()
+        ambiguous_count = 0
+        if 'ambiguous' in taxa_info.columns:
+            ambiguous_count = taxa_info[taxa_info['ambiguous'] == True]['verbatimIdentification'].nunique()
+        
         if ambiguous_count > 0:
             reporter.add_text(f"Summary: Found {ambiguous_count:,} unique verbatim strings with ambiguous matches.")
         

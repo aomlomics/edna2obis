@@ -67,7 +67,7 @@ def _gbif_worker(args):
     Worker function to find ALL accepted matches for a taxon string.
     This function implements a tenacious "species-first", context-aware strategy.
     """
-    lookup_key, skip_species = args
+    lookup_key, skip_species, gbif_limit = args
     
     if not isinstance(lookup_key, str) or not lookup_key.strip():
         return args, []
@@ -94,12 +94,11 @@ def _gbif_worker(args):
             
         try:
             # For single-word kingdom names, specify the rank to avoid homonyms. (stick bug named 'Bacteria')
-            api_params = {'q': taxon_to_search, 'status': 'ACCEPTED', 'limit': 3, 'higherTaxonKey': None}
+            api_params = {'q': taxon_to_search, 'status': 'ACCEPTED', 'limit': gbif_limit, 'higherTaxonKey': None}
             if len(cleaned_parts) == 1 and taxon_to_search.lower() in AMBIGUOUS_KINGDOMS:
                 api_params['rank'] = 'kingdom'
 
             # Use name_lookup which can return multiple results
-            # Change the 'limit' parameter to set how many matches per unique taxon string are returned. The code will select the highest confidence match
             lookup_data = species.name_lookup(**api_params)
             
             if lookup_data and lookup_data.get('results'):
@@ -126,19 +125,6 @@ def _gbif_worker(args):
             logging.warning(f"GBIF API call (walk-up/name_lookup) for '{taxon_to_search}' failed with error: {e}")
             continue
 
-    # HYBRID PLAN (PART 2): Post-search sanity check on all found matches
-    if expected_kingdom:
-        for match in all_accepted_matches:
-            returned_kingdom = match.get('kingdom')
-            # A match is inconsistent if the returned kingdom exists and directly contradicts the expected kingdom.
-            if returned_kingdom and returned_kingdom != expected_kingdom:
-                match['consistency_check'] = 'Inconsistent Kingdom'
-            else:
-                match['consistency_check'] = 'Consistent'
-    else:
-        for match in all_accepted_matches:
-            match['consistency_check'] = 'N/A' # No basis for comparison
-
     return args, all_accepted_matches
 
 
@@ -152,14 +138,17 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         logging.warning("Input DataFrame is empty. Skipping GBIF matching.")
         return {'main_df': occurrence_df, 'info_df': pd.DataFrame()}
 
+    gbif_limit = params_dict.get('gbif_match_limit', 3)
+
     output_dir = params_dict.get('output_dir', '.')
     os.makedirs(output_dir, exist_ok=True)
     cache_file = os.path.join(output_dir, 'gbif_matches_cache.pkl')
     
+    # --- Load existing cache if it exists ---
     try:
         with open(cache_file, 'rb') as f:
             cache = pickle.load(f)
-        logging.info(f"Loaded {len(cache)} results from GBIF cache file: {cache_file}")
+        logging.info(f"Loaded {len(cache)} results from existing GBIF cache file: {cache_file}")
     except (FileNotFoundError, EOFError):
         cache = {}
         logging.info("No GBIF cache file found or cache is empty. Starting fresh.")
@@ -169,11 +158,13 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         assays_to_skip_species = []
 
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
-    unique_lookups = [tuple(row) for row in occurrence_df[['verbatimIdentification', 'skip_species_flag']].drop_duplicates().to_numpy()]
+    occurrence_df['gbif_limit'] = gbif_limit # Add the limit to the dataframe for the worker
+    unique_lookups = [tuple(row) for row in occurrence_df[['verbatimIdentification', 'skip_species_flag', 'gbif_limit']].drop_duplicates().to_numpy()]
     
+    # --- Identify which lookups are new and need to be fetched ---
     new_lookups = [lookup for lookup in unique_lookups if lookup not in cache]
-
-    logging.info(f"Found {len(new_lookups)} new unique taxonomic strings to match against GBIF.")
+    
+    logging.info(f"Found {len(unique_lookups)} unique taxonomic strings in this run. {len(new_lookups)} are new and will be fetched from the GBIF API.")
 
     if new_lookups:
         if n_proc == 0:
@@ -200,7 +191,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
         with open(cache_file, 'wb') as f:
             pickle.dump(cache, f)
-        logging.info(f"Saved {len(cache)} total results to GBIF cache.")
+        logging.info(f"Saved/updated cache with {len(new_lookups)} new results. Cache now contains {len(cache)} total results.")
 
     # --- Process Results and Create DataFrames ---
     main_df_records = []
@@ -214,8 +205,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     }
 
     # Map results back to the original dataframe structure
-    for verbatim_id, skip_flag in unique_lookups:
-        key = (verbatim_id, skip_flag)
+    for verbatim_id, skip_flag, limit in unique_lookups:
+        key = (verbatim_id, skip_flag, limit)
         matches = cache.get(key, [])
         
         cleaned_taxonomy = ''
@@ -228,8 +219,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             # No match found, use incertae sedis
             best_match = {
                 **incertae_sedis_record, 'match_type_debug': 'No_GBIF_Match',
-                'cleanedTaxonomy': ';'.join(parse_semicolon_taxonomy(verbatim_id)),
-                'consistency_check': 'N/A'
+                'cleanedTaxonomy': ';'.join(parse_semicolon_taxonomy(verbatim_id))
             }
             info_record = {'verbatimIdentification': verbatim_id, **best_match, 'ambiguous': False}
             
@@ -237,22 +227,11 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             info_df_records.append(info_record)
         else:
             # Matches found, determine best one and add all to info
+            # Sort by confidence descending, highest first. NaNs (None) go last.
+            sorted_matches = sorted(matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
+            best_match = sorted_matches[0]
             
-            # HYBRID PLAN (PART 2): Select best match based on consistency
-            consistent_matches = [m for m in matches if m.get('consistency_check') != 'Inconsistent Kingdom']
-            
-            if consistent_matches:
-                # Sort by confidence descending, highest first.
-                sorted_matches = sorted(consistent_matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
-                best_match = sorted_matches[0]
-            else:
-                # If no consistent matches, log a warning and fall back to the best of the inconsistent ones.
-                logging.warning(f"For '{verbatim_id}', no consistent kingdom match found. Using best available inconsistent match.")
-                sorted_matches = sorted(matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
-                best_match = sorted_matches[0] if sorted_matches else None
-
-            if best_match:
-                main_df_records.append({'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **best_match})
+            main_df_records.append({'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **best_match})
             
             is_ambiguous = len(matches) > 1
             
@@ -277,8 +256,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         how='left'
     )
     
-    # Do not include the consistency_check in the final occurrence file, only in the INFO file.
-    final_df.drop(columns=['skip_species_flag', 'consistency_check'], inplace=True, errors='ignore')
+    final_df.drop(columns=['skip_species_flag'], inplace=True, errors='ignore')
     
     logging.info("GBIF matching and merging complete.")
     return {'main_df': final_df, 'info_df': info_df}

@@ -9,6 +9,7 @@ import numpy as np
 import os
 import warnings
 import traceback
+import datetime
 
 
 def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
@@ -202,20 +203,41 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
                 else:
                     reporter.add_text(f"  Warning: 'sampleMetadata' is empty or not found. Cannot merge for DwC term population for run {analysis_run_name}.")
 
-                # Construct 'locationID' 
-                line_id_col_sm = 'line_id_sm' if 'line_id_sm' in current_assay_occurrence_intermediate_df.columns else 'line_id'
-                station_id_col_sm = 'station_id_sm' if 'station_id_sm' in current_assay_occurrence_intermediate_df.columns else 'station_id'
-
-                if line_id_col_sm in current_assay_occurrence_intermediate_df.columns and \
-                   station_id_col_sm in current_assay_occurrence_intermediate_df.columns:
-                    line_ids = current_assay_occurrence_intermediate_df[line_id_col_sm].astype(str).fillna('NoLineID')
-                    station_ids = current_assay_occurrence_intermediate_df[station_id_col_sm].astype(str).fillna('NoStationID')
-                    current_assay_occurrence_intermediate_df['locationID'] = line_ids + "_" + station_ids
-                    # print(f"    Constructed 'locationID'.") # Reduced verbosity
+                # --- Construct 'locationID' with new flexible logic ---
+                
+                # Priority 1: Use existing 'locationID' column if it's already in the data
+                if 'locationID' in current_assay_occurrence_intermediate_df.columns and not current_assay_occurrence_intermediate_df['locationID'].isna().all():
+                    reporter.add_text("Found existing 'locationID' column in source data. Using it directly.")
+                
                 else:
-                    reporter.add_text(f"    Warning: Could not construct 'locationID' using '{line_id_col_sm}' or '{station_id_col_sm}'.")
-                    if 'locationID' not in current_assay_occurrence_intermediate_df.columns or current_assay_occurrence_intermediate_df['locationID'].isna().all():
-                         current_assay_occurrence_intermediate_df['locationID'] = "not applicable"
+                    # Priority 2: Use components from config.yaml
+                    id_components = params.get('locationID_components', [])
+                    
+                    # Check if all specified component columns exist in the dataframe
+                    missing_components = [c for c in id_components if c not in current_assay_occurrence_intermediate_df.columns]
+                    
+                    if id_components and not missing_components:
+                        reporter.add_text(f"Constructing 'locationID' from config components: {', '.join(id_components)}")
+                        
+                        # Convert all component columns to string and combine
+                        component_series = [current_assay_occurrence_intermediate_df[col].astype(str).fillna(f"No_{col}") for col in id_components]
+                        current_assay_occurrence_intermediate_df['locationID'] = pd.Series('_'.join(map(str, t)) for t in zip(*component_series))
+                    
+                    else:
+                        # Priority 3: Fallback to default (and warn if component columns were specified but not found)
+                        if missing_components:
+                            reporter.add_warning(f"Could not construct 'locationID' from config. The following columns were not found: {', '.join(missing_components)}. Falling back to default.")
+                        
+                        # Original default logic
+                        default_components = ['line_id', 'station_id']
+                        if all(c in current_assay_occurrence_intermediate_df.columns for c in default_components):
+                            line_ids = current_assay_occurrence_intermediate_df['line_id'].astype(str).fillna('NoLineID')
+                            station_ids = current_assay_occurrence_intermediate_df['station_id'].astype(str).fillna('NoStationID')
+                            current_assay_occurrence_intermediate_df['locationID'] = line_ids + "_" + station_ids
+                        else:
+                            # If even the default components can't be found, set to NA
+                             if 'locationID' not in current_assay_occurrence_intermediate_df.columns:
+                                  current_assay_occurrence_intermediate_df['locationID'] = pd.NA
 
 
                 # --- STEP 6: Merge `experimentRunMetadata` & Define `eventID`, `associatedSequences` ---
@@ -318,6 +340,45 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
         if all_processed_occurrence_dfs:
             occ_all_final_combined = pd.concat(all_processed_occurrence_dfs, ignore_index=True, sort=False)
             
+            # --- DATA QUALITY CHECKS AND DEFAULTS ---
+            reporter.add_section("Data Quality Checks", level=3)
+            
+            # 1. Check and apply default for geodeticDatum
+            if 'geodeticDatum' not in occ_all_final_combined.columns or occ_all_final_combined['geodeticDatum'].isna().all():
+                occ_all_final_combined['geodeticDatum'] = 'WGS84'
+                reporter.add_warning("The 'geodeticDatum' column was empty or missing. It has been filled with the default value 'WGS84'. Please verify this is appropriate for your data.")
+            
+            # 2. Check for empty locationID and report in the quality check section
+            if 'locationID' not in occ_all_final_combined.columns or occ_all_final_combined['locationID'].isna().all() or (occ_all_final_combined['locationID'] == 'not applicable').all():
+                reporter.add_warning("The 'locationID' column is empty. This is likely because the 'line_id' and/or 'station_id' columns were not found in the source sampleMetadata. The pipeline cannot generate a default for this field.")
+            
+            # 3. Fix eventDate formatting and warn if time is missing
+            def format_event_date(d):
+                # If the value is a string that can be parsed as a date
+                if isinstance(d, str):
+                    try:
+                        # Attempt to parse it, this will recognize 'YYYY-MM-DD HH:MM:SS'
+                        dt_obj = pd.to_datetime(d)
+                        # If it's exactly midnight, format as date only
+                        if dt_obj.time() == datetime.time(0, 0):
+                            return dt_obj.strftime('%Y-%m-%d')
+                    except (ValueError, TypeError):
+                        # If parsing fails, it's a string like 'not applicable', so keep it as is
+                        return d
+                # If it's already a datetime object (less likely but possible)
+                elif isinstance(d, (datetime.datetime, pd.Timestamp)):
+                    if d.time() == datetime.time(0, 0):
+                        return d.strftime('%Y-%m-%d')
+                return d
+
+            if 'eventDate' in occ_all_final_combined.columns:
+                occ_all_final_combined['eventDate'] = occ_all_final_combined['eventDate'].apply(format_event_date)
+                
+                # Check if any dates are missing a time component (now that midnight is stripped)
+                if any(isinstance(d, str) and len(d) == 10 for d in occ_all_final_combined['eventDate']):
+                    reporter.add_warning("The 'eventDate' column contains dates without a specific time. If a more precise time is available in your source data, please include it.")
+
+
             for col_final_desired in DESIRED_OCCURRENCE_COLUMNS_IN_ORDER:
                 if col_final_desired not in occ_all_final_combined.columns:
                     occ_all_final_combined[col_final_desired] = pd.NA
@@ -367,3 +428,20 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter):
         error_msg = f"Failed to create occurrence core: {str(e)}"
         reporter.add_error(error_msg)
         raise Exception(error_msg) 
+
+
+def get_final_occurrence_column_order():
+    """
+    Returns a list defining the desired final column order for the occurrence core file.
+    This provides a single, authoritative source for column ordering.
+    """
+    return [
+        'eventID', 'occurrenceID', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 
+        'order', 'family', 'genus', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank','parentEventID',  'datasetID', 'locationID', 'basisOfRecord', 
+        'occurrenceStatus', 'organismQuantity', 'organismQuantityType', 
+        'sampleSizeValue', 'sampleSizeUnit', 'recordedBy', 'materialSampleID', 
+        'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters', 'locality', 
+        'decimalLatitude', 'decimalLongitude', 'geodeticDatum', 
+        'identificationRemarks', 'nameAccordingTo', 'associatedSequences'
+        # 'match_type_debug' is intentionally excluded as it's for internal review in the INFO file.
+    ] 

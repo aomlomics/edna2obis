@@ -46,6 +46,9 @@ def load_config(config_path="config.yaml"):
         params['datafiles'] = config['datafiles']
         params['skip_columns'] = config.get('skip_columns', [])
         
+        # Handle locationID components
+        params['locationID_components'] = config.get('locationID_components', ['line_id', 'station_id'])
+
         # Handle control sample detection
         if 'control_sample_detection' in config and config['control_sample_detection']:
             params['control_sample_column'] = config['control_sample_detection'].get('column_name', 'samp_category')
@@ -62,6 +65,7 @@ def load_config(config_path="config.yaml"):
         # Optional parameters with defaults
         params['worms_n_proc'] = config.get('worms_n_proc', 0)
         params['gbif_n_proc'] = config.get('gbif_n_proc', 0)
+        params['gbif_match_limit'] = config.get('gbif_match_limit', 3)
         params['output_dir'] = config.get('output_dir', "processed-v3/")
         
         # Local reference database parameters  
@@ -222,10 +226,9 @@ def load_asv_data(params, reporter):
         if raw_data_tables:
             first_analysis = list(raw_data_tables.keys())[0]
             if 'occurrence' in raw_data_tables[first_analysis]:
-                reporter.add_text(f"<h4>Preview of ABUNDANCE TABLE for '{first_analysis}':</h4>")
                 # Show first 5 rows and first 20 columns like in notebook
                 preview_df = raw_data_tables[first_analysis]['occurrence'].iloc[:5, :20]
-                reporter.add_dataframe(preview_df, f"Abundance table data preview for {first_analysis}")
+                reporter.add_dataframe(preview_df, f"Preview of Abundance Table for '{first_analysis}'")
         
         reporter.add_success(f"Successfully loaded ASV data for {len(raw_data_tables)} analysis runs")
         return raw_data_tables
@@ -534,13 +537,21 @@ def load_darwin_core_mappings(params, reporter):
 
 def main():
     """Main execution function"""
-    # Initialize HTML reporter
+    # --- Load config first to get params for reporter initialization ---
+    try:
+        params = load_config()
+    except Exception as e:
+        print(f"CRITICAL ERROR: Could not load configuration file. {e}")
+        # We can't create a report if config fails, so exit.
+        return
+
+    # --- Initialize HTML reporter with a dynamic name ---
     global reporter
-    
-    # Set up output directory and report path
-    output_dir = "processed-v3/"
+    output_dir = params.get('output_dir', "processed-v3/")
+    api_choice = params.get('taxonomic_api_source', 'unknown')
+    report_filename = f"edna2obis_report_{api_choice}.html"
     os.makedirs(output_dir, exist_ok=True)
-    report_path = os.path.join(output_dir, "edna2obis_report.html")
+    report_path = os.path.join(output_dir, report_filename)
     reporter = HTMLReporter(report_path)
     
     print("Starting edna2obis conversion...")
@@ -550,10 +561,9 @@ def main():
         reporter.add_section("Data Cleaning", level=1)
         reporter.add_text_with_submission_logos("Starting initial data cleaning of eDNA metadata and raw data from FAIRe NOAA format to Darwin Core for OBIS and GBIF submission")
         
-        # Load configuration
+        # --- Report on the loaded configuration ---
         print("🔄 Loading and Cleaning Data...")
         reporter.add_section("Loading Configuration", level=2)
-        params = load_config()
         reporter.add_success("Configuration loaded successfully")
         reporter.add_list([
             f"API Source: {params['taxonomic_api_source']}",
@@ -615,11 +625,13 @@ def main():
 
             from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
             print("Marking selected matches in GBIF taxa info file...")
-            mark_selected_gbif_matches(params)
+            mark_selected_gbif_matches(params, reporter)
 
         elif params.get('taxonomic_api_source') == 'WoRMS':
             from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
             print("Marking selected matches in WoRMS taxa info file...")
+            mark_selected_worms_matches(params, reporter)
+            
         # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
         final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_{api_source}_matched.csv')
@@ -647,8 +659,45 @@ def main():
         print("📄 Creating DNA derived extension...")
         create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
         
+        # --- Final File Validation ---
+        reporter.add_section("Final File Validation", level=3)
+        output_dir = params.get('output_dir', 'processed-v3/')
+        api_choice = params.get("taxonomic_api_source", "worms")
+        
+        files_to_validate = [
+            f'occurrence_{api_choice.lower()}_matched.csv',
+            f'taxa_assignment_INFO_{api_choice}.csv',
+            'dna_derived_extension.csv'
+        ]
+
+        all_empty_columns_summary = []
+        for filename in files_to_validate:
+            filepath = os.path.join(output_dir, filename)
+            if os.path.exists(filepath):
+                try:
+                    df = pd.read_csv(filepath, low_memory=False)
+                    empty_columns = [col for col in df.columns if df[col].isna().all()]
+                    if empty_columns:
+                        for col in empty_columns:
+                            reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
+                            all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+                except Exception as e:
+                    reporter.add_warning(f"Could not validate file '{filename}': {e}")
+        
+        if not all_empty_columns_summary:
+            reporter.add_success("Validation complete: No empty columns found in final output files.")
+        else:
+            reporter.add_list(all_empty_columns_summary, "<h4>Summary of All Empty Columns Found:</h4>")
+
+        # --- Final Status Check ---
+        # If any warnings were logged during the run, set the final status to WARNING
+        if reporter.warnings:
+            reporter.set_warning()
+        else:
+            reporter.set_success()
+            
         # Generate final report
-        print("\n🎉 Process completed successfully!")
+        print("\n🎉 Process completed!")
         print("Generating HTML report...")
         
         reporter.add_section("Process Completion")
@@ -656,7 +705,15 @@ def main():
         reporter.add_text("Files generated:")
         
         output_dir = params.get('output_dir', '../processed-v3/')
-        files = ['occurrence.csv', f'occurrence_{params.get("taxonomic_api_source", "worms").lower()}_matched.csv', 'taxa_assignment_INFO.csv', 'dna_derived_extension.csv']
+        api_choice = params.get("taxonomic_api_source", "worms")
+        
+        # Define the list of expected final files
+        files = [
+            f'occurrence_{api_choice.lower()}_matched.csv', 
+            f'taxa_assignment_INFO_{api_choice}.csv', 
+            'dna_derived_extension.csv',
+            report_filename # Use the dynamic report filename
+        ]
         
         for filename in files:
             filepath = os.path.join(output_dir, filename)
@@ -665,7 +722,6 @@ def main():
                 reporter.add_text(f"✓ {filename} ({size_mb:.2f} MB)")
             else:
                 reporter.add_text(f"✗ {filename} (not found)")
-        reporter.set_status("SUCCESS")
         
     except Exception as e:
         print(f"\n❌ Error during processing: {str(e)}")
