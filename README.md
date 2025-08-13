@@ -39,6 +39,65 @@ This code was developed to convert a custom FAIRe NOAA Google Sheet metadata tem
 
 [FAIRe_NOAA_noaa-aoml-gomecc4_SHARING](https://docs.google.com/spreadsheets/d/1mkjfUQW3gTn3ezhMQmFDQn4EBoQ2Xv4SZeSd9sqagoU/edit?gid=0#gid=0)
 
+### projectMetadata
+Project wide (project_level) project metadata, and metadata unique to each assay in the analyses
+
+| **term_name** | project_level | ssu16sv4v5-emp (1st assay) | ssu18sv9-emp (2nd assay) |
+|:--|:--|:--|:--|
+| **recordedBy** | Luke Thompson |  |
+| **recordedByID** | https://orcid.org/0000-0002-3911-1280 |  |
+| **project_contact** | Luke Thompson |  |
+| **institution** | NOAA/AOML |  |
+| **institutionID** | https://www.aoml.noaa.gov/omics |  |
+| **project_name** | eDNA from Gulf of Mexico Ecosystems and Carbon Cruise 2021 (GOMECC-4) |  |
+| **project_id** | noaa-aoml-gomecc4 |  |
+| **parent_project_id** | noaa-aoml-gomecc |  |
+| **study_factor** | water column spatial series |  |
+| **assay_type** | metabarcoding |  |
+| **sterilise_method** | After sampling, run ~1 L of 5% bleach through tubing lines, then rep... |  |
+| **checkls_ver** | FAIRe_checklist_v1.0.xlsx |  |
+| **mod_date** | 2024-10-31 |  |
+| **license** | http://creativecommons.org/publicdomain/zero/1.0/legalcode |  |
+| **rightsHolder** | US Government |  |
+| **accessRights** | no rights reserved ||
+| **assay_name** |  | ssu16sv4v5-emp | ssu18sv9-emp |
+| **ampliconSize** |  | 411 | 260 |
+| **code_repo** | https://github.com/aomlomics/gomecc |  |
+| **biological_rep** | 3 |  |
+
+### sampleMetadata
+Contextual data about the samples collected. Each row is a distinct sample (Event)
+
+| samp_name | materialSampleID | geo_loc_name | eventDate | decimalLatitude | decimalLongitude | sampleSizeValue | sampleSizeUnit | env_broad_scale | env_local_scale | env_medium | samp_collect_device | samp_vol_we_dna_ext | samp_mat_process | size_frac | 
+|:--|:--|:--|:--|--:|--:|--:|:--|:--|:--|:--|:--|:--|:--|:--|
+| GOMECC4_27N_Sta1_Deep_A | GOMECC4_27N_Sta1_Deep | USA: Atlantic Ocean, east of Florida (27 N) | 2021-09-14T11:00-04:00 | 26.997 | -79.618 | 1920 | mL | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | Niskin bottle on CTD rosette | 1920 mL | Pumped through Sterivex filter (0.22-µm) using peristaltic pump | 0.22 µm |  |
+| GOMECC4_27N_Sta1_Deep_B | GOMECC4_PANAMACITY_Sta1_Deep | USA: Atlantic Ocean, east of Florida (27 N) | 2021-09-20T23:13-04:00 | 26.997 | -79.618 | 1920 | mL | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | Niskin bottle on CTD rosette | 1920 mL | Pumped through Sterivex filter (0.22-µm) using peristaltic pump | 0.22 µm |  |
+
+### experimentRunMetadata
+Library preparation and sequencing details
+
+| samp_name | assay_name | pcr_plate_id | lib_id | seq_run_id | mid_forward | mid_reverse | filename | filename2 | input_read_count |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|--:|
+| GOMECC4_NegativeControl_1 | ssu16sv4v5-emp | not applicable | GOMECC16S_Neg1 | 20220613_Amplicon_PE250 | TAGCAGCT | CTGTGCCTA | GOMECC16S_Neg1_S499_L001_R1_001.fastq.gz | GOMECC16S_Neg1_S499_L001_R2_001.fastq.gz | 29319 |
+| GOMECC4_NegativeControl_2 | ssu16sv4v5-emp | not applicable | GOMECC16S_Neg2 | 20220613_Amplicon_PE250 | TAGCAGCT | CTAGGACTA | GOMECC16S_Neg2_S500_L001_R1_001.fastq.gz | GOMECC16S_Neg2_S500_L001_R2_001.fastq.gz | 30829 |
+
+### analysisMetadata
+Bioinformatic analysis configuration metadata. There is one analysisMetadata sheet PER analysis. Append the `analysis_run_name` to the filename, ex: analysisMetadata_gomecc4_16s_p1-2_v2024.10_241122.tsv
+
+| **Field** | Value |
+|:--|:--|
+| **project_id** | noaa-aoml-gomecc4 |
+| **assay_name** | ssu16sv4v5-emp |
+| **analysis_run_name** | gomecc4_16s_p1-2_v2024.10_241122 |
+| **sop_bioinformatics** | https://github.com/aomlomics/gomecc |
+| **trim_method** | cutadapt |
+| **trim_param** | qiime cutadapt trim-paired |
+| **demux_tool** | qiime2-2021.2; bcl2fastq v2.20.0 |
+| **merge_tool** | qiime2-2021.2; DADA2 1.18 |
+| **min_len_cutoff** | 200 |
+| **otu_db** | Silva SSU Ref NR 99 v138.1; 515f-926r region; 10.5281/zenodo.8392695 |
+| **otu_seq_comp_appr** | Tourmaline; qiime2-2021.2 |
+
 ### Raw Data: ASV Taxonomies and Abundance Tables
 You must have 2 raw data files associated with each analysis (analysisMetadata) in your submission. These files are generatead by [Tourmaline v2](https://github.com/aomlomics/tourmaline), AOML Omic's own amplicon sequence processing workflow. If you use a different codebase for this step, you must convert those files to the following formats:
 
@@ -166,12 +225,34 @@ The pipeline will:
 
 ### Output Files
 
-The pipeline generates several files in your `output_dir`:
+The pipeline generates several files in your output directory:
 
 - `occurrence_worms_matched.csv` / `occurrence_gbif_matched.csv` - Final Occurrence Core with assigned taxonomies
-- `taxa_assignment_INFO.csv` - Summary of HOW taxonomies were assigned
+- `taxa_assignment_INFO.csv_WoRMS` / `taxa_assignment_INFO_GBIF.csv` - Summary of HOW taxonomies were assigned
 - `dna_derived_extension.csv` - DNA-Derived data extension
 - `edna2obis_report.html` - HTML output report
+
+### Occurrence Core (GBIF example)
+
+| occurrenceID | eventID | verbatimIdentification | kingdom | phylum | class | order | family | genus | scientificName | taxonRank | organismQuantity | organismQuantityType | recordedBy | materialSampleID | eventDate | locality | decimalLatitude | decimalLongitude | basisOfRecord | nameAccordingTo |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|--:|:--|:--|:--|:--|:--|--:|--:|:--|:--|
+| GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Beloniformes;Exocoetidae;Cheilopogon | Animalia | Chordata |  | Beloniformes | Exocoetidae | Cheilopogon | Cheilopogon Lowe, 1841 | genus | 4 | DNA sequence reads | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793 | 28.662 | MaterialSample | GBIF |
+| GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Tetraodontiformes;Tetraodontidae;Lagocephalus;Lagocephalus laevigatus | Animalia | Chordata |  | Tetraodontiformes | Tetraodontidae | Lagocephalus | Lagocephalus laevigatus (Linnaeus, 1766) | species | 5317 | DNA sequence reads | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793 | 28.662 | MaterialSample | GBIF |
+
+### DNA Derived Extension
+
+| eventID | source_mat_id | samp_name | env_broad_scale | env_local_scale | env_medium | samp_vol_we_dna_ext | samp_collect_device | samp_mat_process | size_frac | concentration | lib_layout | seq_meth | nucl_acid_ext | target_gene | target_subfragment | pcr_primer_forward | pcr_primer_reverse | pcr_primer_name_forward | pcr_primer_name_reverse | pcr_primer_reference | pcr_cond | nucl_acid_amp | ampliconSize | otu_seq_comp_appr | otu_db | occurrenceID | DNA_sequence | concentrationUnit | otu_class_appr |
+|:--|:--|:--|:--|:--|:--|--:|:--|:--|:--|--:|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|--:|:--|:--|:--|:--|:--|:--|
+| GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2 | Niskin bottle | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45 | 1.57 | paired end | Illumina MiSeq [OBI_0002003] | https://doi.org/10.1002/edn3.70074 | 12S rRNA (SSU mitochondria) | V5-V6 | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F | MiFish-U-R2 | https://doi.org/10.1098/rsos.150088 | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175 | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | CACCGCGGTTATACGAGAGGCCTAAGTTGACAGACAACGGCGTAAAGAGTGGTTAAGGAAAAATTTATACTAAAGCCGAACATCCTCAAGACTGTCGTACGTTTCCGAGGATATGAAGTCCCCCTACGAAAGTGGCTTTAACTCCCCTGACCCCACGAAAGCTGTGAC | ng/µl | qiime2-2023.5; DADA2 1.26.0 |
+| GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2 | Niskin bottle | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45 | 1.57 | paired end | Illumina MiSeq [OBI_0002003] | https://doi.org/10.1002/edn3.70074 | 12S rRNA (SSU mitochondria) | V5-V6 | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F | MiFish-U-R2 | https://doi.org/10.1098/rsos.150088 | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175 | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | CACCGCGGTTATACGATGAAGCCCAAGTTGTTAGCCTTCGGCGTAAAGAGTGGTTAGAGTACCCCAACAAAACTAAGGCCGAACACCTTCAGGGCAGTCATACGCTTTCGAAGGCATGAAGCACACCAACGAAAGTAGCCTTACCAGACTTGAACCCACGAAAGCTAAGAT | ng/µl | qiime2-2023.5; DADA2 1.26.0 |
+
+### taxa_assignment_INFO (GBIF example)
+This file displays all potential taxonomic assignments for each unique taxonomy. If a taxonomic assignment appears incorrect in your Occurrence Core, you can refer to this file to explore alternative assignments.
+
+| verbatimIdentification | cleanedTaxonomy | selected_match | scientificName | confidence | taxonRank | taxonID | kingdom | phylum | class | order | family | genus | match_type_debug | nameAccordingTo |
+|:--|:--|:--|:--|--:|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| Bacteria | Bacteria | True | Bacteria | 97 | kingdom | gbif:3 | Bacteria |  |  |  |  |  | GBIF_EXACT | GBIF |
+| Eukaryota;Chordata;Actinopteri | Eukaryota;Chordata;Actinopteri | True | Chordata | 97 | phylum | gbif:44 | Animalia | Chordata |  |  |  |  | GBIF_EXACT | GBIF |
 
 ### Troubleshooting
 
