@@ -35,12 +35,12 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 
 ## Input Data Format
 ### Metadata: NOAA Omics FAIR eDNA-based metadata template
-This code was developed to convert a custom FAIRe NOAA Google Sheet metadata template developed by NOAA Omics at AOML, and based off the [FAIRe eDNA data standard](https://fair-edna.github.io/index.html). To use the sheet for your own data, run [FAIRe2NODE](https://github.com/aomlomics/FAIReSheets/tree/FAIRe2NODE), a suite of Python scripts which will generate the FAIRe NOAA templates in Google Sheets. Here is a filled-in example:  
+The FAIRe NOAA Google Sheet metadata template developed by NOAA Omics at AOML, and based off the [FAIRe eDNA data standard](https://fair-edna.github.io/index.html). To use the sheet for your own data, run [FAIRe2ODE](https://github.com/aomlomics/FAIRe2ODE), and it will generate the FAIRe NOAA templates in Google Sheets. Here is a filled-in example:  
 
 [FAIRe_NOAA_noaa-aoml-gomecc4_SHARING](https://docs.google.com/spreadsheets/d/1mkjfUQW3gTn3ezhMQmFDQn4EBoQ2Xv4SZeSd9sqagoU/edit?gid=0#gid=0)
 
 ### projectMetadata
-Project wide (project_level) project metadata, and metadata unique to each assay in the analyses
+Project wide (project_level) project metadata, and metadata unique to each assay
 
 | **term_name** | project_level | ssu16sv4v5-emp (1st assay) | ssu18sv9-emp (2nd assay) |
 |:--|:--|:--|:--|
