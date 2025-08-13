@@ -436,7 +436,7 @@ def get_final_occurrence_column_order():
     This provides a single, authoritative source for column ordering.
     """
     return [
-        'eventID', 'occurrenceID', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 
+        'occurrenceID', 'eventID', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 
         'order', 'family', 'genus', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank','parentEventID',  'datasetID', 'locationID', 'basisOfRecord', 
         'occurrenceStatus', 'organismQuantity', 'organismQuantityType', 
         'sampleSizeValue', 'sampleSizeUnit', 'recordedBy', 'materialSampleID', 

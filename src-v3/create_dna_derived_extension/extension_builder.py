@@ -16,13 +16,13 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         # Define desired columns for DNA derived extension in output order
         DESIRED_DNA_DERIVED_COLUMNS = [
-            'eventID', 'source_mat_id', 'samp_name','env_broad_scale', 'env_local_scale', 'env_medium', 
+            'occurrenceID', 'eventID', 'source_mat_id', 'samp_name','env_broad_scale', 'env_local_scale', 'env_medium', 
             'samp_vol_we_dna_ext', 'samp_collect_device', 'samp_mat_process', 'size_frac', 
             'concentration', 'lib_layout', 'seq_meth', 'nucl_acid_ext', 'target_gene', 
             'target_subfragment', 'pcr_primer_forward', 'pcr_primer_reverse', 
             'pcr_primer_name_forward', 'pcr_primer_name_reverse', 'pcr_primer_reference', 
             'pcr_cond', 'nucl_acid_amp', 'ampliconSize', 'otu_seq_comp_appr', 'otu_db', 
-            'occurrenceID', 'DNA_sequence', 'concentrationUnit', 'otu_class_appr'
+            'DNA_sequence', 'concentrationUnit', 'otu_class_appr'
         ]
         
         reporter.add_text(f"DNA derived extension will have {len(DESIRED_DNA_DERIVED_COLUMNS)} columns")
