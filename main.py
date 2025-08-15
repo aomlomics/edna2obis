@@ -25,6 +25,7 @@ from html_reporter import HTMLReporter
 from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
 from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
+from create_eMoF.eMoF_builder import create_emof_table
 
 
 def load_config(config_path="config.yaml"):
@@ -659,6 +660,14 @@ def main():
         print("📄 Creating DNA derived extension...")
         create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
         
+        # Create eMoF file
+        print("📄 Creating eMoF (extendedMeasurementOrFact)...")
+        try:
+            emof_path = create_emof_table(params, occurrence_core, data, reporter)
+            reporter.add_text(f"eMoF saved to: {emof_path}")
+        except Exception as e:
+            reporter.add_warning(f"eMoF creation failed: {e}")
+        
         # --- Final File Validation ---
         reporter.add_section("Final File Validation", level=3)
         output_dir = params.get('output_dir', 'processed-v3/')
@@ -667,7 +676,8 @@ def main():
         files_to_validate = [
             f'occurrence_{api_choice.lower()}_matched.csv',
             f'taxa_assignment_INFO_{api_choice}.csv',
-            'dna_derived_extension.csv'
+            'dna_derived_extension.csv',
+            'eMoF.xlsx'
         ]
 
         all_empty_columns_summary = []
@@ -675,7 +685,8 @@ def main():
             filepath = os.path.join(output_dir, filename)
             if os.path.exists(filepath):
                 try:
-                    df = pd.read_csv(filepath, low_memory=False)
+                    sep = '\t' if filename.lower().endswith('.tsv') else ','
+                    df = pd.read_csv(filepath, sep=sep, low_memory=False)
                     empty_columns = [col for col in df.columns if df[col].isna().all()]
                     if empty_columns:
                         for col in empty_columns:
@@ -712,6 +723,7 @@ def main():
             f'occurrence_{api_choice.lower()}_matched.csv', 
             f'taxa_assignment_INFO_{api_choice}.csv', 
             'dna_derived_extension.csv',
+            'eMoF.xlsx',
             report_filename # Use the dynamic report filename
         ]
         

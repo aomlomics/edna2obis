@@ -29,9 +29,9 @@ datafiles:
 #   gomecc4_16s_p3-6_v2024.10_241122:
 #     taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p3-6_v2024.10_241122.tsv"
 #     occurrence_file: "raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv"
-  # gomecc4_16s_p1-2_v2024.10_241122:
-  #   taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv"
-  #   occurrence_file: "raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv"
+#   gomecc4_16s_p1-2_v2024.10_241122:
+#     taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv"
+#     occurrence_file: "raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv"
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
   #   taxonomy_file: "path/to/your/asvTaxaFeatures_your_analysis_run_name.tsv"
@@ -62,8 +62,8 @@ locationID_components:
 # STEP 5:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
-taxonomic_api_source: "WoRMS"
-# taxonomic_api_source: "GBIF"
+# taxonomic_api_source: "WoRMS"
+taxonomic_api_source: "GBIF"
 
 # Define the maximum number of matches to request from the GBIF API for each unique taxonomy string.
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.
@@ -89,4 +89,7 @@ worms_n_proc: 0
 gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
-output_dir: "processed-v3/" 
+output_dir: "processed-v3/"
+
+# Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF Fields edna2obis .xlsx
+emof_template_path: "raw-v3/eMoF Fields edna2obis .xlsx" 
