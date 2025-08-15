@@ -1,4 +1,4 @@
-# edna2obis: eDNA Data Publishing Workflow
+![edna2obis Banner](images/banner_edna2obis.png)
 
 ## Introduction
 
