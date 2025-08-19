@@ -139,7 +139,15 @@ class HTMLReporter:
                     
                     new_content = title_html
                     new_content += f"<p><strong>Shape:</strong> {df.shape[0]:,} rows × {df.shape[1]} columns</p>"
-                    table_html = df.to_html(classes="table table-striped", escape=False)
+                    
+                    # Always limit to 20 rows maximum for display
+                    if len(df) > 20:
+                        df_display = df.head(20)
+                        table_html = df_display.to_html(classes="table table-striped", escape=False)
+                        new_content += f"<p><em>Showing first 20 rows of {len(df):,} total rows</em></p>"
+                    else:
+                        table_html = df.to_html(classes="table table-striped", escape=False)
+                    
                     scroll_hint = '<p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
                     new_content += f'<div class="table-container">{table_html}</div>{scroll_hint}'
                     

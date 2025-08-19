@@ -458,11 +458,7 @@ def create_taxa_assignment_info(params, reporter):
         else:
             reporter.add_error("❌ Error: File was not created")
             
-        # Show preview of the data
-        reporter.add_text("<h4>Taxa Assignment Info Preview:</h4>")
-        reporter.add_dataframe(taxa_info.head(10), f"First 10 entries from {output_filename}")
-        
-        # Add detailed explanation and full table view to the report
+        # Add detailed explanation and table view to the report
         reporter.add_text("<h3>Detailed Taxa Assignment Information</h3>")
         reporter.add_text(
             "<p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. "
@@ -478,7 +474,8 @@ def create_taxa_assignment_info(params, reporter):
             "<li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li>"
             "</ul>"
         )
-        reporter.add_dataframe(taxa_info, f"Full Data from {output_filename}", max_rows=100) # Show more rows for the full view
+        # Show preview of the data (limited to 20 rows maximum)
+        reporter.add_dataframe(taxa_info, f"Preview of {output_filename} (showing up to 20 rows)", max_rows=20)
         
         # Summary statistics
         ambiguous_count = 0
