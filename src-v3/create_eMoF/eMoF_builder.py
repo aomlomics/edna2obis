@@ -1,36 +1,38 @@
 """
-Extended Measurement Or Fact (eMoF) Builder for edna2obis
-Creates an eMoF Excel file based on a small template Excel and the occurrence core.
+Extended Measurement or Fact (eMoF) Builder for edna2obis
 
-Behavior:
-- Reads a template Excel (default: raw-v3/eMoF Fields edna2obis .xlsx)
-  The template should have at least: measurementType, measurementValue,
-  measurementTypeID, measurementValueID, measurementUnitID, measurementRemarks.
-- Units are automatically detected from FAIRe metadata using the pattern: {measurementType}_unit
-  For example, if measurementType = "temperature", the system looks for a "temperature_unit" column
-  in sampleMetadata, experimentRunMetadata, or projectMetadata.
-- Optionally, the template can include a column named 'linkTo' with values
-  'occurrence' (default) or 'event'.
-  - linkTo == 'occurrence': a row is expanded for every occurrence (eventID + occurrenceID)
-  - linkTo == 'event': a row is expanded for every unique event (eventID only)
-- Special handling: measurementType == 'assay_name'
-  If the template specifies measurementValue for assay_name, rows will be created
-  only for occurrences whose assay_name equals the provided measurementValue.
-  If no measurementValue is provided in the template row, a per-occurrence row is
-  created where measurementValue is populated from each occurrence's assay_name.
-
-Output columns (in order):
-  eventID, occurrenceID, measurementType, measurementValue, measurementUnit,
-  measurementTypeID, measurementValueID, measurementUnitID, measurementRemarks
-
-The function logs progress to the provided HTMLReporter.
+Key behavior (agreed design for metabarcoding datasets):
+- Event-level only (for now): one row per eventID per measurement. occurrenceID is left blank.
+- Source resolution for each measurementType: look in sampleMetadata first, else experimentRunMetadata, else error.
+- Unit rules (strict, non-destructive):
+  - If measurementUnit == 'provided' (case-insensitive), a per-row unit column named '<measurementType>_unit' MUST exist in the chosen source sheet and MUST be non-blank for all emitted rows; otherwise error.
+  - If measurementUnit is a non-empty literal (e.g., 'm', '°C'), use it as-is for every emitted row for that measurementType.
+  - If measurementUnit is blank, leave blank. Do NOT auto-fallback to any unit column. Additionally, if a '<measurementType>_unit' column exists in the source sheet while the template left unit blank, error to avoid unintended data changes.
+- Value rules:
+  - If template.measurementValue is non-blank: treat as categorical. Emit rows only where the source value equals the template value (trimmed, case-insensitive by default). Otherwise, do not emit for that event.
+  - If template.measurementValue is blank: treat as numeric/direct. Copy source value into measurementValue. Skip events where the value is NA (no fabrication).
+- Events included: only those present in the final, taxonomically matched occurrence file (occurrence_{api}_matched.csv). This excludes controls/blank samples automatically.
 """
 
+from __future__ import annotations
+
 import os
+from typing import Dict, List, Tuple
+
 import pandas as pd
 
 
-REQUIRED_COLUMNS_IN_ORDER = [
+REQUIRED_TEMPLATE_COLUMNS_IN_ORDER: List[str] = [
+    'measurementType',
+    'measurementValue',
+    'measurementUnit',
+    'measurementTypeID',
+    'measurementValueID',
+    'measurementUnitID',
+    'measurementRemarks',
+]
+
+EMOF_OUTPUT_COLUMNS_IN_ORDER: List[str] = [
     'eventID',
     'occurrenceID',
     'measurementType',
@@ -43,216 +45,384 @@ REQUIRED_COLUMNS_IN_ORDER = [
 ]
 
 
-def _normalize_template_columns(template_df: pd.DataFrame) -> pd.DataFrame:
-    """Normalize user-provided column names to the required set, keeping unknowns for possible future use."""
-    col_map = {}
-    for col in template_df.columns:
-        key = str(col).strip()
-        key_lower = key.lower()
-        if key_lower in {'measurementtype', 'measurement_type'}:
-            col_map[col] = 'measurementType'
-        elif key_lower in {'measurementvalue', 'measurement_value'}:
-            col_map[col] = 'measurementValue'
-        elif key_lower in {'measurementunit', 'measurement_unit'}:
-            col_map[col] = 'measurementUnit'
-        elif key_lower in {'measurementtypeid', 'measurement_type_id', 'measurementtype_id'}:
-            col_map[col] = 'measurementTypeID'
-        elif key_lower in {'measurementvalueid', 'measurement_value_id'}:
-            col_map[col] = 'measurementValueID'
-        elif key_lower in {'measurementunitid', 'measurement_unit_id'}:
-            col_map[col] = 'measurementUnitID'
-        elif key_lower in {'measurementremarks', 'measurement_remarks'}:
-            col_map[col] = 'measurementRemarks'
-        elif key_lower in {'linkto', 'link_to', 'scope'}:
-            col_map[col] = 'linkTo'
-        else:
-            col_map[col] = key  # keep as-is
-    df = template_df.rename(columns=col_map).copy()
-
-    # Ensure all required columns exist
-    for col in ['measurementType', 'measurementValue', 'measurementUnit', 'measurementTypeID', 'measurementValueID', 'measurementUnitID', 'measurementRemarks']:
-        if col not in df.columns:
-            df[col] = pd.NA
-    if 'linkTo' not in df.columns:
-        df['linkTo'] = 'occurrence'
-    return df
+def _normalize_str(val) -> str:
+    if pd.isna(val):
+        return ''
+    return str(val).strip()
 
 
-def _get_measurement_unit_from_faire_data(data: dict, measurement_type: str) -> str:
-    """Look for a unit column following the pattern {measurementType}_unit in FAIRe metadata."""
-    if pd.isna(measurement_type) or not str(measurement_type).strip():
-        return pd.NA
-    
-    # Look for a column named {measurementType}_unit in FAIRe metadata
-    unit_col_name = f"{measurement_type}_unit"
-    
-    # Check sampleMetadata first (most common place for environmental measurements)
-    if 'sampleMetadata' in data and not data['sampleMetadata'].empty:
-        if unit_col_name in data['sampleMetadata'].columns:
-            # Get the first non-NA value
-            unit_values = data['sampleMetadata'][unit_col_name].dropna()
-            if not unit_values.empty:
-                return str(unit_values.iloc[0])
-    
-    # Check experimentRunMetadata
-    if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
-        if unit_col_name in data['experimentRunMetadata'].columns:
-            unit_values = data['experimentRunMetadata'][unit_col_name].dropna()
-            if not unit_values.empty:
-                return str(unit_values.iloc[0])
-    
-    # Check projectMetadata
-    if 'projectMetadata' in data and not data['projectMetadata'].empty:
-        if unit_col_name in data['projectMetadata'].columns:
-            unit_values = data['projectMetadata'][unit_col_name].dropna()
-            if not unit_values.empty:
-                return str(unit_values.iloc[0])
-    
-    return pd.NA
+def _case_insensitive_equal(a, b) -> bool:
+    return _normalize_str(a).lower() == _normalize_str(b).lower()
 
 
-def _load_emof_template(template_path: str) -> pd.DataFrame:
-    """Load the eMoF template Excel. Falls back to an empty frame if not found."""
-    if not os.path.exists(template_path):
-        # Return an empty template; calling code will still be able to generate assay_name rows directly
-        return pd.DataFrame(columns=['measurementType', 'measurementValue', 'measurementUnit',
-                                     'measurementTypeID', 'measurementValueID', 'measurementUnitID',
-                                     'measurementRemarks', 'linkTo'])
-    try:
-        df = pd.read_excel(template_path, sheet_name=0)
-        return df
-    except Exception:
-        # Try with engine openpyxl fallback (in case of older environments)
-        df = pd.read_excel(template_path, sheet_name=0, engine='openpyxl')
-        return df
+def _load_final_occurrence(params, reporter) -> pd.DataFrame:
+    """Load the final, taxonomically matched occurrence file.
 
-
-def create_emof_table(params: dict, occurrence_core: pd.DataFrame, data: dict, reporter) -> str:
-    """Create the eMoF Excel file and return the output path.
-
-    params:
-      - emof_template_path (optional): path to the template Excel
-      - output_dir: directory where the TSV will be written
-    data:
-      - FAIRe metadata dictionary containing sampleMetadata, experimentRunMetadata, etc.
+    Falls back to the intermediate in-memory occurrence_core DataFrame only if the
+    final file is missing (should be rare), and warns the user.
     """
-    reporter.add_section("Creating extendedMeasurementOrFact (eMoF)")
-
     output_dir = params.get('output_dir', 'processed-v3/')
-    os.makedirs(output_dir, exist_ok=True)
-    output_path = os.path.join(output_dir, 'eMoF.xlsx')
+    api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
+    final_occurrence_path = os.path.join(output_dir, f"occurrence_{api_choice}_matched.csv")
 
-    template_path = params.get('emof_template_path', os.path.join('raw-v3', 'eMoF Fields edna2obis .xlsx'))
-    reporter.add_text(f"Using eMoF template: {template_path}")
-
-    # Prepare bases
-    if not {'eventID', 'occurrenceID'}.issubset(occurrence_core.columns):
-        reporter.add_error("Occurrence core is missing 'eventID' or 'occurrenceID' required for eMoF linking.")
-        raise ValueError("Occurrence core missing required identifiers")
-
-    base_occ = occurrence_core[['eventID', 'occurrenceID']].copy()
-    if 'assay_name' in occurrence_core.columns:
-        base_occ['assay_name'] = occurrence_core['assay_name']
+    if os.path.exists(final_occurrence_path):
+        try:
+            df = pd.read_csv(final_occurrence_path, low_memory=False)
+            return df
+        except Exception as e:
+            reporter.add_warning(f"Could not read final occurrence file '{final_occurrence_path}': {e}")
     else:
-        base_occ['assay_name'] = pd.NA
+        reporter.add_warning(
+            f"Final occurrence file not found at '{final_occurrence_path}'. "
+            f"Will attempt to use in-memory occurrence_core as fallback."
+        )
+    return pd.DataFrame()
 
-    base_events = occurrence_core[['eventID']].drop_duplicates().copy()
 
-    # Load and normalize template
-    raw_template = _load_emof_template(template_path)
-    template = _normalize_template_columns(raw_template)
+def _build_event_dataframe(final_occ_df: pd.DataFrame, data: Dict[str, pd.DataFrame], reporter) -> pd.DataFrame:
+    """Create a DataFrame of distinct eventIDs to include in eMoF and map to samp_name.
 
-    # If template is empty, create a synthetic row to at least export assay_name per occurrence
-    if template.empty:
-        template = pd.DataFrame([
-            {'measurementType': 'assay_name', 'measurementValue': pd.NA, 'measurementUnit': pd.NA,
-             'measurementTypeID': pd.NA, 'measurementValueID': pd.NA, 'measurementUnitID': pd.NA,
-             'measurementRemarks': pd.NA, 'linkTo': 'occurrence'}
-        ])
-        reporter.add_warning("Template not found or empty; generating eMoF with only per-occurrence assay_name entries.")
+    Returns a DataFrame with columns:
+      - eventID (lib_id)
+      - samp_name (mapped from experimentRunMetadata)
 
-    # Build rows
-    emof_rows = []
+    Assumes controls/blank samples have already been removed upstream from the
+    provided 'data' dict (sampleMetadata, experimentRunMetadata).
+    """
+    required_cols = []
+    if not final_occ_df.empty:
+        if 'eventID' not in final_occ_df.columns:
+            reporter.add_error("Final occurrence file is missing required column 'eventID'.")
+            raise ValueError("Missing 'eventID' in final occurrence file")
+        unique_events = (
+            final_occ_df[['eventID']]
+            .dropna()
+            .drop_duplicates()
+            .rename(columns={'eventID': 'eventID'})
+        )
+    else:
+        # If we cannot load final file, derive eventIDs from experimentRunMetadata (non-ideal)
+        reporter.add_warning(
+            "Using experimentRunMetadata to derive eventIDs because final occurrence file was unavailable."
+        )
+        if 'experimentRunMetadata' not in data or data['experimentRunMetadata'].empty:
+            reporter.add_error("experimentRunMetadata is missing or empty; cannot derive eventIDs.")
+            raise ValueError("experimentRunMetadata missing for eMoF event derivation")
+        erm = data['experimentRunMetadata']
+        if 'lib_id' not in erm.columns:
+            reporter.add_error("experimentRunMetadata missing required column 'lib_id'.")
+            raise ValueError("experimentRunMetadata missing 'lib_id'")
+        unique_events = erm[['lib_id']].dropna().drop_duplicates().rename(columns={'lib_id': 'eventID'})
 
-    for _, row in template.iterrows():
-        mtype = str(row.get('measurementType', '')).strip()
-        if not mtype or mtype.lower() == 'nan':
-            continue
+    # Map eventID (lib_id) to samp_name using experimentRunMetadata
+    if 'experimentRunMetadata' not in data or data['experimentRunMetadata'].empty:
+        reporter.add_error("experimentRunMetadata is missing or empty; cannot map eventID to samp_name.")
+        raise ValueError("experimentRunMetadata missing for mapping")
 
-        link_to = str(row.get('linkTo', 'occurrence')).strip().lower() or 'occurrence'
+    erm_df = data['experimentRunMetadata'].copy()
+    # Normalize lib_id and samp_name to strings
+    for col in ['lib_id', 'samp_name']:
+        if col in erm_df.columns:
+            erm_df[col] = erm_df[col].astype(str).str.strip()
 
-        # Values from template (may be NA)
-        mval = row.get('measurementValue', pd.NA)
-        # Look for unit in FAIRe data using {measurementType}_unit pattern
-        munit = _get_measurement_unit_from_faire_data(data, mtype)
-        mtype_id = row.get('measurementTypeID', pd.NA)
-        mval_id = row.get('measurementValueID', pd.NA)
-        munit_id = row.get('measurementUnitID', pd.NA)
-        mremarks = row.get('measurementRemarks', pd.NA)
+    if 'lib_id' not in erm_df.columns or 'samp_name' not in erm_df.columns:
+        reporter.add_error("experimentRunMetadata must contain 'lib_id' and 'samp_name'.")
+        raise ValueError("experimentRunMetadata missing 'lib_id' or 'samp_name'")
 
-        if link_to == 'event':
-            # Expand across events; occurrenceID left blank
-            tmp = base_events.copy()
-            tmp['occurrenceID'] = pd.NA
-            tmp['measurementType'] = mtype
-            tmp['measurementValue'] = mval
-            tmp['measurementUnit'] = munit
-            tmp['measurementTypeID'] = mtype_id
-            tmp['measurementValueID'] = mval_id
-            tmp['measurementUnitID'] = munit_id
-            tmp['measurementRemarks'] = mremarks
-            emof_rows.append(tmp[REQUIRED_COLUMNS_IN_ORDER])
-            continue
+    events = unique_events.merge(erm_df[['lib_id', 'samp_name']].drop_duplicates('lib_id'),
+                                 left_on='eventID', right_on='lib_id', how='left')
+    events.drop(columns=['lib_id'], inplace=True)
 
-        # Default: link to occurrence
-        if mtype == 'assay_name':
-            # If a specific measurementValue is provided, restrict to those occurrences
-            occ_subset = base_occ
-            if pd.notna(mval) and str(mval).strip():
-                occ_subset = base_occ[base_occ['assay_name'].astype(str) == str(mval)]
-                value_series = pd.Series(str(mval), index=occ_subset.index)
-            else:
-                value_series = occ_subset['assay_name']
+    # Sanity check: any eventID without samp_name will limit access to sampleMetadata
+    missing_samp = events['samp_name'].isna().sum()
+    if missing_samp:
+        reporter.add_warning(
+            f"{missing_samp} eventID(s) could not be mapped to samp_name via experimentRunMetadata. "
+            f"Measurements that require sampleMetadata will be missing for those events."
+        )
 
-            if occ_subset.empty:
+    return events
+
+
+def _resolve_source_for_measurement(meas_type: str, data: Dict[str, pd.DataFrame]) -> Tuple[str, pd.DataFrame]:
+    """Determine which sheet holds the measurementType column.
+
+    Returns a tuple (source_name, source_df) where source_name is one of
+    'sampleMetadata' or 'experimentRunMetadata'. Raises on failure.
+    """
+    meas_type = str(meas_type)
+    if 'sampleMetadata' in data and not data['sampleMetadata'].empty and meas_type in data['sampleMetadata'].columns:
+        return 'sampleMetadata', data['sampleMetadata']
+    if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty and meas_type in data['experimentRunMetadata'].columns:
+        return 'experimentRunMetadata', data['experimentRunMetadata']
+    raise ValueError(f"measurementType '{meas_type}' not found in sampleMetadata or experimentRunMetadata")
+
+
+def _prepare_join_frame_for_measurement(
+    meas_type: str,
+    events_df: pd.DataFrame,
+    source_name: str,
+    source_df: pd.DataFrame,
+    reporter,
+) -> pd.DataFrame:
+    """Build a per-measurementType join frame limited to included events.
+
+    Returns columns: eventID, value (the measurementType value), optional unit column (<meas_type>_unit) if present.
+    """
+    # Build the base join between events and the source sheet
+    if source_name == 'sampleMetadata':
+        if 'samp_name' not in source_df.columns:
+            reporter.add_error("sampleMetadata missing required column 'samp_name'.")
+            raise ValueError("sampleMetadata missing 'samp_name'")
+        join_df = events_df.merge(
+            source_df,
+            left_on='samp_name',
+            right_on='samp_name',
+            how='left',
+        )
+    elif source_name == 'experimentRunMetadata':
+        # events_df has eventID (lib_id); join directly to experimentRunMetadata on lib_id
+        if 'lib_id' not in source_df.columns:
+            reporter.add_error("experimentRunMetadata missing required column 'lib_id'.")
+            raise ValueError("experimentRunMetadata missing 'lib_id'")
+        join_df = events_df.merge(
+            source_df,
+            left_on='eventID',
+            right_on='lib_id',
+            how='left',
+        )
+    else:
+        raise ValueError(f"Unknown source sheet '{source_name}'")
+
+    # Prepare the minimal output
+    out = pd.DataFrame()
+    out['eventID'] = join_df['eventID']
+    out['value'] = join_df[meas_type] if meas_type in join_df.columns else pd.NA
+
+    unit_col = f"{meas_type}_unit"
+    if unit_col in join_df.columns:
+        out[unit_col] = join_df[unit_col]
+
+    return out
+
+
+def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.DataFrame], reporter) -> str:
+    """Create an eMoF (extendedMeasurementOrFact) Excel file.
+
+    For this version, all rows are event-linked (occurrenceID left blank). The list of events is
+    derived from the final, taxonomically matched occurrence file to ensure controls/blanks are excluded.
+    """
+    reporter.add_section("Creating eMoF (extendedMeasurementOrFact)")
+
+    try:
+        # ------------------------------------------------------------------
+        # Load template (input_file sheet)
+        # ------------------------------------------------------------------
+        template_path = params.get('emof_template_path', 'raw-v3/eMoF Fields edna2obis .xlsx')
+        if not os.path.exists(template_path):
+            reporter.add_error(f"eMoF template not found: {template_path}")
+            raise FileNotFoundError(f"Template not found: {template_path}")
+
+        try:
+            template_df = pd.read_excel(template_path, sheet_name='input_file', dtype=object)
+        except Exception as e:
+            reporter.add_error(f"Failed to read 'input_file' sheet from template: {e}")
+            raise
+
+        # Normalize header names (but enforce exact required set)
+        template_df.columns = [str(c).strip() for c in template_df.columns]
+        missing_cols = [c for c in REQUIRED_TEMPLATE_COLUMNS_IN_ORDER if c not in template_df.columns]
+        if missing_cols:
+            reporter.add_error(f"Template is missing required columns: {missing_cols}")
+            raise ValueError("Template missing required columns")
+
+        # Drop completely empty rows (where measurementType is NA/blank)
+        template_df['measurementType'] = template_df['measurementType'].astype(object)
+        template_df = template_df[template_df['measurementType'].apply(lambda x: _normalize_str(x) != '')].copy()
+
+        reporter.add_text(f"Loaded template with {len(template_df)} configured measurement row(s)")
+
+        # ------------------------------------------------------------------
+        # Load final occurrence file to determine events to include
+        # ------------------------------------------------------------------
+        final_occ_df = _load_final_occurrence(params, reporter)
+        if final_occ_df.empty and isinstance(occurrence_core, pd.DataFrame) and not occurrence_core.empty:
+            # Fallback to in-memory occurrence_core (should already have controls removed)
+            reporter.add_warning("Using in-memory occurrence_core to derive events (final occurrence file unavailable)")
+            final_occ_df = occurrence_core.copy()
+
+        events_df = _build_event_dataframe(final_occ_df, data, reporter)
+        reporter.add_text(f"Total events included (non-control): {len(events_df)}")
+
+        # ------------------------------------------------------------------
+        # Build eMoF rows
+        # ------------------------------------------------------------------
+        emof_rows: List[Dict[str, object]] = []
+
+        # Cache join frames per measurementType to avoid repeated merges
+        prepared_frames: Dict[str, pd.DataFrame] = {}
+        prepared_sources: Dict[str, Tuple[str, pd.DataFrame]] = {}
+
+        # Iterate template rows in order
+        for _, trow in template_df.iterrows():
+            meas_type = _normalize_str(trow.get('measurementType'))
+            templ_value = trow.get('measurementValue')
+            templ_unit = trow.get('measurementUnit')
+            templ_mtid = trow.get('measurementTypeID')
+            templ_mvid = trow.get('measurementValueID')
+            templ_muid = trow.get('measurementUnitID')
+            templ_rem = trow.get('measurementRemarks')
+
+            if meas_type == '':
+                # Skip defensive; should have been filtered out
                 continue
 
-            tmp = occ_subset[['eventID', 'occurrenceID']].copy()
-            tmp['measurementType'] = 'assay_name'
-            tmp['measurementValue'] = value_series
-            tmp['measurementUnit'] = munit
-            tmp['measurementTypeID'] = mtype_id
-            tmp['measurementValueID'] = mval_id
-            tmp['measurementUnitID'] = munit_id
-            tmp['measurementRemarks'] = mremarks
-            emof_rows.append(tmp[REQUIRED_COLUMNS_IN_ORDER])
-        else:
-            tmp = base_occ[['eventID', 'occurrenceID']].copy()
-            tmp['measurementType'] = mtype
-            tmp['measurementValue'] = mval
-            tmp['measurementUnit'] = munit
-            tmp['measurementTypeID'] = mtype_id
-            tmp['measurementValueID'] = mval_id
-            tmp['measurementUnitID'] = munit_id
-            tmp['measurementRemarks'] = mremarks
-            emof_rows.append(tmp[REQUIRED_COLUMNS_IN_ORDER])
+            # Resolve data source for the measurementType
+            if meas_type not in prepared_sources:
+                try:
+                    source_name, source_df = _resolve_source_for_measurement(meas_type, data)
+                except Exception as e:
+                    reporter.add_error(str(e))
+                    raise
+                prepared_sources[meas_type] = (source_name, source_df)
+            else:
+                source_name, source_df = prepared_sources[meas_type]
 
-    if not emof_rows:
-        # Ensure we always output something
-        result_df = pd.DataFrame(columns=REQUIRED_COLUMNS_IN_ORDER)
-    else:
-        result_df = pd.concat(emof_rows, ignore_index=True)
+            # Prepare the limited join frame (eventID + value + optional unit column)
+            if meas_type not in prepared_frames:
+                join_frame = _prepare_join_frame_for_measurement(meas_type, events_df, source_name, source_df, reporter)
+                # Normalize value and potential unit strings
+                # Do not coerce numeric here; we preserve formatting as provided (non-destructive)
+                if 'value' in join_frame.columns:
+                    # Keep original dtypes; but for categorical compare, we'll normalize per-comparison
+                    pass
+                prepared_frames[meas_type] = join_frame
+            else:
+                join_frame = prepared_frames[meas_type]
 
-    # Ensure correct column order and replace NaNs with empty strings when saving
-    for col in REQUIRED_COLUMNS_IN_ORDER:
-        if col not in result_df.columns:
-            result_df[col] = pd.NA
-    result_df = result_df[REQUIRED_COLUMNS_IN_ORDER]
+            # Unit policy checks
+            templ_unit_norm = _normalize_str(templ_unit)
+            has_per_row_unit_col = f"{meas_type}_unit" in join_frame.columns
 
-    # Save to Excel
-    result_df.to_excel(output_path, index=False, engine='openpyxl')
+            if templ_unit_norm == 'provided':
+                if not has_per_row_unit_col:
+                    reporter.add_error(
+                        f"For measurementType '{meas_type}', measurementUnit='provided' but column '{meas_type}_unit' "
+                        f"was not found in the source sheet ('{source_name}')."
+                    )
+                    raise ValueError(f"Missing per-row unit column for '{meas_type}'")
+            else:
+                if templ_unit_norm == '':
+                    # Blank unit: do not fallback; but if a per-row unit column exists, error to avoid silent changes
+                    if has_per_row_unit_col:
+                        reporter.add_error(
+                            f"For measurementType '{meas_type}', the template left measurementUnit blank but a per-row unit column "
+                            f"'{meas_type}_unit' exists in the source data. Set measurementUnit to 'provided' or a literal."
+                        )
+                        raise ValueError("Ambiguous unit policy detected (blank vs provided)")
+                else:
+                    # Literal unit: use as-is
+                    pass
 
-    reporter.add_success(f"eMoF created successfully with {len(result_df):,} records")
-    reporter.add_text(f"Output file: eMoF.xlsx")
+            # Determine categorical vs numeric/direct by template value emptiness
+            is_categorical = _normalize_str(templ_value) != ''
 
-    return output_path
+            # Iterate each event row and decide whether to emit
+            for _, ev in join_frame.iterrows():
+                event_id = _normalize_str(ev.get('eventID'))
+                src_val = ev.get('value')
+
+                if pd.isna(src_val) or _normalize_str(src_val) == '':
+                    # Skip events without a value (non-destructive)
+                    continue
+
+                if is_categorical:
+                    # Emit only when src_val matches template value (trimmed, case-insensitive)
+                    if not _case_insensitive_equal(src_val, templ_value):
+                        continue
+                    out_value = _normalize_str(templ_value)
+                    out_value_id = _normalize_str(templ_mvid)
+                else:
+                    # Numeric/direct: copy the source value as-is (stringify for Excel safety but avoid altering)
+                    out_value = src_val
+                    out_value_id = ''
+
+                # Resolve unit output per policy
+                if templ_unit_norm == 'provided':
+                    unit_col = f"{meas_type}_unit"
+                    unit_val = ev.get(unit_col)
+                    if pd.isna(unit_val) or _normalize_str(unit_val) == '':
+                        reporter.add_error(
+                            f"For measurementType '{meas_type}', measurementUnit='provided' but unit is blank for eventID '{event_id}'."
+                        )
+                        raise ValueError("Blank per-row unit encountered under 'provided' policy")
+                    out_unit = unit_val
+                elif templ_unit_norm == '':
+                    out_unit = ''
+                else:
+                    out_unit = templ_unit_norm
+
+                # Compose eMoF row (occurrenceID left blank per agreed event-only design)
+                emof_rows.append({
+                    'eventID': event_id,
+                    'occurrenceID': '',
+                    'measurementType': meas_type,
+                    'measurementValue': out_value,
+                    'measurementUnit': out_unit,
+                    'measurementTypeID': _normalize_str(templ_mtid),
+                    'measurementValueID': out_value_id,
+                    'measurementUnitID': _normalize_str(templ_muid),
+                    'measurementRemarks': _normalize_str(templ_rem),
+                })
+
+        # ------------------------------------------------------------------
+        # Finalize and save
+        # ------------------------------------------------------------------
+        if not emof_rows:
+            reporter.add_warning("No eMoF rows were generated based on the template and available data.")
+
+        emof_df = pd.DataFrame(emof_rows, columns=EMOF_OUTPUT_COLUMNS_IN_ORDER)
+
+        # Deterministic sort: by eventID, measurementType, then measurementValue
+        sort_cols = [c for c in ['eventID', 'measurementType', 'measurementValue'] if c in emof_df.columns]
+        if sort_cols:
+            emof_df = emof_df.sort_values(sort_cols).reset_index(drop=True)
+
+        output_dir = params.get('output_dir', 'processed-v3/')
+        os.makedirs(output_dir, exist_ok=True)
+        emof_path = os.path.join(output_dir, 'eMoF.xlsx')
+
+        try:
+            # Write to a single sheet named 'eMoF'
+            with pd.ExcelWriter(emof_path, engine='openpyxl') as writer:
+                emof_df.to_excel(writer, index=False, sheet_name='eMoF')
+        except Exception:
+            # Fallback: try default engine
+            emof_df.to_excel(emof_path, index=False, sheet_name='eMoF')
+
+        # Also write CSV for pipeline validation and downstream tooling
+        emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
+        try:
+            emof_df.to_csv(emof_csv_path, index=False)
+        except Exception as e:
+            reporter.add_warning(f"Could not write eMoF CSV ('{emof_csv_path}'): {e}")
+
+        reporter.add_success(f"eMoF created successfully with {len(emof_df)} row(s)")
+        reporter.add_text(f"Saved eMoF to: {emof_path}")
+        reporter.add_text(f"Saved eMoF CSV to: {emof_csv_path}")
+        reporter.add_dataframe(emof_df.head(15), "eMoF Preview (first 15 rows)")
+
+        # Sanity: warn if Excel is near row cap (unlikely with event-only)
+        if len(emof_df) > 900000:
+            reporter.add_warning(
+                "eMoF size is approaching Excel's row limit. Consider reducing event set, splitting files, or writing CSV."
+            )
+
+        return emof_path
+
+    except Exception as e:
+        reporter.add_error(f"eMoF creation failed: {e}")
+        raise
+
+
+  

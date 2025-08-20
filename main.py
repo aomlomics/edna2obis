@@ -677,7 +677,7 @@ def main():
             f'occurrence_{api_choice.lower()}_matched.csv',
             f'taxa_assignment_INFO_{api_choice}.csv',
             'dna_derived_extension.csv',
-            'eMoF.xlsx'
+            'eMoF.csv',
         ]
 
         all_empty_columns_summary = []
@@ -723,7 +723,7 @@ def main():
             f'occurrence_{api_choice.lower()}_matched.csv', 
             f'taxa_assignment_INFO_{api_choice}.csv', 
             'dna_derived_extension.csv',
-            'eMoF.xlsx',
+            'eMoF.csv',
             report_filename # Use the dynamic report filename
         ]
         

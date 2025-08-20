@@ -1,0 +1,1874 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>edna2obis Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f8f9fa; }
+        .container { max-width: 1200px; margin: 0 auto; background-color: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); border: 1px solid #e9ecef; }
+        .status { padding: 20px; margin-bottom: 20px; border-radius: 5px; text-align: center; font-size: 24px; font-weight: bold; color: white; background-color: #ffc107; }
+        .alert { padding: 15px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .alert-warning { background-color: #fff3cd; border-color: #ffeaa7; color: #856404; }
+        .alert-danger { background-color: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .table-container { overflow-x: auto; margin: 10px 0; max-width: 100%; border: 1px solid #ddd; border-radius: 4px; }
+        .table-container::-webkit-scrollbar { height: 8px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        .table { width: 100%; border-collapse: collapse; margin: 0; min-width: 600px; }
+        .table th, .table td { padding: 8px 12px; text-align: left; border: 1px solid #ddd; white-space: nowrap; }
+        .table-striped tr:nth-child(even) { background-color: #f2f2f2; }
+        .table th { background-color: #e9ecef; font-weight: bold; }
+        .metadata { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+        h1 { color: #212529; font-size: 2.5rem; font-weight: 700; text-align: center; margin: 30px 0 20px 0; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        h2, h3, h4 { color: #343a40; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; }
+        .header-section { text-align: center; margin: 30px 0 50px 0; }
+        .logo-bar { display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0; opacity: 0.8; }
+        .logo-bar img { height: 60px; object-fit: contain; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="status">WARNING</div>
+        
+        <div class="metadata">
+            <h3>Run Information</h3>
+            <p><strong>Start Time:</strong> 2025-08-20 13:17:10</p>
+            <p><strong>End Time:</strong> 2025-08-20 13:17:15</p>
+            <p><strong>Duration:</strong> 0:00:04</p>
+            <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
+        </div>
+        
+        <div class="header-section">
+            <h1>edna2obis Processing Report</h1>
+            <div class="logo-bar">
+                <img src="../images/aoml_logo.png" alt="AOML">
+                <img src="../images/noaa_omics_logo.png" alt="NOAA Omics">
+                <img src="../images/obis_logo.png" alt="OBIS">
+                <img src="../images/gbif_logo.png" alt="GBIF">
+            </div>
+        </div>
+<h1>Data Cleaning</h1>
+
+        <p style="font-size: 18px; color: #495057; margin-bottom: 25px; font-weight: 500;">Starting initial data cleaning of eDNA metadata and raw data from FAIRe NOAA format to Darwin Core for OBIS and GBIF submission</p>
+        
+<h2>Loading Configuration</h2>
+<div class="alert alert-success">Configuration loaded successfully</div>
+<h4>Configuration Summary:</h4><ul><li>API Source: GBIF</li><li>Excel file: raw-v3/FAIRe-noaa-sefsc-gu1901_forGBIF.xlsx</li><li>Number of analysis runs: 2</li><li>Output directory: processed-v3/</li><li>Local reference database: False</li></ul>
+<h2>Loading Project Data</h2>
+<p>Found 9 sheets in Excel file: README, projectMetadata, sampleMetadata, experimentRunMetadata, analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz, taxaRaw, taxaFinal, Drop-down values</p>
+<p>Found 2 analysis metadata sheets: analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz</p>
+<p>Processing sheet 'analysisMetadata_rosel-ctd-mifi': assay 'ssu12sv5v6_mifish_u', run 'rosel-ctd-mifish-addMFtrawlJfish-241001'</p>
+<p>Processing sheet 'analysisMetadata_rosel-ctd-riaz': assay 'ssu12sv5_riaz', run 'rosel-ctd-riaz-addMFtrawlJfish-241001'</p>
+<div class="alert alert-success">Successfully loaded project data:</div>
+<ul><li>Sample metadata: 29 rows</li><li>Experiment run metadata: 58 rows</li><li>Project metadata: 90 rows</li><li>Analysis assays: 2</li></ul>
+<p><h4>sampleMetadata preview:</h4></p>
+<p>Contextual data about the samples collected, such as when it was collected, where it was collected from, what kind of sample it is, and what were the properties of the environment or experimental condition from which the sample was taken. Each row is a distinct sample, or Event. Most of this information is recorded during sample collection. This sheet contains terms from the FAIRe NOAA data template.</p>
+<h4>sampleMetadata (first 5 rows)</h4><p><strong>Shape:</strong> 29 rows × 95 columns</p><p><em>Showing first 5 rows of 29 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>samp_name</th>
+      <th>expedition_id</th>
+      <th>ctd_bottle_number</th>
+      <th>depth_category</th>
+      <th>lab_note</th>
+      <th>serial_number</th>
+      <th>samp_category</th>
+      <th>neg_cont_type</th>
+      <th>pos_cont_type</th>
+      <th>materialSampleID</th>
+      <th>sample_derived_from</th>
+      <th>sample_composed_of</th>
+      <th>rel_cont_id</th>
+      <th>biological_rep_relation</th>
+      <th>extract_number</th>
+      <th>plate_number</th>
+      <th>well_number</th>
+      <th>well_position</th>
+      <th>extraction_status</th>
+      <th>decimalLongitude</th>
+      <th>decimalLatitude</th>
+      <th>verbatimLongitude</th>
+      <th>verbatimLatitude</th>
+      <th>verbatimCoordinateSystem</th>
+      <th>verbatimSRS</th>
+      <th>geo_loc_name</th>
+      <th>eventDate</th>
+      <th>eventDurationValue</th>
+      <th>verbatimEventDate</th>
+      <th>verbatimEventTime</th>
+      <th>env_broad_scale</th>
+      <th>env_local_scale</th>
+      <th>env_medium</th>
+      <th>habitat_natural_artificial_0_1</th>
+      <th>samp_collect_method</th>
+      <th>samp_collect_device</th>
+      <th>samp_size</th>
+      <th>samp_size_unit</th>
+      <th>samp_store_temp</th>
+      <th>samp_store_sol</th>
+      <th>samp_store_dur</th>
+      <th>samp_store_loc</th>
+      <th>dna_store_loc</th>
+      <th>samp_store_method_additional</th>
+      <th>samp_mat_process</th>
+      <th>filter_passive_active_0_1</th>
+      <th>stationed_sample_dur</th>
+      <th>pump_flow_rate</th>
+      <th>pump_flow_rate_unit</th>
+      <th>prefilter_material</th>
+      <th>size_frac_low</th>
+      <th>size_frac</th>
+      <th>filter_diameter</th>
+      <th>filter_surface_area</th>
+      <th>filter_material</th>
+      <th>filter_name</th>
+      <th>precip_chem_prep</th>
+      <th>precip_force_prep</th>
+      <th>precip_time_prep</th>
+      <th>prepped_samp_store_temp</th>
+      <th>prepped_samp_store_sol</th>
+      <th>prepped_samp_store_dur</th>
+      <th>prep_method_additional</th>
+      <th>date_ext</th>
+      <th>samp_vol_we_dna_ext</th>
+      <th>samp_vol_we_dna_ext_unit</th>
+      <th>nucl_acid_ext_lysis</th>
+      <th>nucl_acid_ext_sep</th>
+      <th>nucl_acid_ext</th>
+      <th>nucl_acid_ext_kit</th>
+      <th>nucl_acid_ext_modify</th>
+      <th>dna_cleanup_0_1</th>
+      <th>dna_cleanup_method</th>
+      <th>concentration</th>
+      <th>concentration_unit</th>
+      <th>concentration_method</th>
+      <th>ratioOfAbsorbance260_280</th>
+      <th>pool_dna_num</th>
+      <th>nucl_acid_ext_method_additional</th>
+      <th>assay_name</th>
+      <th>samp_weather</th>
+      <th>minimumDepthInMeters</th>
+      <th>maximumDepthInMeters</th>
+      <th>tot_depth_water_col</th>
+      <th>temp</th>
+      <th>chlorophyll</th>
+      <th>light_intensity</th>
+      <th>ph</th>
+      <th>ph_meth</th>
+      <th>salinity</th>
+      <th>turbidity</th>
+      <th>diss_oxygen</th>
+      <th>diss_oxygen_unit</th>
+      <th>transmission</th>
+      <th>density</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>GU190706-CTD11-220</td>
+      <td>GU19-01</td>
+      <td>CTD11</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>sample</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190706-CTD11-220</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.662</td>
+      <td>-85.793</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-06 00:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>0</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
+      <td>none</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
+      <td>NaN</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
+      <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
+      <td>NaN</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>not applicable</td>
+      <td>not provided</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>220</td>
+      <td>220</td>
+      <td>NaN</td>
+      <td>15.5415</td>
+      <td>0.038</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>36.0742</td>
+      <td>NaN</td>
+      <td>4.397</td>
+      <td>mg/L</td>
+      <td>95.41</td>
+      <td>1027.6571</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>GU190707-CTD13-310</td>
+      <td>GU19-01</td>
+      <td>CTD13</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>sample</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190707-CTD13-310</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.501</td>
+      <td>-85.94</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-07 00:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>0</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
+      <td>none</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
+      <td>NaN</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
+      <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
+      <td>NaN</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>not applicable</td>
+      <td>not provided</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>1.72</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>310</td>
+      <td>310</td>
+      <td>NaN</td>
+      <td>12.8806</td>
+      <td>0.0336</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.6354</td>
+      <td>NaN</td>
+      <td>3.9773</td>
+      <td>mg/L</td>
+      <td>95.1722</td>
+      <td>1028.3006</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>GU190707-CTD14-315</td>
+      <td>GU19-01</td>
+      <td>CTD14</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>sample</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190707-CTD14-315</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>28.856</td>
+      <td>-86.225</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-07 00:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>0</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
+      <td>none</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
+      <td>NaN</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
+      <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
+      <td>NaN</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>not applicable</td>
+      <td>not provided</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>2.12</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>315</td>
+      <td>315</td>
+      <td>NaN</td>
+      <td>11.9299</td>
+      <td>0.0589</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.4849</td>
+      <td>NaN</td>
+      <td>3.7739</td>
+      <td>mg/L</td>
+      <td>93.7082</td>
+      <td>1028.3984</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>GU190708-CTD16-252</td>
+      <td>GU19-01</td>
+      <td>CTD16</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>sample</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190708-CTD16-252</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>29.452</td>
+      <td>-86.548</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-08 00:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>0</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
+      <td>none</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
+      <td>NaN</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
+      <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
+      <td>NaN</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>not applicable</td>
+      <td>not provided</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>3.79</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>252</td>
+      <td>252</td>
+      <td>NaN</td>
+      <td>13.1233</td>
+      <td>0.0655</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>35.6748</td>
+      <td>NaN</td>
+      <td>3.9586</td>
+      <td>mg/L</td>
+      <td>94.5554</td>
+      <td>1028.0212</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>GU190708-CTD17-171</td>
+      <td>GU19-01</td>
+      <td>CTD17</td>
+      <td>Bottom</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>sample</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>GU190708-CTD17-171</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>29.439</td>
+      <td>-86.342</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>2019-07-08 00:00:00</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>0</td>
+      <td>CTD rosette</td>
+      <td>Niskin bottle</td>
+      <td>2</td>
+      <td>L</td>
+      <td>4</td>
+      <td>none</td>
+      <td>P19M/35M</td>
+      <td>In cooler with ice</td>
+      <td>NOAA SEFSC -80Freezer</td>
+      <td>NaN</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>1</td>
+      <td>not applicable</td>
+      <td>not collected</td>
+      <td>NaN</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>0.45</td>
+      <td>47</td>
+      <td>NaN</td>
+      <td>cellulose ester</td>
+      <td>MilliporeSigma</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>not applicable</td>
+      <td>ambient</td>
+      <td>longmire</td>
+      <td>P4M</td>
+      <td>NaN</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>2</td>
+      <td>L</td>
+      <td>physical | thermal</td>
+      <td>phenol chloroform</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>not applicable</td>
+      <td>not provided</td>
+      <td>1</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
+      <td>2.37</td>
+      <td>ng/µl</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
+      <td>NaN</td>
+      <td>171</td>
+      <td>171</td>
+      <td>NaN</td>
+      <td>17.829</td>
+      <td>0.0629</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>36.3846</td>
+      <td>NaN</td>
+      <td>4.0485</td>
+      <td>mg/L</td>
+      <td>94.0212</td>
+      <td>1027.13</td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p><h4>experimentRunMetadata preview:</h4></p>
+<p>Contextual data about how the samples were prepared for sequencing. Includes how they were extracted, what amplicon was targeted, how they were sequenced. Each row is a separate sequencing library preparation, distinguished by a unique lib_id.</p>
+<h4>experimentRunMetadata (first 2 rows)</h4><p><strong>Shape:</strong> 58 rows × 17 columns</p><p><em>Showing first 2 rows of 58 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>samp_name</th>
+      <th>assay_name</th>
+      <th>pcr_plate_id</th>
+      <th>lib_id</th>
+      <th>seq_run_id</th>
+      <th>lib_conc</th>
+      <th>lib_conc_unit</th>
+      <th>lib_conc_meth</th>
+      <th>phix_perc</th>
+      <th>mid_forward</th>
+      <th>mid_reverse</th>
+      <th>filename</th>
+      <th>filename2</th>
+      <th>checksum_filename</th>
+      <th>checksum_filename2</th>
+      <th>associatedSequences</th>
+      <th>input_read_count</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Control10_20190721</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>not provided</td>
+      <td>Control10_20190721_MiFish_S52</td>
+      <td>rosel_mifish</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000 and Invitrogen Collibri Library Quantification qPCR assays</td>
+      <td>10</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Control10_20190721_MiFish_S52_L001_R1_001.fastq.gz</td>
+      <td>Control10_20190721_MiFish_S52_L001_R2_001.fastq.gz</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Control12_20190731</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>not provided</td>
+      <td>Control12_20190731_MiFish_S53</td>
+      <td>rosel_mifish</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000 and Invitrogen Collibri Library Quantification qPCR assays</td>
+      <td>10</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>Control12_20190731_MiFish_S53_L001_R1_001.fastq.gz</td>
+      <td>Control12_20190731_MiFish_S53_L001_R2_001.fastq.gz</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<h2>Loading ASV Data</h2>
+<p>Processing analysis run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 12))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 30))</div>
+<p>Processing analysis run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 12))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/table_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 30))</div>
+<h4>Preview of Abundance Table for 'rosel-ctd-mifish-addMFtrawlJfish-241001'</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>featureid</th>
+      <th>Control10_20190721</th>
+      <th>Control12_20190731</th>
+      <th>Control9_20190715</th>
+      <th>ExtNeg_20190910</th>
+      <th>ExtNeg_20190918</th>
+      <th>ExtNeg_20191028</th>
+      <th>ExtNeg_20191031</th>
+      <th>GU190706-CTD11-220</th>
+      <th>GU190707-CTD13-310</th>
+      <th>GU190707-CTD14-315</th>
+      <th>GU190708-CTD16-252</th>
+      <th>GU190708-CTD17-171</th>
+      <th>GU190709-CTD20-280</th>
+      <th>GU190710-CTD22-245</th>
+      <th>GU190710-CTD23-190</th>
+      <th>GU190714-CTD25-185</th>
+      <th>GU190714-CTD26-260</th>
+      <th>GU190715-CTD28-310</th>
+      <th>GU190721-CTD31-205</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>010e7a145bf6d7824c0afab445d912db</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>01b20b363c6b6b8077f7938f81522554</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>2013</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>04722aea39fdae29b213552fb69c7cee</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0518a354c0e4e9fede9f4f671962be3b</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>66</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>06faf9ae3ac3f725585afaad1bb1084d</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>4</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>0</td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<div class="alert alert-success">Successfully loaded ASV data for 2 analysis runs</div>
+<h2>Removing Control Samples</h2>
+<p>Using column 'samp_category' to detect control samples</p>
+<p>Looking for these control values: ['negative control', 'positive control']</p>
+<p>Found 8 control/blank samples to remove</p>
+<p>You can view the list of samples to be dropped below:</p>
+<h4>Complete list of samples being removed:</h4><ul><li>Control9_20190715</li><li>Control10_20190721</li><li>Control12_20190731</li><li>PCRNeg</li><li>ExtNeg_20190910</li><li>ExtNeg_20190918</li><li>ExtNeg_20191028</li><li>ExtNeg_20191031</li></ul>
+<p>Sample metadata shape after removal: (21, 95)</p>
+<p>Check the samp_category values left in your sampleMetadata.</p>
+<p>Remaining samp_category values: sample</p>
+<p>Experiment run metadata shape after removal: (42, 17)</p>
+<p>Analysis 'rosel-ctd-mifish-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
+<p>Analysis 'rosel-ctd-riaz-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
+<div class="alert alert-success">Successfully removed control samples from all datasets</div>
+<h2>Drop columns with all NAs</h2>
+<p>Which columns in each sheet have only NA values?</p>
+<h4>Columns with all NAs by sheet</h4><p><strong>Shape:</strong> 31 rows × 2 columns</p><p><em>Showing first 10 rows of 31 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sampleMetadata</th>
+      <th>experimentRunMetadata</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>lab_note</td>
+      <td>lib_conc</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>serial_number</td>
+      <td>lib_conc_unit</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>sample_derived_from</td>
+      <td>mid_forward</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>sample_composed_of</td>
+      <td>mid_reverse</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>rel_cont_id</td>
+      <td>checksum_filename</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>biological_rep_relation</td>
+      <td>checksum_filename2</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>extract_number</td>
+      <td>associatedSequences</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>plate_number</td>
+      <td>input_read_count</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>well_number</td>
+      <td>NaN</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>well_position</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table></div>
+<p>Dropping from data['sampleMetadata']: ['lab_note', 'serial_number', 'sample_derived_from', 'sample_composed_of', 'rel_cont_id', 'biological_rep_relation', 'extract_number', 'plate_number', 'well_number', 'well_position', 'extraction_status', 'verbatimLongitude', 'verbatimLatitude', 'verbatimCoordinateSystem', 'verbatimSRS', 'eventDurationValue', 'verbatimEventDate', 'verbatimEventTime', 'samp_store_method_additional', 'pump_flow_rate_unit', 'filter_surface_area', 'prep_method_additional', 'ratioOfAbsorbance260_280', 'pool_dna_num', 'nucl_acid_ext_method_additional', 'samp_weather', 'tot_depth_water_col', 'light_intensity', 'ph', 'ph_meth', 'turbidity']</p>
+<p>Dropping from data['experimentRunMetadata']: ['lib_conc', 'lib_conc_unit', 'mid_forward', 'mid_reverse', 'checksum_filename', 'checksum_filename2', 'associatedSequences', 'input_read_count']</p>
+<div class="alert alert-success">Successfully dropped all-NA columns</div>
+<h2>Now lets drop NA rows of each analysisMetadata sheet</h2>
+<p>Identifying rows with empty 'values' column in analysisMetadata sheets...</p>
+<p>For Analysis (Assay: 'ssu12sv5v6_mifish_u', Run: 'rosel-ctd-mifish-addMFtrawlJfish-241001'), found 3 empty rows:</p>
+<p>  ['screen_other', 'otu_final_description', 'bioinfo_method_additional']</p>
+<p>For Analysis (Assay: 'ssu12sv5_riaz', Run: 'rosel-ctd-riaz-addMFtrawlJfish-241001'), found 3 empty rows:</p>
+<p>  ['screen_other', 'otu_final_description', 'bioinfo_method_additional']</p>
+<p>Summary: The terms listed above will be dropped from their respective sheets.</p>
+<p>Removing identified rows with empty 'values' from analysisMetadata sheets...</p>
+<p>  For Assay: 'ssu12sv5v6_mifish_u', Run: 'rosel-ctd-mifish-addMFtrawlJfish-241001': Removed 3 row(s).</p>
+<p>  For Assay: 'ssu12sv5_riaz', Run: 'rosel-ctd-riaz-addMFtrawlJfish-241001': Removed 3 row(s).</p>
+<p>Finished removing rows with empty 'values' from analysisMetadata sheets.</p>
+<div class="alert alert-success">Finished removing rows with empty 'values' from analysisMetadata sheets</div>
+<h2>Now lets check for columns or rows with SOME missing values</h2>
+<p>Now let's check which columns have missing values in some of the rows. These should be filled in on the Excel sheet with the appropriate term ('not applicable', 'missing', or 'not collected'). Alternatively, you can drop the column if it is not needed for submission to OBIS.</p>
+<p>Columns with some NAs:</p>
+<h4>Columns with some missing values</h4><p><strong>Shape:</strong> 0 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>sampleMetadata</th>
+      <th>experimentRunMetadata</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table></div>
+<p>Here I'm going to drop all the columns with some missing data, as I don't need them for submission to OBIS.</p>
+<p>No columns dropped from data['sampleMetadata']</p>
+<p>No columns dropped from data['experimentRunMetadata']</p>
+<div class="alert alert-success">Successfully dropped columns with some missing values</div>
+<h2>Load data dictionary Excel file</h2>
+<p>This FAIRe NOAA Checklist Excel file also contains columns for mapping FAIRe fields to the appropriate Darwin Core terms which OBIS is expecting. Currently, we are only preparing an Occurrence core file and a DNA-derived extension file, with Event information in the Occurrence file. Future versions of this workflow will prepare an extendedMeasurementOrFact file as well.</p>
+<p>Darwin Core term mapping created: 
+   Occurrence Core mappings: 26 
+   DNA Derived Extension mappings: 27</p>
+<h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 26 rows × 2 columns</p><p><em>Showing first 15 rows of 26 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>DwC_term</th>
+      <th>FAIRe_term</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>recordedBy</td>
+      <td>recordedBy</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>datasetID</td>
+      <td>project_id</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>parentEventID</td>
+      <td>samp_name</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>materialSampleID</td>
+      <td>materialSampleID</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>decimalLongitude</td>
+      <td>decimalLongitude</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>decimalLatitude</td>
+      <td>decimalLatitude</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>geodeticDatum</td>
+      <td>verbatimSRS</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>locality</td>
+      <td>geo_loc_name</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>eventDate</td>
+      <td>eventDate</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>sampleSizeValue</td>
+      <td>samp_size</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>sampleSizeUnit</td>
+      <td>samp_size_unit</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>eventID</td>
+      <td>lib_id</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>associatedSequences</td>
+      <td>associatedSequences</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>kingdom</td>
+      <td>kingdom</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>phylum</td>
+      <td>phylum</td>
+    </tr>
+  </tbody>
+</table></div>
+<h4>DNA Derived Data Mappings</h4><p><strong>Shape:</strong> 27 rows × 2 columns</p><p><em>Showing first 15 rows of 27 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>DwC_term</th>
+      <th>FAIRe_term</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>env_broad_scale</td>
+      <td>env_broad_scale</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>env_local_scale</td>
+      <td>env_local_scale</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>env_medium</td>
+      <td>env_medium</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>samp_collect_device</td>
+      <td>samp_collect_device</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>samp_mat_process</td>
+      <td>samp_mat_process</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>size_frac</td>
+      <td>size_frac</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>samp_vol_we_dna_ext</td>
+      <td>samp_vol_we_dna_ext</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>nucl_acid_ext</td>
+      <td>nucl_acid_ext</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>concentration</td>
+      <td>concentration</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>concentrationUnit</td>
+      <td>concentration_unit</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>target_gene</td>
+      <td>target_gene</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>target_subfragment</td>
+      <td>target_subfragment</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>ampliconSize</td>
+      <td>ampliconSize</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>pcr_primer_forward</td>
+      <td>pcr_primer_forward</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>pcr_primer_reverse</td>
+      <td>pcr_primer_reverse</td>
+    </tr>
+  </tbody>
+</table></div>
+<div class="alert alert-success">Loaded Darwin Core mappings</div>
+<h2>Building Combined Occurrence Core</h2>
+<p>🚀 Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
+<p>Processing Analysis Run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
+<p>  Successfully processed rosel-ctd-mifish-addMFtrawlJfish-241001: Generated 491 records.</p>
+<p>Processing Analysis Run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
+<p>  Successfully processed rosel-ctd-riaz-addMFtrawlJfish-241001: Generated 421 records.</p>
+<p>🏁 LOOP COMPLETED: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
+<h3>Data Quality Checks</h3>
+<div class="alert alert-warning"><strong>WARNING:</strong> The 'geodeticDatum' column was empty or missing. It has been filled with the default value 'WGS84'. Please verify this is appropriate for your data.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> The 'locationID' column is empty. This is likely because the 'line_id' and/or 'station_id' columns were not found in the source sampleMetadata. The pipeline cannot generate a default for this field.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> The 'eventDate' column contains dates without a specific time. If a more precise time is available in your source data, please include it.</div>
+<p>🔄 No duplicate occurrenceID records found to drop.</p>
+<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 912 records.</p>
+<p>👀 Preview of final combined occurrence data (first 5 rows, selected columns):</p>
+<h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 912 rows × 12 columns</p><p><em>Showing first 5 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>eventID</th>
+      <th>occurrenceID</th>
+      <th>assay_name</th>
+      <th>parentEventID</th>
+      <th>datasetID</th>
+      <th>recordedBy</th>
+      <th>locality</th>
+      <th>decimalLatitude</th>
+      <th>decimalLongitude</th>
+      <th>geodeticDatum</th>
+      <th>identificationRemarks</th>
+      <th>locationID</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td>WGS84</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.7803327491992637, against reference database: custom</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td>WGS84</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9999122249762034, against reference database: custom</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_3c64823f9fe1b8e3dee560e7bb3b193c</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td>WGS84</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9675284290342936, against reference database: custom</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_781e1d0cf581569ca761dfb81438b698</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td>WGS84</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 1.0, against reference database: custom</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_87fc62ed809caa00b26b8cbf9255c7ac</td>
+      <td>ssu12sv5v6_mifish_u</td>
+      <td>GU190706-CTD11-220</td>
+      <td>noaa-sefsc-gu1901</td>
+      <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
+      <td>USA: Gulf of Mexico</td>
+      <td>-85.793</td>
+      <td>28.662</td>
+      <td>WGS84</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: 0.9936370520553596, against reference database: custom</td>
+      <td><NA></td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p><h4>📝 NOTE:</h4></p>
+<p>The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.</p>
+<div class="alert alert-success">Successfully created occurrence core with 912 records</div>
+<h2>Taxonomic Assignment</h2>
+<p>Loaded occurrence data: 912 records</p>
+<p>Using API source: GBIF</p>
+<p>Assays configured to skip species-level matching: None</p>
+<p>Determining maximum taxonomic ranks for each assay...</p>
+<p>  - Assay 'ssu12sv5v6_mifish_u': 7 rank columns</p>
+<p>  - Assay 'ssu12sv5_riaz': 7 rank columns</p>
+<p>Starting taxonomic matching process...</p>
+<p>Taxonomic matching completed</p>
+<p>Applying manual taxonomic corrections for GBIF...</p>
+<p>Reassigned 0 complex Eukaryota records to 'incertae sedis'.</p>
+<p>Starting post-matching processing.</p>
+<p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
+<p>Removed temporary columns: ['assay_name', 'scientificNameID']</p>
+<div class="alert alert-success">Taxonomic assignment completed! Saved 912 records to occurrence_gbif_matched.csv</div>
+<p>Summary: 148 unique taxa identified</p>
+<h2>Creating Taxa Assignment Info File</h2>
+<p>Using detailed match data from GBIF process for info file.</p>
+<div class="alert alert-success">Taxa assignment info file created successfully</div>
+<p>Saved taxa assignment info: 451 total rows (151 unique strings)</p>
+<p>Output file: taxa_assignment_INFO_GBIF.csv</p>
+<p>File size: 0.12 MB</p>
+<p><h3>Detailed Taxa Assignment Information</h3></p>
+<p><p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. This allows for manual review and complete transparency.</p><ul><li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li><li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li><li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li><li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li><li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li><li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li><li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li></ul></p>
+<h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 231 rows × 15 columns</p><p><em>Showing first 20 rows of 231 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>verbatimIdentification</th>
+      <th>cleanedTaxonomy</th>
+      <th>selected_match</th>
+      <th>scientificName</th>
+      <th>confidence</th>
+      <th>taxonRank</th>
+      <th>taxonID</th>
+      <th>kingdom</th>
+      <th>phylum</th>
+      <th>class</th>
+      <th>order</th>
+      <th>family</th>
+      <th>genus</th>
+      <th>match_type_debug</th>
+      <th>nameAccordingTo</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Bacteria</td>
+      <td>Bacteria</td>
+      <td>True</td>
+      <td>Bacteria</td>
+      <td>97</td>
+      <td>kingdom</td>
+      <td>gbif:3</td>
+      <td>Bacteria</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>True</td>
+      <td>Parachondria chordata chordata</td>
+      <td>99</td>
+      <td>subspecies</td>
+      <td>gbif:9154218</td>
+      <td>Animalia</td>
+      <td>Mollusca</td>
+      <td>Gastropoda</td>
+      <td>Littorinimorpha</td>
+      <td>Annulariidae</td>
+      <td>Parachondria</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>True</td>
+      <td>Chordata</td>
+      <td>97</td>
+      <td>phylum</td>
+      <td>gbif:44</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>False</td>
+      <td>Antigonia capros Lowe, 1843</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2389693</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Caproidae</td>
+      <td>Antigonia</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>True</td>
+      <td>Antigonia capros Lowe, 1843</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2389693</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Caproidae</td>
+      <td>Antigonia</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae</td>
+      <td>True</td>
+      <td>Acropomatidae</td>
+      <td>97</td>
+      <td>family</td>
+      <td>gbif:8486</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>NaN</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
+      <td>True</td>
+      <td>Synagrops bellus (Goode & Bean, 1896)</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2381532</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>Synagrops</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
+      <td>True</td>
+      <td>Synagrops spinosa Schultz, 1940</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2381525</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>Parascombrops</td>
+      <td>GBIF_FUZZY</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
+      <td>True</td>
+      <td>Verilus Poey, 1860</td>
+      <td>97</td>
+      <td>genus</td>
+      <td>gbif:2381536</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>Verilus</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes</td>
+      <td>True</td>
+      <td>Anguilliformes</td>
+      <td>97</td>
+      <td>order</td>
+      <td>gbif:495</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>NaN</td>
+      <td>NaN</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>False</td>
+      <td>Chilorhinus suensonii Lütken, 1852</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2405420</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Chlopsidae</td>
+      <td>Chilorhinus</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>True</td>
+      <td>Chilorhinus suensonii Lütken, 1852</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2405420</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Chlopsidae</td>
+      <td>Chilorhinus</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>False</td>
+      <td>Ariosoma balearicum (Delaroche, 1809)</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2403180</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Ariosoma</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>13</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>True</td>
+      <td>Ariosoma balearicum (Delaroche, 1809)</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2403180</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Ariosoma</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>14</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
+      <td>False</td>
+      <td>Paraconger caudilimbatus (Poey, 1867)</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2403400</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Paraconger</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
+      <td>True</td>
+      <td>Paraconger caudilimbatus (Poey, 1867)</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2403400</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Paraconger</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
+      <td>True</td>
+      <td>Rhynchoconger flavus (Goode & Bean, 1896)</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2403429</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Rhynchoconger</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
+      <td>False</td>
+      <td>Uroconger syringinus Ginsburg, 1954</td>
+      <td>100</td>
+      <td>species</td>
+      <td>gbif:2403259</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Uroconger</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
+      <td>True</td>
+      <td>Uroconger syringinus Ginsburg, 1954</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2403259</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Uroconger</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Xenomystax</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Xenomystax</td>
+      <td>True</td>
+      <td>Xenomystax Gilbert, 1891</td>
+      <td>97</td>
+      <td>genus</td>
+      <td>gbif:2403464</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Xenomystax</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
+<h2>Creating DNA Derived Extension</h2>
+<p>DNA derived extension will have 30 columns</p>
+<p>Starting with the Occurrence Core's shape: (912, 36)</p>
+<p>DNA derived base shape: (912, 7)</p>
+<p>Merging with sample metadata...</p>
+<p>After merge with sample metadata - shape: (912, 70)</p>
+<p>Processing projectMetadata fields...</p>
+<p>Merging DNA sequences from raw taxonomy files...</p>
+<p>Applying Darwin Core mappings...</p>
+<p>Final DNA derived extension shape: (912, 30)</p>
+<p>Saving DNA derived extension to CSV...</p>
+<div class="alert alert-success">DNA derived extension created successfully</div>
+<p>Saved DNA derived extension: 912 records</p>
+<p>Output file: dna_derived_extension.csv</p>
+<p>File size: 0.99 MB</p>
+<h2>Creating eMoF (extendedMeasurementOrFact)</h2>
+<p>Loaded template with 7 configured measurement row(s)</p>
+<p>Total events included (non-control): 42</p>
+<div class="alert alert-success">eMoF created successfully with 210 row(s)</div>
+<p>Saved eMoF to: processed-v3/eMoF.xlsx</p>
+<p>Saved eMoF CSV to: processed-v3/eMoF.csv</p>
+<h4>eMoF Preview (first 15 rows)</h4><p><strong>Shape:</strong> 15 rows × 9 columns</p><p><em>Showing first 10 rows of 15 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>eventID</th>
+      <th>occurrenceID</th>
+      <th>measurementType</th>
+      <th>measurementValue</th>
+      <th>measurementUnit</th>
+      <th>measurementTypeID</th>
+      <th>measurementValueID</th>
+      <th>measurementUnitID</th>
+      <th>measurementRemarks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td></td>
+      <td>concentration</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>x2121</td>
+      <td></td>
+      <td>doi:Concentration</td>
+      <td>collected after freezing</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td></td>
+      <td>filter_diameter</td>
+      <td>47</td>
+      <td>mm</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>good measurement</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td></td>
+      <td>nucl_acid_ext_sep</td>
+      <td>phenol chloroform</td>
+      <td></td>
+      <td></td>
+      <td>DOI:mag</td>
+      <td></td>
+      <td>hi</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td></td>
+      <td>samp_size</td>
+      <td>2</td>
+      <td>L</td>
+      <td>x12</td>
+      <td></td>
+      <td>doi:Volume</td>
+      <td>bad measurement</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td></td>
+      <td>samp_store_temp</td>
+      <td>4</td>
+      <td>degC</td>
+      <td>x11</td>
+      <td></td>
+      <td>doi:C</td>
+      <td></td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td></td>
+      <td>concentration</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>x2121</td>
+      <td></td>
+      <td>doi:Concentration</td>
+      <td>collected after freezing</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td></td>
+      <td>filter_diameter</td>
+      <td>47</td>
+      <td>mm</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td>good measurement</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td></td>
+      <td>nucl_acid_ext_sep</td>
+      <td>phenol chloroform</td>
+      <td></td>
+      <td></td>
+      <td>DOI:mag</td>
+      <td></td>
+      <td>hi</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td></td>
+      <td>samp_size</td>
+      <td>2</td>
+      <td>L</td>
+      <td>x12</td>
+      <td></td>
+      <td>doi:Volume</td>
+      <td>bad measurement</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td></td>
+      <td>samp_store_temp</td>
+      <td>4</td>
+      <td>degC</td>
+      <td>x11</td>
+      <td></td>
+      <td>doi:C</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p>eMoF saved to: processed-v3/eMoF.xlsx</p>
+<h3>Final File Validation</h3>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'eMoF.csv'</strong>, the column <strong>'occurrenceID'</strong> was found to be completely empty.</div>
+<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
+<h2>Process Completion</h2>
+<div class="alert alert-success">All steps completed successfully!</div>
+<p>Files generated:</p>
+<p>✓ occurrence_gbif_matched.csv (0.57 MB)</p>
+<p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
+<p>✓ dna_derived_extension.csv (0.99 MB)</p>
+<p>✓ eMoF.csv (0.02 MB)</p>
+<p>✓ edna2obis_report_GBIF.html (0.06 MB)</p>
+
+    </div>
+</body>
+</html>
