@@ -254,6 +254,30 @@ This file displays all potential taxonomic assignments for each unique taxonomy.
 | Bacteria | Bacteria | True | Bacteria | 97 | kingdom | gbif:3 | Bacteria |  |  |  |  |  | GBIF_EXACT | GBIF |
 | Eukaryota;Chordata;Actinopteri | Eukaryota;Chordata;Actinopteri | True | Chordata | 97 | phylum | gbif:44 | Animalia | Chordata |  |  |  |  | GBIF_EXACT | GBIF |
 
+### eMoF (extendedMeasurementOrFact)
+
+The eMoF file captures event-level measurements linked to each `eventID` that made it into the final occurrence file. In this workflow, eMoF rows are event-linked only (for now), so `occurrenceID` is intentionally left blank.
+
+- **What it contains**: One row per event per configured measurement.
+- **Where it comes from**: Measurement values are sourced from `sampleMetadata` first, otherwise `experimentRunMetadata`.
+- **Units**:
+  - If the eMoF template specifies a literal unit (e.g., `m`, `°C`), that unit is used for every emitted row of that measurementType.
+  - If the template says `provided`, a column named `<measurementType>_unit` must be present in the chosen source sheet and must be non-blank for all emitted rows.
+  - If the template leaves the unit blank, output unit is blank (no auto-fallback).
+- **Template**: Configure measurements in `raw-v3/eMoF Fields edna2obis .xlsx` on the `input_file` sheet. Required columns: `measurementType`, `measurementValue`, `measurementUnit`, `measurementTypeID`, `measurementValueID`, `measurementUnitID`, `measurementRemarks`.
+- **Output**: Written to `processed-v3/eMoF.xlsx`.
+
+### eMoF Preview (example)
+
+Below is a small, illustrative preview of the eMoF structure. Your actual content will depend on your eMoF template and metadata.
+
+| eventID | occurrenceID | measurementType | measurementValue | measurementUnit | measurementTypeID | measurementValueID | measurementUnitID | measurementRemarks |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| GOMECC4_27N_Sta1_Deep |  | temperature | 24.1 | °C |  |  |  | from CTD profile |
+| GOMECC4_27N_Sta1_Deep |  | salinity | 36.2 | PSU |  |  |  | from CTD profile |
+| GOMECC4_27N_Sta1_DCM |  | chlorophyll | 0.64 | mg/m³ |  |  |  | fluorometric estimate |
+
+
 ### Troubleshooting
 
 #### Common Issues

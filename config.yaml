@@ -92,4 +92,8 @@ gbif_n_proc: 0
 output_dir: "processed-v3/"
 
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF Fields edna2obis .xlsx
-emof_template_path: "raw-v3/eMoF Fields edna2obis .xlsx" 
+emof_template_path: "raw-v3/eMoF Fields edna2obis .xlsx"
+
+# Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
+# Edit the eMoF template at 'raw-v3/eMoF Fields edna2obis .xlsx' (sheet 'input_file') to configure your measurement details.
+emof_enabled: true 

@@ -69,6 +69,10 @@ def load_config(config_path="config.yaml"):
         params['gbif_match_limit'] = config.get('gbif_match_limit', 3)
         params['output_dir'] = config.get('output_dir', "processed-v3/")
         
+        # eMoF options
+        params['emof_enabled'] = config.get('emof_enabled', True)
+        params['emof_template_path'] = config.get('emof_template_path', 'raw-v3/eMoF Fields edna2obis .xlsx')
+        
         # Local reference database parameters  
         params['use_local_reference_database'] = config.get('use_local_reference_database', False)
         params['local_reference_database_path'] = config.get('local_reference_database_path', '')
@@ -660,13 +664,16 @@ def main():
         print("📄 Creating DNA derived extension...")
         create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
         
-        # Create eMoF file
-        print("📄 Creating eMoF (extendedMeasurementOrFact)...")
-        try:
-            emof_path = create_emof_table(params, occurrence_core, data, reporter)
-            reporter.add_text(f"eMoF saved to: {emof_path}")
-        except Exception as e:
-            reporter.add_warning(f"eMoF creation failed: {e}")
+        # Create eMoF file (optional)
+        if params.get('emof_enabled', True):
+            print("📄 Creating eMoF (extendedMeasurementOrFact)...")
+            try:
+                emof_path = create_emof_table(params, occurrence_core, data, reporter)
+                reporter.add_text(f"eMoF saved to: {emof_path}")
+            except Exception as e:
+                reporter.add_warning(f"eMoF creation failed: {e}")
+        else:
+            reporter.add_text("⏭️ Skipping eMoF creation per config (emof_enabled=false)")
         
         # --- Final File Validation ---
         reporter.add_section("Final File Validation", level=3)
@@ -676,9 +683,10 @@ def main():
         files_to_validate = [
             f'occurrence_{api_choice.lower()}_matched.csv',
             f'taxa_assignment_INFO_{api_choice}.csv',
-            'dna_derived_extension.csv',
-            'eMoF.csv',
+            'dna_derived_extension.csv'
         ]
+        if params.get('emof_enabled', True):
+            files_to_validate.append('eMoF.csv')
 
         all_empty_columns_summary = []
         for filename in files_to_validate:
