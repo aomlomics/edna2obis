@@ -26,6 +26,7 @@ from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
 from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
 from create_eMoF.eMoF_builder import create_emof_table
+from create_EML.EML_builder import create_eml_file
 
 
 def load_config(config_path="config.yaml"):
@@ -72,6 +73,10 @@ def load_config(config_path="config.yaml"):
         # eMoF options
         params['emof_enabled'] = config.get('emof_enabled', True)
         params['emof_template_path'] = config.get('emof_template_path', 'raw-v3/eMoF Fields edna2obis .xlsx')
+        
+        # EML options (metadata loaded separately from EML_config.yaml)
+        params['eml_enabled'] = config.get('eml_enabled', False)
+        params['eml_config_path'] = config.get('eml_config_path', 'EML_config.yaml')
         
         # Local reference database parameters  
         params['use_local_reference_database'] = config.get('use_local_reference_database', False)
@@ -675,6 +680,17 @@ def main():
         else:
             reporter.add_text("⏭️ Skipping eMoF creation per config (emof_enabled=false)")
         
+        # Create EML file (optional)
+        if params.get('eml_enabled', False):
+            print("📄 Creating EML (Ecological Metadata Language) file...")
+            try:
+                eml_path = create_eml_file(params, data, reporter)
+                reporter.add_text(f"EML saved to: {eml_path}")
+            except Exception as e:
+                reporter.add_warning(f"EML creation failed: {e}")
+        else:
+            reporter.add_text("⏭️ Skipping EML creation per config (eml_enabled=false)")
+        
         # --- Final File Validation ---
         reporter.add_section("Final File Validation", level=3)
         output_dir = params.get('output_dir', 'processed-v3/')
@@ -687,6 +703,8 @@ def main():
         ]
         if params.get('emof_enabled', True):
             files_to_validate.append('eMoF.csv')
+        if params.get('eml_enabled', False):
+            files_to_validate.append('eml.xml')
 
         all_empty_columns_summary = []
         for filename in files_to_validate:
@@ -730,10 +748,16 @@ def main():
         files = [
             f'occurrence_{api_choice.lower()}_matched.csv', 
             f'taxa_assignment_INFO_{api_choice}.csv', 
-            'dna_derived_extension.csv',
-            'eMoF.csv',
-            report_filename # Use the dynamic report filename
+            'dna_derived_extension.csv'
         ]
+        
+        # Add optional files based on configuration
+        if params.get('emof_enabled', True):
+            files.append('eMoF.csv')
+        if params.get('eml_enabled', False):
+            files.append('eml.xml')
+        
+        files.append(report_filename)  # Use the dynamic report filename
         
         for filename in files:
             filepath = os.path.join(output_dir, filename)

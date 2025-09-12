@@ -390,17 +390,8 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
 
         output_dir = params.get('output_dir', 'processed-v3/')
         os.makedirs(output_dir, exist_ok=True)
-        emof_path = os.path.join(output_dir, 'eMoF.xlsx')
-
-        try:
-            # Write to a single sheet named 'eMoF'
-            with pd.ExcelWriter(emof_path, engine='openpyxl') as writer:
-                emof_df.to_excel(writer, index=False, sheet_name='eMoF')
-        except Exception:
-            # Fallback: try default engine
-            emof_df.to_excel(emof_path, index=False, sheet_name='eMoF')
-
-        # Also write CSV for pipeline validation and downstream tooling
+        
+        # Write only CSV file
         emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
         try:
             emof_df.to_csv(emof_csv_path, index=False)
@@ -408,17 +399,10 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
             reporter.add_warning(f"Could not write eMoF CSV ('{emof_csv_path}'): {e}")
 
         reporter.add_success(f"eMoF created successfully with {len(emof_df)} row(s)")
-        reporter.add_text(f"Saved eMoF to: {emof_path}")
         reporter.add_text(f"Saved eMoF CSV to: {emof_csv_path}")
         reporter.add_dataframe(emof_df.head(15), "eMoF Preview (first 15 rows)")
 
-        # Sanity: warn if Excel is near row cap (unlikely with event-only)
-        if len(emof_df) > 900000:
-            reporter.add_warning(
-                "eMoF size is approaching Excel's row limit. Consider reducing event set, splitting files, or writing CSV."
-            )
-
-        return emof_path
+        return emof_csv_path
 
     except Exception as e:
         reporter.add_error(f"eMoF creation failed: {e}")

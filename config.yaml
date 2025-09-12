@@ -94,6 +94,17 @@ output_dir: "processed-v3/"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF Fields edna2obis .xlsx
 emof_template_path: "raw-v3/eMoF Fields edna2obis .xlsx"
 
+# -----------------------------------------------------------------------------
+# OPTIONAL Output Files: eMoF (extended measurement or fact), and EML (Ecological Metadata Language)
+# Data for these files must be manually entered in their respective input files:
+# eMoF: raw-v3/eMoF Fields edna2obis .xlsx
+# EML: EML_config.yaml
+# -----------------------------------------------------------------------------
+
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
-# Edit the eMoF template at 'raw-v3/eMoF Fields edna2obis .xlsx' (sheet 'input_file') to configure your measurement details.
-emof_enabled: true 
+emof_enabled: true
+
+# Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
+# EML metadata configuration is stored in a separate file (see eml_config_path below)
+eml_enabled: true
+eml_config_path: "EML_config.yaml"
