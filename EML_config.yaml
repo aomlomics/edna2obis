@@ -1,0 +1,173 @@
+# -----------------------------------------------------------------------------
+# EML (Ecological Metadata Language) Configuration
+# -----------------------------------------------------------------------------
+# Configure metadata for generating EML XML files for OBIS/GBIF submission
+# Fill out as much information as possible for better dataset discoverability
+
+eml_metadata:
+  # Basic Dataset Information
+  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]"  # Should be the dataset title, (overarching dataset ex: project_name)
+  abstract: |
+    Brief description of your dataset. Include what organisms were studied, 
+    where samples were collected, what methods were used, and the purpose of the study.
+    This should help users understand the fitness-for-use of your data.
+  
+  # Dataset identifiers and publication info
+  publication_date: "2024"  # YYYY or YYYY-MM-DD format
+  language: "en"  # ISO language code (en for English)
+  
+  # People and Organizations (at least contact is required)
+  contact:
+    individual_name:
+      given_name: "Your First"
+      surname: "Your Last"
+    organization_name: "Your Institution" # recommended field: institution
+    position_name: ""  # Alternative to individual name (e.g., "Data Manager")
+    email: "your.email@institution.edu"
+    phone: ""
+    address:
+      delivery_point: "123 University Ave"
+      city: "Your City"
+      administrative_area: "State/Province"
+      postal_code: "12345"
+      country: "United States"
+    online_url: ""  # Personal or institutional website
+    user_id: ""  # ORCID (e.g., "https://orcid.org/0000-0000-0000-0000")
+  
+  creator:
+    individual_name:
+      given_name: "Principal First"
+      surname: "Principal Last"
+    organization_name: "Research Institution"
+    position_name: ""
+    email: "pi@institution.edu"
+    phone: ""
+    address:
+      delivery_point: "456 Science Blvd"
+      city: "Research City"
+      administrative_area: "State/Province"
+      postal_code: "54321"
+      country: "United States"
+    online_url: ""
+    user_id: ""  # ORCID
+  
+  # Optional metadata provider (if different from creator)
+  metadata_provider:
+    individual_name:
+      given_name: ""
+      surname: ""
+    organization_name: ""
+    email: ""
+  
+  # Associated parties (additional contributors)
+  associated_parties: []
+    # Example entry:
+    # - individual_name:
+    #     given_name: "Collaborator First"
+    #     surname: "Collaborator Last"
+    #   organization_name: "Partner Institution"
+    #   email: "collab@partner.edu"
+    #   role: "principal investigator"  # Options: originator, content provider, custodian, owner, point of contact, principal investigator
+  
+  # Coverage Information
+  geographic_coverage:
+    description: "Geographic area description (e.g., 'Gulf of Mexico', 'North Atlantic')" # TODO: geo_loc_names from actual data
+    bounding_coordinates:
+      west: -95.0   # Decimal degrees
+      east: -80.0
+      north: 30.0
+      south: 25.0 # TODO: GUI calculates these, grab from actual data
+  
+  temporal_coverage: # TODO: calculate from actual data.....TIME FORMATS? 
+    begin_date: "2020-01-01"  # YYYY-MM-DD format
+    end_date: "2020-12-31"
+  
+  taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section) ALSO assay names from data
+    general_description: "Marine organisms identified through eDNA metabarcoding"
+    classifications: []
+      # Example entries:
+      # - taxon_rank_name: "kingdom"
+      #   taxon_rank_value: "Animalia"
+      #   common_name: "Animals"
+      # - taxon_rank_name: "phylum"
+      #   taxon_rank_value: "Chordata"
+      #   common_name: "Vertebrates"
+  
+  # Keywords for discoverability
+  keywords:
+    - keyword: "eDNA"
+      thesaurus: "ASFA"
+    - keyword: "metabarcoding"
+      thesaurus: "ASFA"
+    - keyword: "marine biodiversity"
+      thesaurus: "ASFA"
+    - keyword: "environmental DNA"
+      thesaurus: "GCMD"
+  
+  # Project Information
+  project:
+    title: "Your Project Title" # TODO: project_name from actual data
+    # TODO: 
+    description: |
+      Description of the research project under which this dataset was collected.
+      Include objectives, hypotheses, and broader context.
+    funding: |
+      Information about funding sources, grant numbers, etc.
+      Example: "This work was supported by NOAA Grant #12345"
+    personnel: []
+      # Example entry:
+      # - individual_name:
+      #     given_name: "PI First"
+      #     surname: "PI Last"
+      #   role: "principal investigator"
+      #   email: "pi@institution.edu"
+  
+  # Methods and Sampling
+  methods:
+    study_extent: |
+      Description of the specific sampling area and frequency.
+      Example: "Samples were collected monthly from 5 stations in the Gulf of Mexico from January to December 2020."
+    
+    sampling_description: |
+      Detailed description of sampling procedures, similar to methods section of a journal article.
+      Include collection methods, equipment used, sample processing, etc.
+    
+    method_steps: []
+      # Example entries:
+      # - description: |
+      #     Water samples were collected using Niskin bottles at depths of 0, 10, and 50 meters.
+      #     Samples were filtered through 0.22μm filters and stored at -80°C until processing.
+      # - description: |
+      #     DNA was extracted using the DNeasy PowerSoil Kit following manufacturer protocols.
+      #     PCR amplification targeted the 16S rRNA gene using primers 515F and 806R.
+    
+    quality_control: |
+      Description of quality control measures taken during sample collection,
+      processing, and analysis.
+  
+  # Intellectual Property and Usage Rights
+  license: "CC0"  # Options: CC0, CC-BY, CC-BY-NC
+  purpose: |
+    A description of the purpose of this dataset.
+    Why was it collected? What questions does it aim to answer?
+  
+  # Citations and References
+  dataset_citation: |
+    How users should cite this dataset. Can be auto-generated or custom.
+    Leave blank for auto-generation based on creator, title, etc.
+  
+  bibliography: []
+    # Example entries (publications related to this dataset):
+    # - "Smith, J. et al. (2020). Marine biodiversity patterns. Journal of Marine Science. DOI: 10.1000/example"
+    # - "Jones, A. (2019). eDNA methods handbook. Marine Methods Press."
+  
+  # Additional Information
+  additional_info: |
+    Any other relevant information about the dataset that doesn't fit in other sections.
+  
+  # Collection Information (only if museum specimens are involved)
+  collection:
+    name: ""
+    identifier: ""
+    parent_collection_identifier: ""
+    specimen_preservation_method: ""
