@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-08-22 13:06:50</p>
-            <p><strong>End Time:</strong> 2025-08-22 13:06:52</p>
-            <p><strong>Duration:</strong> 0:00:01</p>
+            <p><strong>Start Time:</strong> 2025-09-12 14:08:48</p>
+            <p><strong>End Time:</strong> 2025-09-12 14:08:53</p>
+            <p><strong>Duration:</strong> 0:00:04</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
         </div>
         
@@ -1696,25 +1696,456 @@
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
-<p>DNA derived extension will have 30 columns</p>
+<p>DNA derived extension will have 30 columns (plus dynamically added unit columns).</p>
 <p>Starting with the Occurrence Core's shape: (912, 36)</p>
 <p>DNA derived base shape: (912, 7)</p>
 <p>Merging with sample metadata...</p>
 <p>After merge with sample metadata - shape: (912, 70)</p>
+<p>Merging with experiment run metadata...</p>
+<p>After merge with experiment metadata - shape: (912, 76)</p>
+<p>Dynamically generating unit columns...</p>
+<p>✓ Created 'samp_vol_we_dna_extUnit' from existing FAIRe column 'samp_vol_we_dna_ext_unit'.</p>
+<p>✓ Created 'size_fracUnit' using value ('µm') from FAIRe checklist for field 'size_frac'.</p>
+<p>✓ Created 'samp_sizeUnit' from existing FAIRe column 'samp_size_unit'.</p>
+<p>✓ Created 'concentrationUnit' from existing FAIRe column 'concentration_unit'.</p>
+<p>✓ Created 'ampliconSizeUnit' using value ('basepairs') from FAIRe checklist for field 'ampliconSize'.</p>
 <p>Processing projectMetadata fields...</p>
 <p>Merging DNA sequences from raw taxonomy files...</p>
 <p>Applying Darwin Core mappings...</p>
-<p>Final DNA derived extension shape: (912, 30)</p>
+<p>Final DNA derived extension shape: (912, 35)</p>
+<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 35 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>occurrenceID</th>
+      <th>eventID</th>
+      <th>source_mat_id</th>
+      <th>samp_name</th>
+      <th>env_broad_scale</th>
+      <th>env_local_scale</th>
+      <th>env_medium</th>
+      <th>samp_vol_we_dna_ext</th>
+      <th>samp_vol_we_dna_extUnit</th>
+      <th>samp_collect_device</th>
+      <th>samp_mat_process</th>
+      <th>size_frac</th>
+      <th>size_fracUnit</th>
+      <th>samp_size</th>
+      <th>samp_sizeUnit</th>
+      <th>concentration</th>
+      <th>concentrationUnit</th>
+      <th>lib_layout</th>
+      <th>seq_meth</th>
+      <th>nucl_acid_ext</th>
+      <th>target_gene</th>
+      <th>target_subfragment</th>
+      <th>pcr_primer_forward</th>
+      <th>pcr_primer_reverse</th>
+      <th>pcr_primer_name_forward</th>
+      <th>pcr_primer_name_reverse</th>
+      <th>pcr_primer_reference</th>
+      <th>pcr_cond</th>
+      <th>nucl_acid_amp</th>
+      <th>ampliconSize</th>
+      <th>ampliconSizeUnit</th>
+      <th>otu_seq_comp_appr</th>
+      <th>otu_db</th>
+      <th>DNA_sequence</th>
+      <th>otu_class_appr</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGAGAGGCCTAAGTTGACAGACAACGGCGTAAAGAGTGGTTAAGGAAAAATTTATACTAAAGCCGAACATCCTCAAGACTGTCGTACGTTTCCGAGGATATGAAGTCCCCCTACGAAAGTGGCTTTAACTCCCCTGACCCCACGAAAGCTGTGAC</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGATGAAGCCCAAGTTGTTAGCCTTCGGCGTAAAGAGTGGTTAGAGTACCCCAACAAAACTAAGGCCGAACACCTTCAGGGCAGTCATACGCTTTCGAAGGCATGAAGCACACCAACGAAAGTAGCCTTACCAGACTTGAACCCACGAAAGCTAAGAT</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_3c64823f9fe1b8e3dee560e7bb3b193c</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGAGAGACCCTAGTTGTTAGACACCGGCGTAAAGAGTGGTTAAGAAAAACGTTACACTAAAGCCGAACGCTTATCAGAGCTGTTATACGCATCCGAAAGTAAGAAGTTCAATCACGAAAGTGGCTTTATATACTCTGACCCCACGAAAGCTACGAC</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_781e1d0cf581569ca761dfb81438b698</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTCATACGAGTGTTAGCCCAAGCGGATGACTAACGGCGTAAAGAGTGGTTAGGGAACCCCCCCCACAACTAAAGTTAAACACCCACAAGGCCGTGATACGCATCCGATGGAATGAAACCCCACCACGAAAGTGACTTTACCCAGCCCGAACCCACGATAGCTAAGAT</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_87fc62ed809caa00b26b8cbf9255c7ac</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGAGAGGCCCAAGTTGATAGACACCGGCGTAAAGGGTGGTTAAGATATTCTAAAACTAAAGCCGAATACCTTCAAAGCCGTTATACGTACTCGAAGGTAAGAAGCCCAACTACGAAAGTGGCTTTACATATTCTGACCCCACGAAAGCTATGAC</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_8f9c2606f5bb5a4867a22ec20c3f7067</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTGATACGAGAGGCCCGAGCTAACAGCCCCCGGCGTAAAGCGTGGTTAGGGTAAGTCAAAACTAAAGCCGAACGCCCCTAGGGCCGTGATACGCGTATAAAGGTATGAAGTCCCACCACGAAAGTGGCTTTAATACTTCCTGACCCCACGAAAGCTAAGAT</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_94c9549b503d074ca52d17868303bb47</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGAGAGGCTCAAGTTGATAGACAGCGGCGTAAAGAGTGGTTAGGGAATTATTTAAACTAAAGTCGAACGCTTCCAGAGCTGTTATACGCACCCGAAAACATGAAGCCCAACTACGAAAGTGACTTTAAAACACCTGAACCCACGAAAGCTAGGGA</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_99d918d2b66a9418e50eeed3572f4f47</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CGCCGCGGTTATACGAGAGGCCCAAGTTGATAGTCAACGGCGTAAAGAGTGGTTAGGAGACAAGATAAAACTAAAGCCGAACGTCCTCAGGGCTGTTATACGCCTCCGAAAGAACGAAGATCAATCACGAAAGTGGCTTTACCATTCTGAGTCCACGAAAGCTAAGAA</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_bde24d05f796db0138c4320a0164cb16</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>AGCCGCGGTAATACGTAGGGAGCGAGCGTTACCCGGAATTACTGGGCGTAAAGAGCACGTAGGCGGTTGGATAAGTCTTCTGTGAAAGCTCCCGGCTCAACTGGGAGAGGTCAGGGGATACTATTCGACTTGAGGGCTGTAGAGGTAAGCGGAATTCCCGGTGTAGCGGTGAAATGCGTAGATATCGGGAGGAACACCAGCGGCGAAAGCGGCTTACTGGGCAGTGCCTGACGCTGAGGTGCGAGAGCGTGGGGA</td>
+      <td><NA></td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>GU190706-CTD11-220_MiFish_S30_occ_ca6706a7649bd835555774cc496b645e</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
+      <td>GU190706-CTD11-220</td>
+      <td>GU190706-CTD11-220</td>
+      <td>marine biome [ENVO:00000447]</td>
+      <td>marine mesopelagic zone [ENVO:00000213]</td>
+      <td>sea water [ENVO:00002149]</td>
+      <td>2</td>
+      <td>L</td>
+      <td>Niskin bottle</td>
+      <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
+      <td>0.45</td>
+      <td>µm</td>
+      <td>2</td>
+      <td>L</td>
+      <td>1.57</td>
+      <td>ng/µl</td>
+      <td>paired end</td>
+      <td><NA></td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>12S rRNA (SSU mitochondria)</td>
+      <td>V5-V6</td>
+      <td>GTCGGTAAAACTCGTGCCAGC</td>
+      <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
+      <td>MiFish-U-F</td>
+      <td>MiFish-U-R2</td>
+      <td><NA></td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>not applicable</td>
+      <td>175</td>
+      <td>basepairs</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>custom</td>
+      <td>CACCGCGGTTATACGAGAGACTCAAATTGATATTCTCCGGCGTAAAGCGTGATTAGAGAAAAAACAAACTAAAGCCGAATACCCCCTAAGCTGTCATACGCTAATGGGGGCACGAAGCCCCACAACGAAAGTGGCCTTAAAGATCTTGAATTCACGACTATTAAGAA</td>
+      <td><NA></td>
+    </tr>
+  </tbody>
+</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Saving DNA derived extension to CSV...</p>
 <div class="alert alert-success">DNA derived extension created successfully</div>
 <p>Saved DNA derived extension: 912 records</p>
 <p>Output file: dna_derived_extension.csv</p>
-<p>File size: 0.99 MB</p>
+<p>File size: 0.93 MB</p>
 <h2>Creating eMoF (extendedMeasurementOrFact)</h2>
 <p>Loaded template with 7 configured measurement row(s)</p>
 <p>Total events included (non-control): 42</p>
 <div class="alert alert-success">eMoF created successfully with 210 row(s)</div>
-<p>Saved eMoF to: processed-v3/eMoF.xlsx</p>
 <p>Saved eMoF CSV to: processed-v3/eMoF.csv</p>
 <h4>eMoF Preview (first 15 rows)</h4><p><strong>Shape:</strong> 15 rows × 9 columns</p><p><em>Showing first 10 rows of 15 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
@@ -1854,20 +2285,24 @@
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<p>eMoF saved to: processed-v3/eMoF.xlsx</p>
+<p>eMoF saved to: processed-v3/eMoF.csv</p>
+<p>⏭️ Skipping EML creation per config (eml_enabled=false)</p>
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'seq_meth'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'pcr_primer_reference'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'otu_class_appr'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'eMoF.csv'</strong>, the column <strong>'occurrenceID'</strong> was found to be completely empty.</div>
-<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
+<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>seq_meth</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>pcr_primer_reference</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>otu_class_appr</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
 <p>✓ occurrence_gbif_matched.csv (0.57 MB)</p>
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
-<p>✓ dna_derived_extension.csv (0.99 MB)</p>
+<p>✓ dna_derived_extension.csv (0.93 MB)</p>
 <p>✓ eMoF.csv (0.02 MB)</p>
-<p>✓ edna2obis_report_GBIF.html (0.06 MB)</p>
+<p>✓ edna2obis_report_GBIF.html (0.08 MB)</p>
 
     </div>
 </body>
