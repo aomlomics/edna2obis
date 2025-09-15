@@ -26,7 +26,7 @@ from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
 from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
 from create_eMoF.eMoF_builder import create_emof_table
-from create_EML.EML_builder import create_eml_file
+# from create_EML.EML_builder import create_eml_file
 
 
 def load_config(config_path="config.yaml"):
@@ -537,7 +537,7 @@ def load_darwin_core_mappings(params, reporter):
         reporter.add_dataframe(dwc_data['dnaDerived'].reset_index(), "DNA Derived Data Mappings", max_rows=15)
         
         reporter.add_success("Loaded Darwin Core mappings")
-        return dwc_data
+        return dwc_data, checklist_df
         
     except Exception as e:
         error_msg = f"Failed to load Darwin Core mappings: {str(e)}"
@@ -613,7 +613,7 @@ def main():
         
         # Load Darwin Core mappings
         print("Loading Darwin Core mappings...")
-        dwc_data = load_darwin_core_mappings(params, reporter)
+        dwc_data, checklist_df = load_darwin_core_mappings(params, reporter)
         
         # Create occurrence core
         print("📄 Creating Occurrence Core...")
@@ -667,7 +667,7 @@ def main():
         
         # Create DNA derived extension
         print("📄 Creating DNA derived extension...")
-        create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, reporter)
+        create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter)
         
         # Create eMoF file (optional)
         if params.get('emof_enabled', True):
@@ -684,6 +684,7 @@ def main():
         if params.get('eml_enabled', False):
             print("📄 Creating EML (Ecological Metadata Language) file...")
             try:
+                from create_EML.EML_builder import create_eml_file
                 eml_path = create_eml_file(params, data, reporter)
                 reporter.add_text(f"EML saved to: {eml_path}")
             except Exception as e:
