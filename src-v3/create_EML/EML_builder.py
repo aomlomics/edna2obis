@@ -22,6 +22,150 @@ from typing import Dict, List, Optional, Any
 import pandas as pd
 
 
+def _unique_clean_values_from_series(series: pd.Series) -> List[str]:
+    """Return sorted unique non-empty strings from a Series, removing NaN/None/empty and NaN-like tokens."""
+    try:
+        if series is None or series.empty:
+            return []
+        cleaned = series.dropna().astype(str).map(lambda s: s.strip())
+        invalid_tokens = {"", "nan", "none", "null", "na", "n/a"}
+        cleaned = cleaned[~cleaned.str.lower().isin(invalid_tokens)]
+        return sorted(pd.unique(cleaned))
+    except Exception:
+        return []
+
+
+def _auto_populate_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, reporter) -> Dict:
+    """Auto-populates coverage data from the occurrence DataFrame based on config comments."""
+    if occurrence_df.empty:
+        reporter.add_text("Occurrence data not available, skipping auto-population of coverage.")
+        return eml_config
+
+    reporter.add_text("Attempting to auto-populate EML coverage fields from data...")
+
+    # Geographic Coverage - Bounding Box
+    if 'decimalLatitude' in occurrence_df.columns and 'decimalLongitude' in occurrence_df.columns:
+        latitudes = pd.to_numeric(occurrence_df['decimalLatitude'], errors='coerce').dropna()
+        longitudes = pd.to_numeric(occurrence_df['decimalLongitude'], errors='coerce').dropna()
+
+        if not latitudes.empty and not longitudes.empty:
+            eml_config.setdefault('geographic_coverage', {}).setdefault('bounding_coordinates', {})
+            bounds = eml_config['geographic_coverage']['bounding_coordinates']
+            if not bounds.get('west'): bounds['west'] = longitudes.min()
+            if not bounds.get('east'): bounds['east'] = longitudes.max()
+            if not bounds.get('north'): bounds['north'] = latitudes.max()
+            if not bounds.get('south'): bounds['south'] = latitudes.min()
+            reporter.add_success("Calculated geographic bounding coordinates.")
+
+    # Geographic Coverage - Description (from geo_loc_name, as requested)
+    geo_desc_field = 'description'
+    eml_config.setdefault('geographic_coverage', {})
+    current_desc = eml_config['geographic_coverage'].get(geo_desc_field, "")
+    if not current_desc or 'Geographic area description' in current_desc:
+        if 'locality' in occurrence_df.columns:
+            locations = occurrence_df['locality'].dropna().unique()
+            if len(locations) > 0:
+                location_str = ', '.join(map(str, sorted(locations)))
+                eml_config['geographic_coverage'][geo_desc_field] = location_str
+                reporter.add_success("Populated geographic description from 'locality' column.")
+                # Update Title with location
+                current_title = eml_config.get('title', '')
+                if '[LOCATION]' in current_title:
+                    eml_config['title'] = current_title.replace('[LOCATION]', location_str)
+                    reporter.add_success(f"Updated EML title with location: {location_str}")
+        else:
+            reporter.add_warning("Could not populate geographic description: 'locality' column not found.")
+
+    # Temporal Coverage
+    if 'eventDate' in occurrence_df.columns:
+        dates = pd.to_datetime(occurrence_df['eventDate'], errors='coerce').dropna()
+        if not dates.empty:
+            eml_config.setdefault('temporal_coverage', {})
+            temporal = eml_config['temporal_coverage']
+            if not temporal.get('begin_date'): temporal['begin_date'] = dates.min().strftime('%Y-%m-%d')
+            if not temporal.get('end_date'): temporal['end_date'] = dates.max().strftime('%Y-%m-%d')
+            reporter.add_success("Calculated temporal coverage dates.")
+            # Update Title with timeframe
+            current_title = eml_config.get('title', '')
+            if '[TIMEFRAME]' in current_title:
+                begin_year = dates.min().year
+                end_year = dates.max().year
+                timeframe = str(begin_year) if begin_year == end_year else f"{begin_year}-{end_year}"
+                eml_config['title'] = current_title.replace('[TIMEFRAME]', timeframe)
+                reporter.add_success(f"Updated EML title with timeframe: {timeframe}")
+    return eml_config
+
+def _auto_populate_taxonomic_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, reporter) -> Dict:
+    """Auto-populates taxonomic coverage from the occurrence DataFrame using multiple higher ranks (OBIS/GBIF)."""
+    if occurrence_df.empty:
+        return eml_config
+
+    eml_config.setdefault('taxonomic_coverage', {})
+    tax_coverage = eml_config['taxonomic_coverage']
+
+    # Populate classifications with higher-level ranks only, across multiple ranks
+    if not tax_coverage.get('classifications'):
+        rank_priority = ['phylum', 'class', 'order', 'kingdom', 'domain']
+        classifications = []
+        rank_counts = {}
+        per_rank_limit = 200
+        total_limit = 1000
+        total_truncated = False
+
+        for rank in rank_priority:
+            if rank not in occurrence_df.columns:
+                continue
+
+            values = _unique_clean_values_from_series(occurrence_df[rank])
+
+            truncated_this_rank = False
+            if len(values) > per_rank_limit:
+                values = values[:per_rank_limit]
+                truncated_this_rank = True
+
+            # Respect total limit
+            remaining = max(0, total_limit - len(classifications))
+            if remaining == 0:
+                total_truncated = True
+                break
+            if len(values) > remaining:
+                values = values[:remaining]
+                total_truncated = True
+
+            for v in values:
+                classifications.append({'taxon_rank_name': rank, 'taxon_rank_value': str(v)})
+
+            rank_counts[rank] = len(values)
+
+            if truncated_this_rank:
+                reporter.add_text(f"Note: Truncated {rank} list to {per_rank_limit} unique values for EML brevity.")
+
+        if classifications:
+            tax_coverage['classifications'] = classifications
+            parts = [f"{r}={c}" for r, c in rank_counts.items() if c > 0]
+            reporter.add_success(f"Populated taxonomic coverage with {len(classifications)} classifications across ranks: " + ", ".join(parts))
+            if total_truncated:
+                reporter.add_text(f"Note: Reached total cap of {total_limit} taxonomic classifications.")
+        else:
+            reporter.add_warning("Could not populate taxonomic coverage: no higher-rank columns (phylum/class/order/kingdom/domain) found.")
+
+    return eml_config
+
+def _auto_populate_from_project_data(eml_config: Dict, project_df: pd.DataFrame, reporter) -> Dict:
+    """Auto-populates EML fields from project metadata (FAIRe projectMetadata sheet)."""
+    if project_df.empty: return eml_config
+
+    # Auto-populate project title if it's empty or template
+    current_proj_title = eml_config.get('project', {}).get('title', '')
+    if not current_proj_title or "Your Project Title" in current_proj_title:
+        if 'project_name' in project_df.columns:
+            project_name = project_df['project_name'].iloc[0]
+            if project_name:
+                eml_config.setdefault('project', {})['title'] = project_name
+                reporter.add_success(f"Populated EML project title with: {project_name}")
+    return eml_config
+
+
 def _safe_get(data: Dict, path: str, default: str = "") -> str:
     """Safely get nested dictionary values with dot notation"""
     keys = path.split('.')
@@ -508,6 +652,26 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         # Check recommended fields and provide guidance
         _validate_recommended_fields(eml_config, reporter)
         
+        # Auto-populate EML fields from data, if available
+        occurrence_df = data.get('occurrence', pd.DataFrame())
+        if occurrence_df.empty:
+            try:
+                output_dir = params.get('output_dir', 'processed-v3/')
+                api_choice = str(params.get('taxonomic_api_source', 'GBIF')).lower()
+                occ_filename = f"occurrence_{api_choice}_matched.csv"
+                occ_path = os.path.join(output_dir, occ_filename)
+                if os.path.exists(occ_path):
+                    occurrence_df = pd.read_csv(occ_path)
+                    reporter.add_text(f"Using occurrence data from file: {occ_path}")
+                else:
+                    reporter.add_warning(f"Occurrence file not found at expected path: {occ_path}. Skipping auto-population from data.")
+            except Exception as e:
+                reporter.add_warning(f"Could not load occurrence data for EML auto-population: {e}")
+        project_df = data.get('projectMetadata', pd.DataFrame())
+        eml_config = _auto_populate_coverage(eml_config, occurrence_df, reporter)
+        eml_config = _auto_populate_taxonomic_coverage(eml_config, occurrence_df, reporter)
+        eml_config = _auto_populate_from_project_data(eml_config, project_df, reporter)
+        
         reporter.add_text("Building EML XML structure...")
         
         # Report what will be included in the EML
@@ -695,30 +859,3 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         error_msg = f"Failed to create EML file: {str(e)}"
         reporter.add_error(error_msg)
         raise Exception(error_msg)
-
-
-def _auto_populate_from_project_data(eml_config: Dict, data: Dict[str, pd.DataFrame], reporter) -> Dict:
-    """
-    Auto-populate some EML fields from project metadata if they're not already filled
-    
-    This is a helper function that can extract information from the FAIRe metadata
-    to reduce manual configuration burden.
-    """
-    try:
-        # Get project metadata
-        project_df = data.get('projectMetadata', pd.DataFrame())
-        if project_df.empty:
-            return eml_config
-        
-        # Auto-populate title if it's still the template
-        current_title = _safe_get(eml_config, 'title')
-        if '[LOCATION]' in current_title or '[TIMEFRAME]' in current_title:
-            # Try to extract better title info from project metadata
-            # This would require understanding the FAIRe format better
-            reporter.add_text("Consider updating the EML title with more specific information")
-        
-        return eml_config
-        
-    except Exception as e:
-        reporter.add_warning(f"Could not auto-populate EML fields from project data: {e}")
-        return eml_config

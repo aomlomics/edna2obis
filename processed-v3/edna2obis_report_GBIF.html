@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-09-12 14:08:48</p>
-            <p><strong>End Time:</strong> 2025-09-12 14:08:53</p>
-            <p><strong>Duration:</strong> 0:00:04</p>
+            <p><strong>Start Time:</strong> 2025-09-15 20:28:03</p>
+            <p><strong>End Time:</strong> 2025-09-15 20:28:05</p>
+            <p><strong>Duration:</strong> 0:00:01</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
         </div>
         
@@ -2286,7 +2286,34 @@
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>eMoF saved to: processed-v3/eMoF.csv</p>
-<p>⏭️ Skipping EML creation per config (eml_enabled=false)</p>
+<h2>Creating EML (Ecological Metadata Language) File</h2>
+<p>Loading EML configuration from: EML_config.yaml</p>
+<div class="alert alert-success">EML metadata appears comprehensive - all recommended fields are present!</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> Template placeholders detected - please customize:</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Title contains placeholder text [LOCATION] or [TIMEFRAME] - please update with specific information</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Abstract appears to contain template text - please customize with your specific dataset description</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Contact email appears to be template text - please update with actual email address</div>
+<p><h4>EML Best Practices:</h4></p>
+<ul><li>Use descriptive titles that include taxonomic, geographic, and temporal scope</li><li>Provide detailed abstracts that help users assess fitness-for-use</li><li>Include complete contact information for data inquiries</li><li>Add relevant keywords to improve discoverability</li><li>Document sampling methods similar to a journal article methods section</li><li>Use CC0 license when possible for maximum data reusability</li></ul>
+<p>Using occurrence data from file: processed-v3/occurrence_gbif_matched.csv</p>
+<p>Attempting to auto-populate EML coverage fields from data...</p>
+<div class="alert alert-success">Calculated geographic bounding coordinates.</div>
+<div class="alert alert-success">Populated geographic description from 'locality' column.</div>
+<div class="alert alert-success">Updated EML title with location: USA: Gulf of Mexico</div>
+<div class="alert alert-success">Calculated temporal coverage dates.</div>
+<div class="alert alert-success">Updated EML title with timeframe: 2019</div>
+<div class="alert alert-success">Populated taxonomic coverage with 25 classifications across ranks: phylum=2, class=2, order=19, kingdom=2</div>
+<p>Building EML XML structure...</p>
+<p>EML sections to be included:</p>
+<ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
+<div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
+<p>📦 Package ID: f387788b-036f-403b-b477-544d9e9cba83/eml-1.xml</p>
+<p>📏 File size: 9.7 KB</p>
+<p>🏗️ XML structure: 155 total elements</p>
+<div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
+<p><h4>Next Steps for OBIS/GBIF Submission:</h4></p>
+<ul><li>Review the generated EML file to ensure all information is accurate</li><li>Upload the EML file along with your Darwin Core data files to IPT</li><li>Or submit directly to your OBIS node manager for review</li><li>The EML file conforms to GBIF Metadata Profile v1.1 standards</li></ul>
+<p>EML saved to: processed-v3/eml.xml</p>
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
@@ -2294,6 +2321,8 @@
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'pcr_primer_reference'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'otu_class_appr'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'eMoF.csv'</strong>, the column <strong>'occurrenceID'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> Could not validate file 'eml.xml': Error tokenizing data. C error: Expected 1 fields in line 39, saw 2
+</div>
 <h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>seq_meth</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>pcr_primer_reference</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>otu_class_appr</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
@@ -2302,7 +2331,8 @@
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
 <p>✓ dna_derived_extension.csv (0.93 MB)</p>
 <p>✓ eMoF.csv (0.02 MB)</p>
-<p>✓ edna2obis_report_GBIF.html (0.08 MB)</p>
+<p>✓ eml.xml (0.01 MB)</p>
+<p>✓ edna2obis_report_GBIF.html (0.09 MB)</p>
 
     </div>
 </body>
