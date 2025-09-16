@@ -275,7 +275,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         os.makedirs(output_dir, exist_ok=True)
         
         output_path = os.path.join(output_dir, "dna_derived_extension.csv")
-        dna_derived_extension.to_csv(output_path, index=False)
+        dna_derived_extension.to_csv(output_path, index=False, encoding='utf-8-sig') # Encoding helps with special characters in units
         
         reporter.add_success("DNA derived extension created successfully")
         reporter.add_text(f"Saved DNA derived extension: {len(dna_derived_extension):,} records")

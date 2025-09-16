@@ -263,9 +263,11 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         prepared_frames: Dict[str, pd.DataFrame] = {}
         prepared_sources: Dict[str, Tuple[str, pd.DataFrame]] = {}
 
+        has_verbatim_col = 'verbatimMeasurementType' in template_df.columns
+
         # Iterate template rows in order
         for _, trow in template_df.iterrows():
-            meas_type = _normalize_str(trow.get('measurementType'))
+            output_meas_type = _normalize_str(trow.get('measurementType'))
             templ_value = trow.get('measurementValue')
             templ_unit = trow.get('measurementUnit')
             templ_mtid = trow.get('measurementTypeID')
@@ -273,51 +275,59 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
             templ_muid = trow.get('measurementUnitID')
             templ_rem = trow.get('measurementRemarks')
 
-            if meas_type == '':
+            source_field = output_meas_type
+            if has_verbatim_col:
+                verbatim_field = _normalize_str(trow.get('verbatimMeasurementType'))
+                if verbatim_field:
+                    source_field = verbatim_field
+
+            if output_meas_type == '':
                 # Skip defensive; should have been filtered out
                 continue
 
             # Resolve data source for the measurementType
-            if meas_type not in prepared_sources:
+            if source_field not in prepared_sources:
                 try:
-                    source_name, source_df = _resolve_source_for_measurement(meas_type, data)
+                    source_name, source_df = _resolve_source_for_measurement(source_field, data)
                 except Exception as e:
                     reporter.add_error(str(e))
                     raise
-                prepared_sources[meas_type] = (source_name, source_df)
+                prepared_sources[source_field] = (source_name, source_df)
             else:
-                source_name, source_df = prepared_sources[meas_type]
+                source_name, source_df = prepared_sources[source_field]
 
             # Prepare the limited join frame (eventID + value + optional unit column)
-            if meas_type not in prepared_frames:
-                join_frame = _prepare_join_frame_for_measurement(meas_type, events_df, source_name, source_df, reporter)
+            if source_field not in prepared_frames:
+                join_frame = _prepare_join_frame_for_measurement(
+                    source_field, events_df, source_name, source_df, reporter
+                )
                 # Normalize value and potential unit strings
                 # Do not coerce numeric here; we preserve formatting as provided (non-destructive)
                 if 'value' in join_frame.columns:
                     # Keep original dtypes; but for categorical compare, we'll normalize per-comparison
                     pass
-                prepared_frames[meas_type] = join_frame
+                prepared_frames[source_field] = join_frame
             else:
-                join_frame = prepared_frames[meas_type]
+                join_frame = prepared_frames[source_field]
 
             # Unit policy checks
             templ_unit_norm = _normalize_str(templ_unit)
-            has_per_row_unit_col = f"{meas_type}_unit" in join_frame.columns
+            has_per_row_unit_col = f"{source_field}_unit" in join_frame.columns
 
             if templ_unit_norm == 'provided':
                 if not has_per_row_unit_col:
                     reporter.add_error(
-                        f"For measurementType '{meas_type}', measurementUnit='provided' but column '{meas_type}_unit' "
+                        f"For measurementType '{output_meas_type}', measurementUnit='provided' but column '{source_field}_unit' "
                         f"was not found in the source sheet ('{source_name}')."
                     )
-                    raise ValueError(f"Missing per-row unit column for '{meas_type}'")
+                    raise ValueError(f"Missing per-row unit column for '{source_field}'")
             else:
                 if templ_unit_norm == '':
                     # Blank unit: do not fallback; but if a per-row unit column exists, error to avoid silent changes
                     if has_per_row_unit_col:
                         reporter.add_error(
-                            f"For measurementType '{meas_type}', the template left measurementUnit blank but a per-row unit column "
-                            f"'{meas_type}_unit' exists in the source data. Set measurementUnit to 'provided' or a literal."
+                            f"For measurementType '{output_meas_type}', the template left measurementUnit blank but a per-row unit column "
+                            f"'{source_field}_unit' exists in the source data. Set measurementUnit to 'provided' or a literal."
                         )
                         raise ValueError("Ambiguous unit policy detected (blank vs provided)")
                 else:
@@ -349,11 +359,11 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
 
                 # Resolve unit output per policy
                 if templ_unit_norm == 'provided':
-                    unit_col = f"{meas_type}_unit"
+                    unit_col = f"{source_field}_unit"
                     unit_val = ev.get(unit_col)
                     if pd.isna(unit_val) or _normalize_str(unit_val) == '':
                         reporter.add_error(
-                            f"For measurementType '{meas_type}', measurementUnit='provided' but unit is blank for eventID '{event_id}'."
+                            f"For measurementType '{output_meas_type}', measurementUnit='provided' but unit is blank for eventID '{event_id}'."
                         )
                         raise ValueError("Blank per-row unit encountered under 'provided' policy")
                     out_unit = unit_val
@@ -366,7 +376,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                 emof_rows.append({
                     'eventID': event_id,
                     'occurrenceID': '',
-                    'measurementType': meas_type,
+                    'measurementType': source_field,
                     'measurementValue': out_value,
                     'measurementUnit': out_unit,
                     'measurementTypeID': _normalize_str(templ_mtid),
@@ -386,6 +396,9 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         # Deterministic sort: by eventID, measurementType, then measurementValue
         sort_cols = [c for c in ['eventID', 'measurementType', 'measurementValue'] if c in emof_df.columns]
         if sort_cols:
+            # Convert sort columns to string to prevent mixed-type errors during sort
+            for col in sort_cols:
+                emof_df[col] = emof_df[col].astype(str)
             emof_df = emof_df.sort_values(sort_cols).reset_index(drop=True)
 
         output_dir = params.get('output_dir', 'processed-v3/')
@@ -394,7 +407,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         # Write only CSV file
         emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
         try:
-            emof_df.to_csv(emof_csv_path, index=False)
+            emof_df.to_csv(emof_csv_path, index=False, encoding='utf-8-sig') # Encoding helps with special characters in units
         except Exception as e:
             reporter.add_warning(f"Could not write eMoF CSV ('{emof_csv_path}'): {e}")
 

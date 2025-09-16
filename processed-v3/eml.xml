@@ -1,0 +1,228 @@
+<?xml version="1.0" ?>
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" packageId="8b3f5274-7579-45d7-b1a4-32033fce4747/eml-1.xml" system="https://doi.org" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd">
+  <dataset>
+    <title>Marine eDNA sequences from USA: Gulf of Mexico 2019</title>
+    <creator>
+      <individualName>
+        <givenName>Principal First</givenName>
+        <surName>Principal Last</surName>
+      </individualName>
+      <organizationName>Research Institution</organizationName>
+      <address>
+        <deliveryPoint>456 Science Blvd</deliveryPoint>
+        <city>Research City</city>
+        <administrativeArea>State/Province</administrativeArea>
+        <postalCode>54321</postalCode>
+        <country>United States</country>
+      </address>
+      <electronicMailAddress>pi@institution.edu</electronicMailAddress>
+    </creator>
+    <metadataProvider/>
+    <contact>
+      <individualName>
+        <givenName>Your First</givenName>
+        <surName>Your Last</surName>
+      </individualName>
+      <organizationName>Your Institution</organizationName>
+      <address>
+        <deliveryPoint>123 University Ave</deliveryPoint>
+        <city>Your City</city>
+        <administrativeArea>State/Province</administrativeArea>
+        <postalCode>12345</postalCode>
+        <country>United States</country>
+      </address>
+      <electronicMailAddress>your.email@institution.edu</electronicMailAddress>
+    </contact>
+    <pubDate>2024</pubDate>
+    <language>en</language>
+    <abstract>
+      <para>Brief description of your dataset. Include what organisms were studied, 
+where samples were collected, what methods were used, and the purpose of the study.
+This should help users understand the fitness-for-use of your data.</para>
+    </abstract>
+    <keywordSet>
+      <keyword>eDNA</keyword>
+      <keywordThesaurus>ASFA</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword>metabarcoding</keyword>
+      <keywordThesaurus>ASFA</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword>marine biodiversity</keyword>
+      <keywordThesaurus>ASFA</keywordThesaurus>
+    </keywordSet>
+    <keywordSet>
+      <keyword>environmental DNA</keyword>
+      <keywordThesaurus>GCMD</keywordThesaurus>
+    </keywordSet>
+    <coverage>
+      <geographicCoverage>
+        <geographicDescription>USA: Gulf of Mexico</geographicDescription>
+        <boundingCoordinates>
+          <westBoundingCoordinate>-95.0</westBoundingCoordinate>
+          <eastBoundingCoordinate>-80.0</eastBoundingCoordinate>
+          <northBoundingCoordinate>30.0</northBoundingCoordinate>
+          <southBoundingCoordinate>25.0</southBoundingCoordinate>
+        </boundingCoordinates>
+      </geographicCoverage>
+      <temporalCoverage>
+        <rangeOfDates>
+          <beginDate>
+            <calendarDate>2020-01-01</calendarDate>
+          </beginDate>
+          <endDate>
+            <calendarDate>2020-12-31</calendarDate>
+          </endDate>
+        </rangeOfDates>
+      </temporalCoverage>
+      <taxonomicCoverage>
+        <generalTaxonomicCoverage>Marine organisms identified through eDNA metabarcoding</generalTaxonomicCoverage>
+        <taxonomicClassification>
+          <taxonRankName>phylum</taxonRankName>
+          <taxonRankValue>Chordata</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>phylum</taxonRankName>
+          <taxonRankValue>Mollusca</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>class</taxonRankName>
+          <taxonRankValue>Gastropoda</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>class</taxonRankName>
+          <taxonRankValue>Mammalia</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Anguilliformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Aulopiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Beloniformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Cetacea</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Clupeiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Gadiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Lampriformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Littorinimorpha</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Lophiiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Myctophiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Ophidiiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Osmeriformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Perciformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Pleuronectiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Polymixiiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Scorpaeniformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Stomiiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Syngnathiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>order</taxonRankName>
+          <taxonRankValue>Tetraodontiformes</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>kingdom</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>kingdom</taxonRankName>
+          <taxonRankValue>Bacteria</taxonRankValue>
+        </taxonomicClassification>
+      </taxonomicCoverage>
+    </coverage>
+    <purpose>
+      <para>A description of the purpose of this dataset.
+Why was it collected? What questions does it aim to answer?</para>
+    </purpose>
+    <intellectualRights>
+      <para>This work is licensed under a Creative Commons CCZero 1.0 License http://creativecommons.org/publicdomain/zero/1.0/. 
+To the extent possible under law, the publisher has waived all copyright and related or neighboring rights to this dataset and dedicated it to the public domain worldwide. 
+Users may copy, modify, distribute and use the dataset, including for commercial purposes, without restriction.</para>
+    </intellectualRights>
+    <methods>
+      <qualityControl>
+        <description>
+          <para>Description of quality control measures taken during sample collection,
+processing, and analysis.
+</para>
+        </description>
+      </qualityControl>
+      <sampling>
+        <studyExtent>
+          <description>Description of the specific sampling area and frequency.
+Example: &quot;Samples were collected monthly from 5 stations in the Gulf of Mexico from January to December 2020.&quot;
+</description>
+        </studyExtent>
+        <samplingDescription>
+          <para>Detailed description of sampling procedures, similar to methods section of a journal article.
+Include collection methods, equipment used, sample processing, etc.
+</para>
+        </samplingDescription>
+      </sampling>
+    </methods>
+    <project>
+      <title>Your Project Title</title>
+      <description>
+        <para>Description of the research project under which this dataset was collected.
+Include objectives, hypotheses, and broader context.
+</para>
+      </description>
+      <funding>
+        <para>Information about funding sources, grant numbers, etc.
+Example: &quot;This work was supported by NOAA Grant #12345&quot;
+</para>
+      </funding>
+    </project>
+    <additionalInfo>Any other relevant information about the dataset that doesn't fit in other sections.</additionalInfo>
+  </dataset>
+</eml:eml>

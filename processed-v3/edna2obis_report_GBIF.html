@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-09-15 20:28:03</p>
-            <p><strong>End Time:</strong> 2025-09-15 20:28:05</p>
-            <p><strong>Duration:</strong> 0:00:01</p>
+            <p><strong>Start Time:</strong> 2025-09-16 14:32:10</p>
+            <p><strong>End Time:</strong> 2025-09-16 14:32:13</p>
+            <p><strong>Duration:</strong> 0:00:02</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
         </div>
         
@@ -1301,16 +1301,16 @@
 <p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
 <p>Removed temporary columns: ['assay_name', 'scientificNameID']</p>
 <div class="alert alert-success">Taxonomic assignment completed! Saved 912 records to occurrence_gbif_matched.csv</div>
-<p>Summary: 148 unique taxa identified</p>
+<p>Summary: 147 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
 <p>Using detailed match data from GBIF process for info file.</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
-<p>Saved taxa assignment info: 451 total rows (151 unique strings)</p>
+<p>Saved taxa assignment info: 452 total rows (151 unique strings)</p>
 <p>Output file: taxa_assignment_INFO_GBIF.csv</p>
 <p>File size: 0.12 MB</p>
 <p><h3>Detailed Taxa Assignment Information</h3></p>
 <p><p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. This allows for manual review and complete transparency.</p><ul><li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li><li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li><li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li><li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li><li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li><li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li><li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li></ul></p>
-<h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 231 rows × 15 columns</p><p><em>Showing first 20 rows of 231 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 229 rows × 15 columns</p><p><em>Showing first 20 rows of 229 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1444,7 +1444,7 @@
       <th>6</th>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
-      <td>True</td>
+      <td>False</td>
       <td>Synagrops bellus (Goode & Bean, 1896)</td>
       <td>100</td>
       <td>species</td>
@@ -1460,6 +1460,24 @@
     </tr>
     <tr>
       <th>7</th>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
+      <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
+      <td>True</td>
+      <td>Synagrops bellus (Goode & Bean, 1896)</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2381532</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Perciformes</td>
+      <td>Acropomatidae</td>
+      <td>Synagrops</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>8</th>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
       <td>True</td>
@@ -1477,7 +1495,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>8</th>
+      <th>9</th>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
       <td>True</td>
@@ -1495,7 +1513,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>9</th>
+      <th>10</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes</td>
       <td>True</td>
@@ -1513,30 +1531,12 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>10</th>
+      <th>11</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
       <td>False</td>
       <td>Chilorhinus suensonii Lütken, 1852</td>
       <td>100</td>
-      <td>species</td>
-      <td>gbif:2405420</td>
-      <td>Animalia</td>
-      <td>Chordata</td>
-      <td>NaN</td>
-      <td>Anguilliformes</td>
-      <td>Chlopsidae</td>
-      <td>Chilorhinus</td>
-      <td>GBIF_EXACT</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
-      <td>True</td>
-      <td>Chilorhinus suensonii Lütken, 1852</td>
-      <td>99</td>
       <td>species</td>
       <td>gbif:2405420</td>
       <td>Animalia</td>
@@ -1550,19 +1550,19 @@
     </tr>
     <tr>
       <th>12</th>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
-      <td>False</td>
-      <td>Ariosoma balearicum (Delaroche, 1809)</td>
-      <td>100</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
+      <td>True</td>
+      <td>Chilorhinus suensonii Lütken, 1852</td>
+      <td>99</td>
       <td>species</td>
-      <td>gbif:2403180</td>
+      <td>gbif:2405420</td>
       <td>Animalia</td>
       <td>Chordata</td>
       <td>NaN</td>
       <td>Anguilliformes</td>
-      <td>Congridae</td>
-      <td>Ariosoma</td>
+      <td>Chlopsidae</td>
+      <td>Chilorhinus</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
@@ -1570,9 +1570,9 @@
       <th>13</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
-      <td>True</td>
+      <td>False</td>
       <td>Ariosoma balearicum (Delaroche, 1809)</td>
-      <td>99</td>
+      <td>100</td>
       <td>species</td>
       <td>gbif:2403180</td>
       <td>Animalia</td>
@@ -1586,6 +1586,24 @@
     </tr>
     <tr>
       <th>14</th>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
+      <td>True</td>
+      <td>Ariosoma balearicum (Delaroche, 1809)</td>
+      <td>99</td>
+      <td>species</td>
+      <td>gbif:2403180</td>
+      <td>Animalia</td>
+      <td>Chordata</td>
+      <td>NaN</td>
+      <td>Anguilliformes</td>
+      <td>Congridae</td>
+      <td>Ariosoma</td>
+      <td>GBIF_EXACT</td>
+      <td>GBIF</td>
+    </tr>
+    <tr>
+      <th>15</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>False</td>
@@ -1603,7 +1621,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>15</th>
+      <th>16</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>True</td>
@@ -1621,7 +1639,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>16</th>
+      <th>17</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
       <td>True</td>
@@ -1639,7 +1657,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>17</th>
+      <th>18</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
       <td>False</td>
@@ -1657,7 +1675,7 @@
       <td>GBIF</td>
     </tr>
     <tr>
-      <th>18</th>
+      <th>19</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
       <td>True</td>
@@ -1671,24 +1689,6 @@
       <td>Anguilliformes</td>
       <td>Congridae</td>
       <td>Uroconger</td>
-      <td>GBIF_EXACT</td>
-      <td>GBIF</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Xenomystax</td>
-      <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Xenomystax</td>
-      <td>True</td>
-      <td>Xenomystax Gilbert, 1891</td>
-      <td>97</td>
-      <td>genus</td>
-      <td>gbif:2403464</td>
-      <td>Animalia</td>
-      <td>Chordata</td>
-      <td>NaN</td>
-      <td>Anguilliformes</td>
-      <td>Congridae</td>
-      <td>Xenomystax</td>
       <td>GBIF_EXACT</td>
       <td>GBIF</td>
     </tr>
@@ -2143,9 +2143,9 @@
 <p>Output file: dna_derived_extension.csv</p>
 <p>File size: 0.93 MB</p>
 <h2>Creating eMoF (extendedMeasurementOrFact)</h2>
-<p>Loaded template with 7 configured measurement row(s)</p>
+<p>Loaded template with 30 configured measurement row(s)</p>
 <p>Total events included (non-control): 42</p>
-<div class="alert alert-success">eMoF created successfully with 210 row(s)</div>
+<div class="alert alert-success">eMoF created successfully with 1260 row(s)</div>
 <p>Saved eMoF CSV to: processed-v3/eMoF.csv</p>
 <h4>eMoF Preview (first 15 rows)</h4><p><strong>Shape:</strong> 15 rows × 9 columns</p><p><em>Showing first 10 rows of 15 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
@@ -2167,120 +2167,120 @@
       <th>0</th>
       <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>concentration</td>
-      <td>1.57</td>
-      <td>ng/µl</td>
-      <td>x2121</td>
+      <td>chlorophyll</td>
+      <td>0.038</td>
+      <td>micrograms per litre</td>
+      <td>http://vocab.nerc.ac.uk/collection/P01/current/CPHLMOD2/</td>
       <td></td>
-      <td>doi:Concentration</td>
-      <td>collected after freezing</td>
+      <td>http://vocab.nerc.ac.uk/collection/P06/current/UGPL/</td>
+      <td>Collected by WetLabs WetStar Fluorometer</td>
     </tr>
     <tr>
       <th>1</th>
       <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>filter_diameter</td>
-      <td>47</td>
-      <td>mm</td>
+      <td>concentration_method</td>
+      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
+      <td></td>
+      <td>FAIRe DOI?</td>
       <td></td>
       <td></td>
       <td></td>
-      <td>good measurement</td>
     </tr>
     <tr>
       <th>2</th>
       <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>nucl_acid_ext_sep</td>
-      <td>phenol chloroform</td>
+      <td>ctd_bottle_number</td>
+      <td>CTD11</td>
       <td></td>
       <td></td>
-      <td>DOI:mag</td>
       <td></td>
-      <td>hi</td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <th>3</th>
       <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>samp_size</td>
-      <td>2</td>
-      <td>L</td>
-      <td>x12</td>
+      <td>date_ext</td>
+      <td>2019-10-28 00:00:00</td>
+      <td>ISO 8601</td>
+      <td>FAIRe DOI?</td>
       <td></td>
-      <td>doi:Volume</td>
-      <td>bad measurement</td>
+      <td>https://vocab.nerc.ac.uk/collection/P06/current/TISO/</td>
+      <td></td>
     </tr>
     <tr>
       <th>4</th>
       <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>samp_store_temp</td>
-      <td>4</td>
-      <td>degC</td>
-      <td>x11</td>
+      <td>density</td>
+      <td>1027.6571</td>
+      <td>kilograms per cubic metre</td>
+      <td>http://vocab.nerc.ac.uk/collection/P01/current/TOKGPR02/</td>
       <td></td>
-      <td>doi:C</td>
+      <td>http://vocab.nerc.ac.uk/collection/P06/current/UKMC/</td>
       <td></td>
     </tr>
     <tr>
       <th>5</th>
-      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>concentration</td>
-      <td>1.57</td>
-      <td>ng/µl</td>
-      <td>x2121</td>
+      <td>depth_category</td>
+      <td>Bottom</td>
       <td></td>
-      <td>doi:Concentration</td>
-      <td>collected after freezing</td>
+      <td></td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <th>6</th>
-      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>filter_diameter</td>
-      <td>47</td>
-      <td>mm</td>
+      <td>diss_oxygen</td>
+      <td>4.397</td>
+      <td>mg/L</td>
       <td></td>
       <td></td>
+      <td>http://vocab.nerc.ac.uk/collection/P06/current/UMGL/</td>
       <td></td>
-      <td>good measurement</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>nucl_acid_ext_sep</td>
-      <td>phenol chloroform</td>
+      <td>dna_cleanup_0_1</td>
+      <td>1</td>
+      <td></td>
+      <td>FAIRe DOI?</td>
       <td></td>
       <td></td>
-      <td>DOI:mag</td>
-      <td></td>
-      <td>hi</td>
+      <td>Boolean: Was the extracted DNA cleaned/purified? Yes = 1, No =0</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>samp_size</td>
-      <td>2</td>
-      <td>L</td>
-      <td>x12</td>
+      <td>dna_cleanup_method</td>
+      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td></td>
-      <td>doi:Volume</td>
-      <td>bad measurement</td>
+      <td>FAIRe DOI?</td>
+      <td></td>
+      <td></td>
+      <td></td>
     </tr>
     <tr>
       <th>9</th>
-      <td>GU190706-CTD11-220_Riaz_S1</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td></td>
-      <td>samp_store_temp</td>
-      <td>4</td>
-      <td>degC</td>
-      <td>x11</td>
+      <td>dna_store_loc</td>
+      <td>NOAA SEFSC -80Freezer</td>
       <td></td>
-      <td>doi:C</td>
+      <td>FAIRe DOI?</td>
+      <td></td>
+      <td></td>
       <td></td>
     </tr>
   </tbody>
@@ -2307,7 +2307,7 @@
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: f387788b-036f-403b-b477-544d9e9cba83/eml-1.xml</p>
+<p>📦 Package ID: 8b3f5274-7579-45d7-b1a4-32033fce4747/eml-1.xml</p>
 <p>📏 File size: 9.7 KB</p>
 <p>🏗️ XML structure: 155 total elements</p>
 <div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
@@ -2330,7 +2330,7 @@
 <p>✓ occurrence_gbif_matched.csv (0.57 MB)</p>
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
 <p>✓ dna_derived_extension.csv (0.93 MB)</p>
-<p>✓ eMoF.csv (0.02 MB)</p>
+<p>✓ eMoF.csv (0.15 MB)</p>
 <p>✓ eml.xml (0.01 MB)</p>
 <p>✓ edna2obis_report_GBIF.html (0.09 MB)</p>
 
