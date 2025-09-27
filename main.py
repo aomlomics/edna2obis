@@ -44,7 +44,7 @@ def load_config(config_path="config.yaml"):
         params['experimentRunMetadata'] = config['experimentRunMetadata'] 
         params['projectMetadata'] = config['projectMetadata']
         params['excel_file'] = config['excel_file']
-        params['FAIRe_NOAA_checklist'] = config['FAIRe_NOAA_checklist']
+        params['FAIRe_NOAA_checklist'] = config.get('FAIRe_NOAA_checklist') # Made optional
         params['datafiles'] = config['datafiles']
         params['skip_columns'] = config.get('skip_columns', [])
         
@@ -62,7 +62,7 @@ def load_config(config_path="config.yaml"):
             params['control_sample_values'] = config.get('skip_sample_types', [])
         
         params['taxonomic_api_source'] = config['taxonomic_api_source']
-        params['assays_to_skip_species_match'] = config['assays_to_skip_species_match']
+        params['assays_to_skip_species_match'] = config.get('assays_to_skip_species_match', []) # Made optional
         
         # Optional parameters with defaults
         params['worms_n_proc'] = config.get('worms_n_proc', 0)
@@ -82,6 +82,9 @@ def load_config(config_path="config.yaml"):
         params['use_local_reference_database'] = config.get('use_local_reference_database', False)
         params['local_reference_database_path'] = config.get('local_reference_database_path', '')
         
+        # --- NEW: Metadata format switcher ---
+        params['metadata_format'] = config.get('metadata_format', 'NOAA').upper()
+
         return params
         
     except Exception as e:
@@ -104,10 +107,71 @@ def load_project_data(params, reporter):
         all_sheets = excel.sheet_names
         reporter.add_text(f"Found {len(all_sheets)} sheets in Excel file: {', '.join(all_sheets)}")
         
-        # Find analysis metadata sheets
-        analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
-        reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
-        
+        # Find analysis metadata sheets based on the format
+        analysis_data_by_assay = {}
+
+        # --- FAIRe-NOAA FORMAT ---
+        # Uses separate analysisMetadata sheets for each run.
+        if params['metadata_format'] == 'NOAA':
+            analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
+            reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
+
+            for sheet_name in analysis_sheets:
+                analysis_df = pd.read_excel(params['excel_file'], sheet_name)
+                
+                assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
+                analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
+                
+                reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
+                
+                if assay_name not in analysis_data_by_assay:
+                    analysis_data_by_assay[assay_name] = {}
+                analysis_data_by_assay[assay_name][analysis_run_name] = analysis_df
+
+        # --- GENERIC FAIRe FORMAT ---
+        # Synthesizes analysis metadata from projectMetadata sheet.
+        elif params['metadata_format'] == 'GENERIC':
+            reporter.add_text("Using GENERIC FAIRe format. Synthesizing analysis metadata from projectMetadata.")
+            
+            project_meta_df = pd.read_excel(params['excel_file'], params['projectMetadata'], index_col=None, na_values=[""], comment="#")
+            
+            # --- ROBUSTNESS FIX: Standardize column names for lookup ---
+            project_meta_df_columns_map = {col.strip().lower(): col for col in project_meta_df.columns}
+
+            for run_name, run_details in params['datafiles'].items():
+                assay_name = run_details.get('assay_name')
+                if not assay_name:
+                    reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Cannot process analysis-specific metadata.")
+                    continue
+
+                # --- ROBUSTNESS FIX: Use the standardized map for lookup ---
+                assay_name_lookup = assay_name.strip().lower()
+                if assay_name_lookup not in project_meta_df_columns_map:
+                    reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found as a column in projectMetadata. Please check for typos. Available columns: {list(project_meta_df.columns)}")
+                    continue
+                
+                # Get the original column name with correct casing
+                original_assay_col_name = project_meta_df_columns_map[assay_name_lookup]
+                
+                # Synthesize the analysis DF
+                rows = []
+                for _, row in project_meta_df.iterrows():
+                    term_name = row['term_name']
+                    # Assay-specific value takes precedence over project-level value
+                    assay_specific_value = row[original_assay_col_name]
+                    project_level_value = row['project_level']
+                    
+                    final_value = assay_specific_value if pd.notna(assay_specific_value) else project_level_value
+                    rows.append({'term_name': term_name, 'values': final_value})
+                
+                synthesized_df = pd.DataFrame(rows)
+                
+                # Build the nested dictionary structure
+                if assay_name not in analysis_data_by_assay:
+                    analysis_data_by_assay[assay_name] = {}
+                analysis_data_by_assay[assay_name][run_name] = synthesized_df
+                reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
+
         # Load the main data sheets
         data = pd.read_excel(
             params['excel_file'],
@@ -115,28 +179,14 @@ def load_project_data(params, reporter):
             index_col=None, na_values=[""], comment="#"
         )
         
-        # Load all analysis metadata sheets
-        analysis_data_by_assay = {}
-        
-        for sheet_name in analysis_sheets:
-            analysis_df = pd.read_excel(params['excel_file'], sheet_name)
-            
-            # Get assay_name and analysis_run_name from specific cells
-            assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
-            analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
-            
-            reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
-            
-            if assay_name not in analysis_data_by_assay:
-                analysis_data_by_assay[assay_name] = {}
-            analysis_data_by_assay[assay_name][analysis_run_name] = analysis_df
-        
         # Add analysis data to main data dictionary
         data['analysis_data_by_assay'] = analysis_data_by_assay
         
         # For backward compatibility
-        if analysis_sheets:
-            data['analysisMetadata'] = pd.read_excel(params['excel_file'], analysis_sheets[0])
+        if params['metadata_format'] == 'NOAA':
+            analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
+            if analysis_sheets:
+                data['analysisMetadata'] = pd.read_excel(params['excel_file'], analysis_sheets[0])
         
         # Rename keys to standard terms
         data['sampleMetadata'] = data.pop(params['sampleMetadata'])
@@ -480,10 +530,76 @@ def load_darwin_core_mappings(params, reporter):
     reporter.add_section("Load data dictionary Excel file", level=2)
     
     try:
-        reporter.add_text("This FAIRe NOAA Checklist Excel file also contains columns for mapping FAIRe fields to the appropriate Darwin Core terms which OBIS is expecting. Currently, we are only preparing an Occurrence core file and a DNA-derived extension file, with Event information in the Occurrence file. Future versions of this workflow will prepare an extendedMeasurementOrFact file as well.")
-        
+        reporter.add_text("Attempting to load Darwin Core mappings from data_mapper.yaml (preferred). If not found, will fall back to the FAIRe NOAA checklist.")
+
         dwc_data = {}
         checklist_df = pd.DataFrame()
+
+        # 1) Preferred: YAML-based mappings
+        yaml_mapper_path = 'data_mapper.yaml'
+        try:
+            if os.path.exists(yaml_mapper_path):
+                import yaml as _yaml_loader
+                with open(yaml_mapper_path, 'r', encoding='utf-8') as f:
+                    mapper = _yaml_loader.safe_load(f) or {}
+
+                # --- NEW: Select mapping based on metadata_format ---
+                format_prefix = "generic_" if params.get('metadata_format') == 'GENERIC' else ""
+                occurrence_key = f"{format_prefix}occurrence_core"
+                dna_derived_key = f"{format_prefix}dna_derived_extension"
+                
+                reporter.add_text(f"Loading mappings for '{params.get('metadata_format')}' format from keys: {occurrence_key}, {dna_derived_key}")
+
+                # Extract sections based on the selected format
+                occ_map_raw = mapper.get(occurrence_key, {}) or {}
+                dna_map_raw = mapper.get(dna_derived_key, {}) or {}
+
+                def _build_df_from_mapping(mapping_dict):
+                    rows = []
+                    for dwc_term, mapping_details in mapping_dict.items():
+                        # Skip if the entry is not a dictionary (e.g., a comment)
+                        if not isinstance(mapping_details, dict):
+                            continue
+                        
+                        faire_term = mapping_details.get('faire_term')
+                        
+                        # Skip blanks/nulls to allow "omit if unmapped"
+                        if faire_term is None:
+                            continue
+                        
+                        faire_str = str(faire_term).strip()
+                        if not faire_str:
+                            continue
+                        rows.append({'DwC_term': str(dwc_term).strip(), 'FAIRe_term': faire_str})
+                    if rows:
+                        return pd.DataFrame(rows).drop_duplicates().set_index('DwC_term')
+                    else:
+                        return pd.DataFrame(columns=['FAIRe_term']).set_index(pd.Index([], name='DwC_term'))
+
+                dwc_data['occurrence'] = _build_df_from_mapping(occ_map_raw)
+                dwc_data['dnaDerived'] = _build_df_from_mapping(dna_map_raw)
+
+                reporter.add_text(f"Loaded Darwin Core mappings from {yaml_mapper_path}")
+                reporter.add_text(f"Occurrence mappings: {len(dwc_data['occurrence'])}; DNA Derived mappings: {len(dwc_data['dnaDerived'])}")
+
+                reporter.add_dataframe(
+                    dwc_data['occurrence'].reset_index(),
+                    "Darwin Core Occurrence Mappings",
+                    max_rows=len(dwc_data['occurrence'])
+                )
+                reporter.add_dataframe(
+                    dwc_data['dnaDerived'].reset_index(),
+                    "DNA Derived Data Mappings",
+                    max_rows=len(dwc_data['dnaDerived'])
+                )
+
+                reporter.add_success("Loaded Darwin Core mappings")
+                return dwc_data, checklist_df
+        except Exception as e_yaml:
+            reporter.add_warning(f"Could not load YAML mappings ({yaml_mapper_path}): {e_yaml}. Will attempt NOAA checklist.")
+
+        # 2) Fallback: FAIRe NOAA checklist
+     #   reporter.add_text("Falling back to FAIRe NOAA checklist for mappings...")
 
         try:
             checklist_df = pd.read_excel(
@@ -532,9 +648,17 @@ def load_darwin_core_mappings(params, reporter):
         # Print summary
         reporter.add_text(f"Darwin Core term mapping created: \n   Occurrence Core mappings: {len(dwc_data['occurrence'])} \n   DNA Derived Extension mappings: {len(dwc_data['dnaDerived'])}")
         
-        # Show the mappings
-        reporter.add_dataframe(dwc_data['occurrence'].reset_index(), "Darwin Core Occurrence Mappings", max_rows=15)
-        reporter.add_dataframe(dwc_data['dnaDerived'].reset_index(), "DNA Derived Data Mappings", max_rows=15)
+        # Show the mappings (display full tables, not just a preview)
+        reporter.add_dataframe(
+            dwc_data['occurrence'].reset_index(),
+            "Darwin Core Occurrence Mappings",
+            max_rows=len(dwc_data['occurrence'])
+        )
+        reporter.add_dataframe(
+            dwc_data['dnaDerived'].reset_index(),
+            "DNA Derived Data Mappings",
+            max_rows=len(dwc_data['dnaDerived'])
+        )
         
         reporter.add_success("Loaded Darwin Core mappings")
         return dwc_data, checklist_df

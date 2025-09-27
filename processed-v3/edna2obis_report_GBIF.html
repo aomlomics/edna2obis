@@ -37,9 +37,9 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-09-16 14:32:10</p>
-            <p><strong>End Time:</strong> 2025-09-16 14:32:13</p>
-            <p><strong>Duration:</strong> 0:00:02</p>
+            <p><strong>Start Time:</strong> 2025-09-26 17:29:15</p>
+            <p><strong>End Time:</strong> 2025-09-26 17:29:16</p>
+            <p><strong>Duration:</strong> 0:00:01</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
         </div>
         
@@ -992,11 +992,11 @@
 <p>No columns dropped from data['experimentRunMetadata']</p>
 <div class="alert alert-success">Successfully dropped columns with some missing values</div>
 <h2>Load data dictionary Excel file</h2>
-<p>This FAIRe NOAA Checklist Excel file also contains columns for mapping FAIRe fields to the appropriate Darwin Core terms which OBIS is expecting. Currently, we are only preparing an Occurrence core file and a DNA-derived extension file, with Event information in the Occurrence file. Future versions of this workflow will prepare an extendedMeasurementOrFact file as well.</p>
-<p>Darwin Core term mapping created: 
-   Occurrence Core mappings: 26 
-   DNA Derived Extension mappings: 27</p>
-<h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 26 rows × 2 columns</p><p><em>Showing first 15 rows of 26 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Attempting to load Darwin Core mappings from data_mapper.yaml (preferred). If not found, will fall back to the FAIRe NOAA checklist.</p>
+<p>Loading mappings for 'NOAA' format from keys: occurrence_core, dna_derived_extension</p>
+<p>Loaded Darwin Core mappings from data_mapper.yaml</p>
+<p>Occurrence mappings: 34; DNA Derived mappings: 28</p>
+<h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 34 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1007,82 +1007,177 @@
   <tbody>
     <tr>
       <th>0</th>
-      <td>recordedBy</td>
-      <td>recordedBy</td>
+      <td>occurrenceID</td>
+      <td>occurrenceID</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>datasetID</td>
-      <td>project_id</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>parentEventID</td>
-      <td>samp_name</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>materialSampleID</td>
-      <td>materialSampleID</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>decimalLongitude</td>
-      <td>decimalLongitude</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>decimalLatitude</td>
-      <td>decimalLatitude</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>geodeticDatum</td>
-      <td>verbatimSRS</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>locality</td>
-      <td>geo_loc_name</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>eventDate</td>
-      <td>eventDate</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>sampleSizeValue</td>
-      <td>samp_size</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>sampleSizeUnit</td>
-      <td>samp_size_unit</td>
-    </tr>
-    <tr>
-      <th>11</th>
       <td>eventID</td>
       <td>lib_id</td>
     </tr>
     <tr>
+      <th>2</th>
+      <td>basisOfRecord</td>
+      <td>basisOfRecord</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>verbatimIdentification</td>
+      <td>verbatimIdentification</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>kingdom</td>
+      <td>kingdom</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>phylum</td>
+      <td>phylum</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>class</td>
+      <td>class</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>order</td>
+      <td>order</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>family</td>
+      <td>family</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>genus</td>
+      <td>genus</td>
+    </tr>
+    <tr>
+      <th>10</th>
+      <td>scientificName</td>
+      <td>scientificName</td>
+    </tr>
+    <tr>
+      <th>11</th>
+      <td>taxonID</td>
+      <td>taxonID</td>
+    </tr>
+    <tr>
       <th>12</th>
-      <td>associatedSequences</td>
-      <td>associatedSequences</td>
+      <td>scientificNameID</td>
+      <td>scientificNameID</td>
     </tr>
     <tr>
       <th>13</th>
-      <td>kingdom</td>
-      <td>kingdom</td>
+      <td>taxonRank</td>
+      <td>taxonRank</td>
     </tr>
     <tr>
       <th>14</th>
-      <td>phylum</td>
-      <td>phylum</td>
+      <td>parentEventID</td>
+      <td>samp_name</td>
+    </tr>
+    <tr>
+      <th>15</th>
+      <td>datasetID</td>
+      <td>project_id</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>locationID</td>
+      <td>locationID</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>occurrenceStatus</td>
+      <td>occurrenceStatus</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>organismQuantity</td>
+      <td>organismQuantity</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>organismQuantityType</td>
+      <td>organismQuantityType</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>sampleSizeValue</td>
+      <td>samp_size</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>sampleSizeUnit</td>
+      <td>samp_size_unit</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>recordedBy</td>
+      <td>recordedBy</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>materialSampleID</td>
+      <td>materialSampleID</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>eventDate</td>
+      <td>eventDate</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>minimumDepthInMeters</td>
+      <td>minimumDepthInMeters</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>maximumDepthInMeters</td>
+      <td>maximumDepthInMeters</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>locality</td>
+      <td>geo_loc_name</td>
+    </tr>
+    <tr>
+      <th>28</th>
+      <td>decimalLatitude</td>
+      <td>decimalLatitude</td>
+    </tr>
+    <tr>
+      <th>29</th>
+      <td>decimalLongitude</td>
+      <td>decimalLongitude</td>
+    </tr>
+    <tr>
+      <th>30</th>
+      <td>geodeticDatum</td>
+      <td>verbatimSRS</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td>identificationRemarks</td>
+      <td>identificationRemarks</td>
+    </tr>
+    <tr>
+      <th>32</th>
+      <td>nameAccordingTo</td>
+      <td>nameAccordingTo</td>
+    </tr>
+    <tr>
+      <th>33</th>
+      <td>associatedSequences</td>
+      <td>associatedSequences</td>
     </tr>
   </tbody>
 </table></div>
-<h4>DNA Derived Data Mappings</h4><p><strong>Shape:</strong> 27 rows × 2 columns</p><p><em>Showing first 15 rows of 27 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>DNA Derived Data Mappings</h4><p><strong>Shape:</strong> 28 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1166,17 +1261,82 @@
       <td>pcr_primer_reverse</td>
       <td>pcr_primer_reverse</td>
     </tr>
+    <tr>
+      <th>15</th>
+      <td>pcr_primer_name_forward</td>
+      <td>pcr_primer_name_forward</td>
+    </tr>
+    <tr>
+      <th>16</th>
+      <td>pcr_primer_name_reverse</td>
+      <td>pcr_primer_name_reverse</td>
+    </tr>
+    <tr>
+      <th>17</th>
+      <td>pcr_primer_reference</td>
+      <td>pcr_primer_reference_forward</td>
+    </tr>
+    <tr>
+      <th>18</th>
+      <td>nucl_acid_amp</td>
+      <td>nucl_acid_amp</td>
+    </tr>
+    <tr>
+      <th>19</th>
+      <td>pcr_cond</td>
+      <td>pcr_cond</td>
+    </tr>
+    <tr>
+      <th>20</th>
+      <td>seq_meth</td>
+      <td>instrument</td>
+    </tr>
+    <tr>
+      <th>21</th>
+      <td>lib_layout</td>
+      <td>lib_layout</td>
+    </tr>
+    <tr>
+      <th>22</th>
+      <td>eventID</td>
+      <td>lib_id</td>
+    </tr>
+    <tr>
+      <th>23</th>
+      <td>DNA_sequence</td>
+      <td>dna_sequence</td>
+    </tr>
+    <tr>
+      <th>24</th>
+      <td>otu_class_appr</td>
+      <td>otu_clust_tool</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>otu_db</td>
+      <td>otu_db</td>
+    </tr>
+    <tr>
+      <th>26</th>
+      <td>otu_seq_comp_appr</td>
+      <td>otu_seq_comp_appr</td>
+    </tr>
+    <tr>
+      <th>27</th>
+      <td>source_mat_id</td>
+      <td>materialSampleID</td>
+    </tr>
   </tbody>
 </table></div>
 <div class="alert alert-success">Loaded Darwin Core mappings</div>
 <h2>Building Combined Occurrence Core</h2>
 <p>🚀 Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
 <p>Processing Analysis Run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
-<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
 <p>  Successfully processed rosel-ctd-mifish-addMFtrawlJfish-241001: Generated 491 records.</p>
 <p>Processing Analysis Run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
-<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from checklist) was NOT found as a column in the merged sample data (checked as 'verbatimSRS' and 'verbatimSRS_sm'). The DwC column 'geodeticDatum' will likely be empty if not populated by other means.</p>
+<p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
 <p>  Successfully processed rosel-ctd-riaz-addMFtrawlJfish-241001: Generated 421 records.</p>
 <p>🏁 LOOP COMPLETED: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
@@ -1307,7 +1467,7 @@
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
 <p>Saved taxa assignment info: 452 total rows (151 unique strings)</p>
 <p>Output file: taxa_assignment_INFO_GBIF.csv</p>
-<p>File size: 0.12 MB</p>
+<p>File size: 0.13 MB</p>
 <p><h3>Detailed Taxa Assignment Information</h3></p>
 <p><p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. This allows for manual review and complete transparency.</p><ul><li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li><li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li><li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li><li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li><li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li><li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li><li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li></ul></p>
 <h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 229 rows × 15 columns</p><p><em>Showing first 20 rows of 229 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
@@ -1696,7 +1856,6 @@
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
-<p>DNA derived extension will have 30 columns (plus dynamically added unit columns).</p>
 <p>Starting with the Occurrence Core's shape: (912, 36)</p>
 <p>DNA derived base shape: (912, 7)</p>
 <p>Merging with sample metadata...</p>
@@ -1705,435 +1864,378 @@
 <p>After merge with experiment metadata - shape: (912, 76)</p>
 <p>Dynamically generating unit columns...</p>
 <p>✓ Created 'samp_vol_we_dna_extUnit' from existing FAIRe column 'samp_vol_we_dna_ext_unit'.</p>
-<p>✓ Created 'size_fracUnit' using value ('µm') from FAIRe checklist for field 'size_frac'.</p>
-<p>✓ Created 'samp_sizeUnit' from existing FAIRe column 'samp_size_unit'.</p>
 <p>✓ Created 'concentrationUnit' from existing FAIRe column 'concentration_unit'.</p>
-<p>✓ Created 'ampliconSizeUnit' using value ('basepairs') from FAIRe checklist for field 'ampliconSize'.</p>
-<p>Processing projectMetadata fields...</p>
+<p>Processing bioinformatics fields based on data_mapper.yaml...</p>
+<p>Constructing 'pcr_primer_reference' field...</p>
 <p>Merging DNA sequences from raw taxonomy files...</p>
 <p>Applying Darwin Core mappings...</p>
-<p>Final DNA derived extension shape: (912, 35)</p>
-<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 35 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Final DNA derived extension shape: (912, 30)</p>
+<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 30 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
-      <th>occurrenceID</th>
-      <th>eventID</th>
-      <th>source_mat_id</th>
-      <th>samp_name</th>
       <th>env_broad_scale</th>
       <th>env_local_scale</th>
       <th>env_medium</th>
-      <th>samp_vol_we_dna_ext</th>
-      <th>samp_vol_we_dna_extUnit</th>
       <th>samp_collect_device</th>
       <th>samp_mat_process</th>
       <th>size_frac</th>
-      <th>size_fracUnit</th>
-      <th>samp_size</th>
-      <th>samp_sizeUnit</th>
+      <th>samp_vol_we_dna_ext</th>
+      <th>samp_vol_we_dna_extUnit</th>
+      <th>nucl_acid_ext</th>
       <th>concentration</th>
       <th>concentrationUnit</th>
-      <th>lib_layout</th>
-      <th>seq_meth</th>
-      <th>nucl_acid_ext</th>
+      <th>concentrationUnit</th>
       <th>target_gene</th>
       <th>target_subfragment</th>
+      <th>ampliconSize</th>
       <th>pcr_primer_forward</th>
       <th>pcr_primer_reverse</th>
       <th>pcr_primer_name_forward</th>
       <th>pcr_primer_name_reverse</th>
       <th>pcr_primer_reference</th>
-      <th>pcr_cond</th>
       <th>nucl_acid_amp</th>
-      <th>ampliconSize</th>
-      <th>ampliconSizeUnit</th>
-      <th>otu_seq_comp_appr</th>
-      <th>otu_db</th>
+      <th>pcr_cond</th>
+      <th>seq_meth</th>
+      <th>lib_layout</th>
+      <th>eventID</th>
       <th>DNA_sequence</th>
       <th>otu_class_appr</th>
+      <th>otu_db</th>
+      <th>otu_seq_comp_appr</th>
+      <th>source_mat_id</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th>0</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGAGAGGCCTAAGTTGACAGACAACGGCGTAAAGAGTGGTTAAGGAAAAATTTATACTAAAGCCGAACATCCTCAAGACTGTCGTACGTTTCCGAGGATATGAAGTCCCCCTACGAAAGTGGCTTTAACTCCCCTGACCCCACGAAAGCTGTGAC</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>1</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGATGAAGCCCAAGTTGTTAGCCTTCGGCGTAAAGAGTGGTTAGAGTACCCCAACAAAACTAAGGCCGAACACCTTCAGGGCAGTCATACGCTTTCGAAGGCATGAAGCACACCAACGAAAGTAGCCTTACCAGACTTGAACCCACGAAAGCTAAGAT</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>2</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_3c64823f9fe1b8e3dee560e7bb3b193c</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGAGAGACCCTAGTTGTTAGACACCGGCGTAAAGAGTGGTTAAGAAAAACGTTACACTAAAGCCGAACGCTTATCAGAGCTGTTATACGCATCCGAAAGTAAGAAGTTCAATCACGAAAGTGGCTTTATATACTCTGACCCCACGAAAGCTACGAC</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>3</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_781e1d0cf581569ca761dfb81438b698</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTCATACGAGTGTTAGCCCAAGCGGATGACTAACGGCGTAAAGAGTGGTTAGGGAACCCCCCCCACAACTAAAGTTAAACACCCACAAGGCCGTGATACGCATCCGATGGAATGAAACCCCACCACGAAAGTGACTTTACCCAGCCCGAACCCACGATAGCTAAGAT</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>4</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_87fc62ed809caa00b26b8cbf9255c7ac</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGAGAGGCCCAAGTTGATAGACACCGGCGTAAAGGGTGGTTAAGATATTCTAAAACTAAAGCCGAATACCTTCAAAGCCGTTATACGTACTCGAAGGTAAGAAGCCCAACTACGAAAGTGGCTTTACATATTCTGACCCCACGAAAGCTATGAC</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>5</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_8f9c2606f5bb5a4867a22ec20c3f7067</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTGATACGAGAGGCCCGAGCTAACAGCCCCCGGCGTAAAGCGTGGTTAGGGTAAGTCAAAACTAAAGCCGAACGCCCCTAGGGCCGTGATACGCGTATAAAGGTATGAAGTCCCACCACGAAAGTGGCTTTAATACTTCCTGACCCCACGAAAGCTAAGAT</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>6</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_94c9549b503d074ca52d17868303bb47</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGAGAGGCTCAAGTTGATAGACAGCGGCGTAAAGAGTGGTTAGGGAATTATTTAAACTAAAGTCGAACGCTTCCAGAGCTGTTATACGCACCCGAAAACATGAAGCCCAACTACGAAAGTGACTTTAAAACACCTGAACCCACGAAAGCTAGGGA</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>7</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_99d918d2b66a9418e50eeed3572f4f47</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CGCCGCGGTTATACGAGAGGCCCAAGTTGATAGTCAACGGCGTAAAGAGTGGTTAGGAGACAAGATAAAACTAAAGCCGAACGTCCTCAGGGCTGTTATACGCCTCCGAAAGAACGAAGATCAATCACGAAAGTGGCTTTACCATTCTGAGTCCACGAAAGCTAAGAA</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>8</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_bde24d05f796db0138c4320a0164cb16</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>AGCCGCGGTAATACGTAGGGAGCGAGCGTTACCCGGAATTACTGGGCGTAAAGAGCACGTAGGCGGTTGGATAAGTCTTCTGTGAAAGCTCCCGGCTCAACTGGGAGAGGTCAGGGGATACTATTCGACTTGAGGGCTGTAGAGGTAAGCGGAATTCCCGGTGTAGCGGTGAAATGCGTAGATATCGGGAGGAACACCAGCGGCGAAAGCGGCTTACTGGGCAGTGCCTGACGCTGAGGTGCGAGAGCGTGGGGA</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
     <tr>
       <th>9</th>
-      <td>GU190706-CTD11-220_MiFish_S30_occ_ca6706a7649bd835555774cc496b645e</td>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td>GU190706-CTD11-220</td>
-      <td>GU190706-CTD11-220</td>
       <td>marine biome [ENVO:00000447]</td>
       <td>marine mesopelagic zone [ENVO:00000213]</td>
       <td>sea water [ENVO:00002149]</td>
-      <td>2</td>
-      <td>L</td>
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45</td>
-      <td>µm</td>
       <td>2</td>
       <td>L</td>
+      <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
-      <td>paired end</td>
-      <td><NA></td>
-      <td>https://doi.org/10.1002/edn3.70074</td>
+      <td>ng/µl</td>
       <td>12S rRNA (SSU mitochondria)</td>
       <td>V5-V6</td>
+      <td>175</td>
       <td>GTCGGTAAAACTCGTGCCAGC</td>
       <td>CATAGTGGGGTATCTAATCCCAGTTTGT</td>
       <td>MiFish-U-F</td>
       <td>MiFish-U-R2</td>
-      <td><NA></td>
-      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>https://doi.org/10.1098/rsos.150088|https://doi.org/10.1093/icesjms/fsab273</td>
       <td>not applicable</td>
-      <td>175</td>
-      <td>basepairs</td>
-      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
-      <td>custom</td>
+      <td>initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min</td>
+      <td>Illumina MiSeq [OBI_0002003]</td>
+      <td>paired end</td>
+      <td>GU190706-CTD11-220_MiFish_S30</td>
       <td>CACCGCGGTTATACGAGAGACTCAAATTGATATTCTCCGGCGTAAAGCGTGATTAGAGAAAAAACAAACTAAAGCCGAATACCCCCTAAGCTGTCATACGCTAATGGGGGCACGAAGCCCCACAACGAAAGTGGCCTTAAAGATCTTGAATTCACGACTATTAAGAA</td>
-      <td><NA></td>
+      <td>qiime2-2023.5; DADA2 1.26.0</td>
+      <td>custom</td>
+      <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
+      <td>GU190706-CTD11-220</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
@@ -2141,198 +2243,20 @@
 <div class="alert alert-success">DNA derived extension created successfully</div>
 <p>Saved DNA derived extension: 912 records</p>
 <p>Output file: dna_derived_extension.csv</p>
-<p>File size: 0.93 MB</p>
-<h2>Creating eMoF (extendedMeasurementOrFact)</h2>
-<p>Loaded template with 30 configured measurement row(s)</p>
-<p>Total events included (non-control): 42</p>
-<div class="alert alert-success">eMoF created successfully with 1260 row(s)</div>
-<p>Saved eMoF CSV to: processed-v3/eMoF.csv</p>
-<h4>eMoF Preview (first 15 rows)</h4><p><strong>Shape:</strong> 15 rows × 9 columns</p><p><em>Showing first 10 rows of 15 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>eventID</th>
-      <th>occurrenceID</th>
-      <th>measurementType</th>
-      <th>measurementValue</th>
-      <th>measurementUnit</th>
-      <th>measurementTypeID</th>
-      <th>measurementValueID</th>
-      <th>measurementUnitID</th>
-      <th>measurementRemarks</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>chlorophyll</td>
-      <td>0.038</td>
-      <td>micrograms per litre</td>
-      <td>http://vocab.nerc.ac.uk/collection/P01/current/CPHLMOD2/</td>
-      <td></td>
-      <td>http://vocab.nerc.ac.uk/collection/P06/current/UGPL/</td>
-      <td>Collected by WetLabs WetStar Fluorometer</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>concentration_method</td>
-      <td>Qubit 4 Fluorometer (Thermo Fisher Scientific)</td>
-      <td></td>
-      <td>FAIRe DOI?</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>ctd_bottle_number</td>
-      <td>CTD11</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>date_ext</td>
-      <td>2019-10-28 00:00:00</td>
-      <td>ISO 8601</td>
-      <td>FAIRe DOI?</td>
-      <td></td>
-      <td>https://vocab.nerc.ac.uk/collection/P06/current/TISO/</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>density</td>
-      <td>1027.6571</td>
-      <td>kilograms per cubic metre</td>
-      <td>http://vocab.nerc.ac.uk/collection/P01/current/TOKGPR02/</td>
-      <td></td>
-      <td>http://vocab.nerc.ac.uk/collection/P06/current/UKMC/</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>depth_category</td>
-      <td>Bottom</td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>diss_oxygen</td>
-      <td>4.397</td>
-      <td>mg/L</td>
-      <td></td>
-      <td></td>
-      <td>http://vocab.nerc.ac.uk/collection/P06/current/UMGL/</td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>dna_cleanup_0_1</td>
-      <td>1</td>
-      <td></td>
-      <td>FAIRe DOI?</td>
-      <td></td>
-      <td></td>
-      <td>Boolean: Was the extracted DNA cleaned/purified? Yes = 1, No =0</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>dna_cleanup_method</td>
-      <td>Zymo OneStep PCR Inhibitor Removal kit</td>
-      <td></td>
-      <td>FAIRe DOI?</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>GU190706-CTD11-220_MiFish_S30</td>
-      <td></td>
-      <td>dna_store_loc</td>
-      <td>NOAA SEFSC -80Freezer</td>
-      <td></td>
-      <td>FAIRe DOI?</td>
-      <td></td>
-      <td></td>
-      <td></td>
-    </tr>
-  </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<p>eMoF saved to: processed-v3/eMoF.csv</p>
-<h2>Creating EML (Ecological Metadata Language) File</h2>
-<p>Loading EML configuration from: EML_config.yaml</p>
-<div class="alert alert-success">EML metadata appears comprehensive - all recommended fields are present!</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> Template placeholders detected - please customize:</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> • Title contains placeholder text [LOCATION] or [TIMEFRAME] - please update with specific information</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> • Abstract appears to contain template text - please customize with your specific dataset description</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> • Contact email appears to be template text - please update with actual email address</div>
-<p><h4>EML Best Practices:</h4></p>
-<ul><li>Use descriptive titles that include taxonomic, geographic, and temporal scope</li><li>Provide detailed abstracts that help users assess fitness-for-use</li><li>Include complete contact information for data inquiries</li><li>Add relevant keywords to improve discoverability</li><li>Document sampling methods similar to a journal article methods section</li><li>Use CC0 license when possible for maximum data reusability</li></ul>
-<p>Using occurrence data from file: processed-v3/occurrence_gbif_matched.csv</p>
-<p>Attempting to auto-populate EML coverage fields from data...</p>
-<div class="alert alert-success">Calculated geographic bounding coordinates.</div>
-<div class="alert alert-success">Populated geographic description from 'locality' column.</div>
-<div class="alert alert-success">Updated EML title with location: USA: Gulf of Mexico</div>
-<div class="alert alert-success">Calculated temporal coverage dates.</div>
-<div class="alert alert-success">Updated EML title with timeframe: 2019</div>
-<div class="alert alert-success">Populated taxonomic coverage with 25 classifications across ranks: phylum=2, class=2, order=19, kingdom=2</div>
-<p>Building EML XML structure...</p>
-<p>EML sections to be included:</p>
-<ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
-<div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: 8b3f5274-7579-45d7-b1a4-32033fce4747/eml-1.xml</p>
-<p>📏 File size: 9.7 KB</p>
-<p>🏗️ XML structure: 155 total elements</p>
-<div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
-<p><h4>Next Steps for OBIS/GBIF Submission:</h4></p>
-<ul><li>Review the generated EML file to ensure all information is accurate</li><li>Upload the EML file along with your Darwin Core data files to IPT</li><li>Or submit directly to your OBIS node manager for review</li><li>The EML file conforms to GBIF Metadata Profile v1.1 standards</li></ul>
-<p>EML saved to: processed-v3/eml.xml</p>
+<p>File size: 0.94 MB</p>
+<p>⏭️ Skipping eMoF creation per config (emof_enabled=false)</p>
+<p>⏭️ Skipping EML creation per config (eml_enabled=false)</p>
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_gbif_matched.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'seq_meth'</strong> was found to be completely empty.</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'pcr_primer_reference'</strong> was found to be completely empty.</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'dna_derived_extension.csv'</strong>, the column <strong>'otu_class_appr'</strong> was found to be completely empty.</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'eMoF.csv'</strong>, the column <strong>'occurrenceID'</strong> was found to be completely empty.</div>
-<div class="alert alert-warning"><strong>WARNING:</strong> Could not validate file 'eml.xml': Error tokenizing data. C error: Expected 1 fields in line 39, saw 2
-</div>
-<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>seq_meth</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>pcr_primer_reference</code></li><li>File: <code>dna_derived_extension.csv</code>, Column: <code>otu_class_appr</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
+<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_gbif_matched.csv</code>, Column: <code>associatedSequences</code></li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
 <p>✓ occurrence_gbif_matched.csv (0.57 MB)</p>
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
-<p>✓ dna_derived_extension.csv (0.93 MB)</p>
-<p>✓ eMoF.csv (0.15 MB)</p>
-<p>✓ eml.xml (0.01 MB)</p>
-<p>✓ edna2obis_report_GBIF.html (0.09 MB)</p>
+<p>✓ dna_derived_extension.csv (0.94 MB)</p>
+<p>✓ edna2obis_report_GBIF.html (0.08 MB)</p>
 
     </div>
 </body>
