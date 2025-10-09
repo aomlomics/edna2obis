@@ -31,6 +31,7 @@ REQUIRED_TEMPLATE_COLUMNS_IN_ORDER: List[str] = [
 EMOF_OUTPUT_COLUMNS_IN_ORDER: List[str] = [
     'eventID',
     'occurrenceID',
+    'verbatimMeasurementType',
     'measurementType',
     'measurementValue',
     'measurementUnit',
@@ -270,6 +271,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
             templ_mvid = trow.get('measurementValueID')
             templ_muid = trow.get('measurementUnitID')
             templ_rem = trow.get('measurementRemarks')
+            verbatim_raw = trow.get('verbatimMeasurementType') if has_verbatim_col else ''
 
             source_field = output_meas_type
             if has_verbatim_col:
@@ -286,6 +288,14 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                 try:
                     source_name, source_df = _resolve_source_for_measurement(source_field, data)
                 except Exception as e:
+                    # For master-list behavior: if a verbatimMeasurementType was specified but
+                    # the corresponding source field is missing in this dataset's metadata,
+                    # skip emitting this measurement for this dataset without erroring out.
+                    if has_verbatim_col and _normalize_str(trow.get('verbatimMeasurementType')):
+                        reporter.add_text(
+                            f"Skipping measurementType '{output_meas_type}': source field '{source_field}' not found in metadata for this dataset."
+                        )
+                        continue
                     reporter.add_error(f"ERROR: {str(e)}")
                     raise
                 prepared_sources[source_field] = (source_name, source_df)
@@ -373,6 +383,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                     'eventID': event_id,
                     'occurrenceID': '',
                     'measurementType': output_meas_type,
+                    'verbatimMeasurementType': verbatim_raw,
                     'measurementValue': out_value,
                     'measurementUnit': out_unit,
                     'measurementTypeID': _normalize_str(templ_mtid),
