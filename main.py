@@ -10,6 +10,7 @@ from pathlib import Path
 import yaml
 import traceback
 import warnings
+import xml.etree.ElementTree as ET
 
 # Add the src-v3 directory to Python path for imports
 sys.path.insert(0, "src-v3")
@@ -1032,13 +1033,17 @@ def main():
             filepath = os.path.join(output_dir, filename)
             if os.path.exists(filepath):
                 try:
-                    sep = '\t' if filename.lower().endswith('.tsv') else ','
-                    df = pd.read_csv(filepath, sep=sep, low_memory=False)
-                    empty_columns = [col for col in df.columns if df[col].isna().all()]
-                    if empty_columns:
-                        for col in empty_columns:
-                            reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
-                            all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+                    if filename.lower().endswith('.xml'):
+                        # Validate XML structure instead of reading as CSV
+                        ET.parse(filepath)
+                    else:
+                        sep = '\t' if filename.lower().endswith('.tsv') else ','
+                        df = pd.read_csv(filepath, sep=sep, low_memory=False)
+                        empty_columns = [col for col in df.columns if df[col].isna().all()]
+                        if empty_columns:
+                            for col in empty_columns:
+                                reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
+                                all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
                 except Exception as e:
                     reporter.add_warning(f"Could not validate file '{filename}': {e}")
         

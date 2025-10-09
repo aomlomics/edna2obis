@@ -408,6 +408,34 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                             current_assay_occurrence_intermediate_df['eventID'] = f"NO_ERM_LOOKUP_FOR_{final_assay_name}"
 
                     
+                    # --- STEP 6b: Merge `experimentRunMetadata` and map terms ---
+                    if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
+                        erm_df_to_merge = data['experimentRunMetadata'].copy()
+                        if 'lib_id' in erm_df_to_merge.columns:
+                            erm_df_to_merge['lib_id'] = erm_df_to_merge['lib_id'].astype(str).str.strip()
+                            current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['eventID'].astype(str).str.strip()
+                            current_assay_occurrence_intermediate_df = pd.merge(
+                                current_assay_occurrence_intermediate_df,
+                                erm_df_to_merge,
+                                left_on='eventID',
+                                right_on='lib_id',
+                                how='left',
+                                suffixes=('', '_erm')
+                            )
+                            # Populate DwC columns from experimentRunMetadata based on the mapper
+                            for dwc_col_target, mapping_info in occurrence_map_config.items():
+                                if isinstance(mapping_info, dict) and mapping_info.get('source') == 'experimentRunMetadata':
+                                    faire_col_source_original = str(mapping_info.get('faire_term')).strip()
+                                    source_col_in_df = None
+                                    if faire_col_source_original + '_erm' in current_assay_occurrence_intermediate_df.columns:
+                                        source_col_in_df = faire_col_source_original + '_erm'
+                                    elif faire_col_source_original in current_assay_occurrence_intermediate_df.columns:
+                                        source_col_in_df = faire_col_source_original
+                                    if source_col_in_df:
+                                        current_assay_occurrence_intermediate_df[dwc_col_target] = current_assay_occurrence_intermediate_df[source_col_in_df]
+                        else:
+                            reporter.add_warning("experimentRunMetadata missing 'lib_id'; cannot map experiment-level fields like 'associatedSequences'.")
+
                     # --- STEP 7: Construct `occurrenceID` ---
                     current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['eventID'].astype(str)
                     current_assay_occurrence_intermediate_df['occurrenceID'] = current_assay_occurrence_intermediate_df['eventID'] + '_occ_' + current_assay_occurrence_intermediate_df['featureid'].astype(str)

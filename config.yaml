@@ -19,11 +19,11 @@ excel_file: "raw-v3/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
-    assay_name: "ssu12sv5v6_mifish_u"
+    assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
     taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
     occurrence_file: "raw-v3/table_addJ-mifish_sefsc-gu1901.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001:
-    assay_name: "ssu12sv5_riaz"
+    assay_name: "Fish-12S-Riaz"
     taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
     occurrence_file: "raw-v3/table_addJ-riaz_sefsc-gu1901.tsv"
 
