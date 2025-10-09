@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
-<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" packageId="8fad63f9-e61b-48be-b2e4-0384017777a9/eml-1.xml" system="https://doi.org" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd">
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:stmml="http://www.xml-cml.org/schema/stmml-1.1" packageId="ad766743-7673-4238-bfee-9be5c5954da2/eml-1.xml" system="https://doi.org" xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 http://rs.gbif.org/schema/eml-gbif-profile/1.1/eml.xsd">
   <dataset>
-    <title>Marine eDNA sequences from USA: Gulf of Mexico 2019</title>
+    <title>Potential prey of Rice's whales based on seawater eDNA 2019</title>
     <creator>
       <individualName>
         <givenName>Principal First</givenName>
@@ -79,16 +79,16 @@ This should help users understand the fitness-for-use of your data.</para>
       <taxonomicCoverage>
         <generalTaxonomicCoverage>Marine organisms identified through eDNA metabarcoding</generalTaxonomicCoverage>
         <taxonomicClassification>
+          <taxonRankName>kingdom</taxonRankName>
+          <taxonRankValue>Animalia</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
+          <taxonRankName>kingdom</taxonRankName>
+          <taxonRankValue>Bacteria</taxonRankValue>
+        </taxonomicClassification>
+        <taxonomicClassification>
           <taxonRankName>phylum</taxonRankName>
           <taxonRankValue>Chordata</taxonRankValue>
-        </taxonomicClassification>
-        <taxonomicClassification>
-          <taxonRankName>phylum</taxonRankName>
-          <taxonRankValue>Mollusca</taxonRankValue>
-        </taxonomicClassification>
-        <taxonomicClassification>
-          <taxonRankName>class</taxonRankName>
-          <taxonRankValue>Gastropoda</taxonRankValue>
         </taxonomicClassification>
         <taxonomicClassification>
           <taxonRankName>class</taxonRankName>
@@ -121,10 +121,6 @@ This should help users understand the fitness-for-use of your data.</para>
         <taxonomicClassification>
           <taxonRankName>order</taxonRankName>
           <taxonRankValue>Lampriformes</taxonRankValue>
-        </taxonomicClassification>
-        <taxonomicClassification>
-          <taxonRankName>order</taxonRankName>
-          <taxonRankValue>Littorinimorpha</taxonRankValue>
         </taxonomicClassification>
         <taxonomicClassification>
           <taxonRankName>order</taxonRankName>
@@ -170,14 +166,6 @@ This should help users understand the fitness-for-use of your data.</para>
           <taxonRankName>order</taxonRankName>
           <taxonRankValue>Tetraodontiformes</taxonRankValue>
         </taxonomicClassification>
-        <taxonomicClassification>
-          <taxonRankName>kingdom</taxonRankName>
-          <taxonRankValue>Animalia</taxonRankValue>
-        </taxonomicClassification>
-        <taxonomicClassification>
-          <taxonRankName>kingdom</taxonRankName>
-          <taxonRankValue>Bacteria</taxonRankValue>
-        </taxonomicClassification>
       </taxonomicCoverage>
     </coverage>
     <purpose>
@@ -211,7 +199,7 @@ Include collection methods, equipment used, sample processing, etc.
       </sampling>
     </methods>
     <project>
-      <title>Your Project Title</title>
+      <title>noaa-sefsc-gu1901</title>
       <description>
         <para>Description of the research project under which this dataset was collected.
 Include objectives, hypotheses, and broader context.

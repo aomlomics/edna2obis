@@ -1,8 +1,11 @@
 #-----------------------------------------------#
 # This YAML file serves as the master configuration for edna2obis, telling the script:
-# 1. WHAT Darwin Core fields to include in the output files.
+# 1. WHAT Darwin Core fields to include in the output files. (and in what order)
 # 2. WHAT the corresponding field names are in your source FAIRe metadata (the 'faire_term').
-# 3. WHERE to find the source data for each field (the 'source').
+# 3. WHERE to find the source data for each field (the 'source' or Excel sheet name).
+# 4. ADD fields from your data that you want in the outputted files (Occurrence Core, DNA Derived Extension)
+#    - Before adding fields, consult the URL above each list to ensure the field is expected by Darwin Core.
+#    - If you do not have some of these fields in your data, they will just be left as blank columns. edna2obis will only fail if you are missing a required field.
 #
 # The 'source' key is critical. Valid options are:
 #   - sampleMetadata: The field is in the sampleMetadata sheet.
@@ -14,6 +17,7 @@
 #                       the projectMetadata sheet. The script handles this logic.
 #   - taxonomy: The field comes from the raw ASV/taxonomy file (e.g., sequence, kingdom).
 #   - constructed: The field is not mapped directly but is built by the script (e.g., occurrenceID).
+#       - You do not need to add any constructed fields. They are built custom in the script.
 #-----------------------------------------------#
 
 
@@ -22,7 +26,6 @@
 dna_derived_extension:
   occurrenceID: { faire_term: eventID, source: constructed} # Not sure how this will work. its criticially important for this file tho. its working currently tho. 
   eventID: { faire_term: lib_id, source: experimentRunMetadata }
-  
   env_broad_scale: { faire_term: env_broad_scale, source: sampleMetadata }
   env_local_scale: { faire_term: env_local_scale, source: sampleMetadata }
   env_medium: { faire_term: env_medium, source: sampleMetadata }
@@ -45,7 +48,6 @@ dna_derived_extension:
   pcr_cond: { faire_term: pcr_cond, source: projectMetadata }
   seq_meth: { faire_term: instrument, source: projectMetadata }
   lib_layout: { faire_term: lib_layout, source: projectMetadata }
-
   DNA_sequence: { faire_term: dna_sequence, source: taxonomy }
   otu_class_appr: { faire_term: otu_clust_tool, source: analysisMetadata }
   otu_db: { faire_term: otu_db, source: analysisMetadata }
@@ -75,6 +77,7 @@ occurrence_core:
   license: { faire_term: license, source: projectMetadata }
   institutionID: { faire_term: institutionID, source: projectMetadata }
   locationID: { faire_term: locationID, source: constructed } # Constructed (set in config.yaml). Default: "line_id | station_id"
+  waterBody: { faire_term: waterBody, source: sampleMetadata }
   occurrenceStatus: { faire_term: occurrenceStatus, source: constructed } 
   organismQuantity: { faire_term: organismQuantity, source: constructed } # Constructed: calculated
   organismQuantityType: { faire_term: organismQuantityType, source: constructed }
