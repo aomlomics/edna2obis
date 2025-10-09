@@ -658,7 +658,7 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
             try:
                 output_dir = params.get('output_dir', 'processed-v3/')
                 api_choice = str(params.get('taxonomic_api_source', 'GBIF')).lower()
-                occ_filename = f"occurrence_{api_choice}_matched.csv"
+                occ_filename = f"occurrence_core_{api_choice}.csv"
                 occ_path = os.path.join(output_dir, occ_filename)
                 if os.path.exists(occ_path):
                     occurrence_df = pd.read_csv(occ_path)

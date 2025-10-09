@@ -235,10 +235,11 @@ The pipeline will:
 
 The pipeline generates several files in your output directory:
 
-- `occurrence_worms_matched.csv` / `occurrence_gbif_matched.csv` - Final Occurrence Core with assigned taxonomies
-- `taxa_assignment_INFO.csv_WoRMS` / `taxa_assignment_INFO_GBIF.csv` - Summary of HOW taxonomies were assigned
-- `dna_derived_extension.csv` - DNA-Derived data extension
-- `edna2obis_report.html` - HTML output report
+- `processed-v3/`
+    *   `edna2obis_report_worms.html` / `edna2obis_report_gbif.html` - Detailed HTML report of the conversion process.
+    *   `occurrence_core_worms.csv` / `occurrence_core_gbif.csv` - Final Occurrence Core with assigned taxonomies.
+    *   `dna_derived_extension.csv` - DNA Derived Data extension file.
+    *   `eMoF.csv` - eMoF (extended Measurement or Fact) extension file.
 
 ### Occurrence Core (GBIF example)
 

@@ -135,8 +135,17 @@ def load_project_data(params, reporter):
             
             project_meta_df = pd.read_excel(params['excel_file'], params['projectMetadata'], index_col=None, na_values=[""], comment="#")
             
-            # --- ROBUSTNESS FIX: Standardize column names for lookup ---
-            project_meta_df_columns_map = {col.strip().lower(): col for col in project_meta_df.columns}
+            # --- Build a map from assay_name to its column header (e.g., 'ssu16s...': 'assay1') ---
+            assay_map = {}
+            assay_name_row = project_meta_df[project_meta_df['term_name'] == 'assay_name']
+            if not assay_name_row.empty:
+                assay_name_series = assay_name_row.iloc[0]
+                for col_name, assay_name_val in assay_name_series.items():
+                    if col_name in ['term_name', 'project_level'] or pd.isna(assay_name_val):
+                        continue
+                    assay_map[assay_name_val] = col_name
+            
+            reporter.add_text(f"Built assay-to-column map from projectMetadata: {assay_map}")
 
             for run_name, run_details in params['datafiles'].items():
                 assay_name = run_details.get('assay_name')
@@ -144,14 +153,13 @@ def load_project_data(params, reporter):
                     reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Cannot process analysis-specific metadata.")
                     continue
 
-                # --- ROBUSTNESS FIX: Use the standardized map for lookup ---
-                assay_name_lookup = assay_name.strip().lower()
-                if assay_name_lookup not in project_meta_df_columns_map:
-                    reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found as a column in projectMetadata. Please check for typos. Available columns: {list(project_meta_df.columns)}")
+                # --- Use the map to find the correct column name ---
+                if assay_name not in assay_map:
+                    reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found in the 'assay_name' row of projectMetadata. Please check for typos. Available assays found: {list(assay_map.keys())}")
                     continue
                 
-                # Get the original column name with correct casing
-                original_assay_col_name = project_meta_df_columns_map[assay_name_lookup]
+                # Get the actual column name (e.g., 'assay1')
+                original_assay_col_name = assay_map[assay_name]
                 
                 # Synthesize the analysis DF
                 rows = []
@@ -234,48 +242,209 @@ def load_asv_data(params, reporter):
             if 'taxonomy_file' in file_paths:
                 tax_path = file_paths['taxonomy_file']
                 try:
-                    raw_data_tables[analysis_run_name]['taxonomy'] = pd.read_table(tax_path, sep='\t', low_memory=False)
-                    tax_shape = raw_data_tables[analysis_run_name]['taxonomy'].shape
+                    tax_df = pd.DataFrame()
+                    file_extension = os.path.splitext(tax_path)[1].lower()
+
+                    if file_extension == '.xlsx':
+                        # Heuristic sheet detection: choose the sheet with expected taxonomy columns
+                        xls = pd.ExcelFile(tax_path)
+                        candidate_sheets = xls.sheet_names
+                        # Avoid obviously non-data sheets by name
+                        blacklist = {'readme', 'instructions', 'checklist', 'metadata', 'requirements'}
+                        expected_cols = {
+                            'seq_id', 'featureid', 'feature id', 'otu id', '#otuid',
+                            'taxonomy', 'taxon', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'scientificname', 'scientificnameauthorship',
+                            'dna_sequence', 'sequence', 'verbatimidentification', 'taxonrank', 'taxonid'
+                        }
+                        best_sheet = None
+                        best_score = -1
+                        best_header_row = 0
+                        
+                        # Find the best sheet by checking all candidate sheets
+                        for sheet in candidate_sheets:
+                            sheet_l = str(sheet).lower().strip()
+                            if any(b in sheet_l for b in blacklist):
+                                continue
+                            try:
+                                tmp = pd.read_excel(tax_path, sheet_name=sheet, nrows=50, header=None)
+                            except Exception:
+                                continue
+                            # Try to find a row that looks like a header
+                            for i in range(min(10, len(tmp))):
+                                row_vals = [str(v).lower().strip() for v in tmp.iloc[i].tolist()]
+                                row_set = set(row_vals)
+                                score = len(row_set & expected_cols)
+                                if ('seq_id' in row_vals or 'featureid' in row_vals or 'otu id' in row_vals or '#otuid' in row_vals) and score > best_score:
+                                    best_sheet = sheet
+                                    best_header_row = i
+                                    best_score = score
+                        
+                        # If no sheet was found, use the first sheet
+                        if best_sheet is None:
+                            best_sheet = candidate_sheets[0]
+                            best_header_row = 0
+                        
+                        # Read the Excel file with the determined sheet and header row
+                        tax_df = pd.read_excel(tax_path, sheet_name=best_sheet, header=best_header_row)
+                        # Drop any completely empty columns that may have been created by reading
+                        tax_df = tax_df.loc[:, ~tax_df.columns.astype(str).str.match(r'^Unnamed', na=False)]
+                        reporter.add_text(f"Note: Reading '{tax_path}' sheet '{best_sheet}' with header at row index {best_header_row}. Auto-detected based on expected taxonomy columns.")
+                    
+                    else:
+                        # Logic for text-based files (.txt, .tsv, .csv)
+                        separator = ',' if file_extension == '.csv' else '\t'
+                        
+                        # Determine how many commented lines to skip by reading the start of the file
+                        skiprows = 0
+                        with open(tax_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            for line in f:
+                                if line.startswith('#'):
+                                    skiprows += 1
+                                else:
+                                    break
+                        
+                        # Load the data, skipping any initial comment lines
+                        try:
+                            tax_df = pd.read_csv(tax_path, sep=separator, skiprows=skiprows, low_memory=False, encoding='utf-8')
+                        except UnicodeDecodeError:
+                            try:
+                                tax_df = pd.read_csv(tax_path, sep=separator, skiprows=skiprows, low_memory=False, encoding='latin-1')
+                            except Exception:
+                                # Final fallback: sniff delimiter, use python engine, ignore commented lines and bad lines
+                                tax_df = pd.read_csv(tax_path, sep=None, engine='python', comment='#', on_bad_lines='skip', encoding='latin-1')
+
+                    # --- Perform essential input normalization ---
+                    
+                    # 1. Standardize the feature ID column name (prefer explicit matches)
+                    # Create a mapping of lowercased column names (with spaces and underscores removed) to original names
+                    cols_lower = {str(c).lower().replace('_', '').replace(' ', '').replace('-', ''): c for c in tax_df.columns if isinstance(c, str)}
+                    
+                    # Look for feature ID column
+                    if 'featureid' not in [str(c).lower() for c in tax_df.columns]:
+                        # Try to find a column that matches common feature ID names
+                        if 'seqid' in cols_lower:
+                            tax_df.rename(columns={cols_lower['seqid']: 'featureid'}, inplace=True)
+                        elif 'featureid' in cols_lower:
+                            tax_df.rename(columns={cols_lower['featureid']: 'featureid'}, inplace=True)
+                        elif 'otuid' in cols_lower:
+                            tax_df.rename(columns={cols_lower['otuid']: 'featureid'}, inplace=True)
+                        elif '#otuid' in cols_lower:
+                            tax_df.rename(columns={cols_lower['#otuid']: 'featureid'}, inplace=True)
+                        # If still not found, downstream will attempt to detect
+                    
+                    # 2. Ensure verbatimIdentification column for taxonomy
+                    # Prefer explicit 'verbatimIdentification'; fallback to 'taxonomy', then 'taxon'
+                    if 'verbatimIdentification' not in tax_df.columns:
+                        cols_lower_exact = {str(c).lower(): c for c in tax_df.columns if isinstance(c, str)}
+                        if 'verbatimidentification' in cols_lower_exact:
+                            tax_df.rename(columns={cols_lower_exact['verbatimidentification']: 'verbatimIdentification'}, inplace=True)
+                        elif 'taxonomy' in cols_lower_exact:
+                            tax_df.rename(columns={cols_lower_exact['taxonomy']: 'verbatimIdentification'}, inplace=True)
+                        elif 'taxon' in cols_lower_exact:
+                            tax_df.rename(columns={cols_lower_exact['taxon']: 'verbatimIdentification'}, inplace=True)
+                    
+                    # 3. Standardize DNA sequence column
+                    if 'dna_sequence' not in [str(c).lower() for c in tax_df.columns]:
+                        cols_lower_exact = {str(c).lower(): c for c in tax_df.columns if isinstance(c, str)}
+                        if 'sequence' in cols_lower_exact and 'dna_sequence' not in tax_df.columns:
+                            tax_df.rename(columns={cols_lower_exact['sequence']: 'dna_sequence'}, inplace=True)
+                    
+                    # 4. Standardize species/scientific name column for downstream matching
+                    if 'scientificName' not in tax_df.columns:
+                        cols_lower_exact = {str(c).lower(): c for c in tax_df.columns if isinstance(c, str)}
+                        if 'species' in cols_lower_exact and 'scientificname' not in cols_lower_exact:
+                            tax_df.rename(columns={cols_lower_exact['species']: 'scientificName'}, inplace=True)
+
+                    # 5. Normalize featureid values for safe joins
+                    if 'featureid' in tax_df.columns:
+                        tax_df['featureid'] = tax_df['featureid'].astype(str).str.strip()
+
+                    raw_data_tables[analysis_run_name]['taxonomy'] = tax_df
+                    tax_shape = tax_df.shape
                     reporter.add_success(f"Loaded taxonomy file: {tax_path} (shape: {tax_shape})")
+                    try:
+                        reporter.add_text(f"Taxonomy columns detected: {list(tax_df.columns)[:20]}")
+                    except Exception:
+                        pass
+
                 except Exception as e:
                     reporter.add_error(f"Failed to load taxonomy file {tax_path}: {e}")
                     raise
             
             # Load abundance table file  
-            if 'occurrence_file' in file_paths:
-                abundance_path = file_paths['occurrence_file']
+            # --- Robustly get the path for the abundance table, checking for all possible keys ---
+            abundance_key = None
+            possible_keys = ['abundance_table', 'occurrence_file', 'abundance_file']
+            for key in possible_keys:
+                if key in file_paths:
+                    abundance_key = key
+                    break
+            
+            if abundance_key:
+                abundance_path = file_paths[abundance_key]
                 try:
-                    # --- Smartly handle old and new Tourmaline formats ---
-                    
-                    # 1. Check the first line to see if we need to skip it.
-                    with open(abundance_path, 'r', encoding='utf-8', errors='ignore') as f:
-                        first_line = f.readline()
-                    
-                    # The old format has a comment line, the new one starts with the header.
-                    rows_to_skip = 1 if '# Constructed from biom file' in first_line else 0
+                    df_abundance = pd.DataFrame()
+                    file_extension = os.path.splitext(abundance_path)[1].lower()
 
-                    # 2. Load the table, skipping the comment line only if it exists.
-                    df_abundance = pd.read_table(abundance_path,
-                                                 sep='\t',
-                                                 skiprows=rows_to_skip,
-                                                 header=0,
-                                                 low_memory=False)
+                    if file_extension == '.xlsx':
+                        df_abundance = pd.read_excel(abundance_path, sheet_name=0)
+                        reporter.add_text(f"Note: Reading '{abundance_path}' as an Excel file. Assumes header is on the first row.")
+                    else:
+                        # Logic for text-based files (.txt, .tsv, .csv)
+                        separator = ',' if file_extension == '.csv' else '\t'
+
+                        # 1. Check the first line to see if we need to skip it.
+                        with open(abundance_path, 'r', encoding='utf-8', errors='ignore') as f:
+                            first_line = f.readline()
+                        
+                        # The old format has a comment line, the new one starts with the header.
+                        rows_to_skip = 1 if '# Constructed from biom file' in first_line else 0
+
+                        # 2. Load the table, skipping the comment line only if it exists.
+                        try:
+                            df_abundance = pd.read_csv(abundance_path,
+                                                       sep=separator,
+                                                       skiprows=rows_to_skip,
+                                                       header=0,
+                                                       low_memory=False,
+                                                       encoding='utf-8')
+                        except UnicodeDecodeError:
+                            try:
+                                df_abundance = pd.read_csv(abundance_path,
+                                                           sep=separator,
+                                                           skiprows=rows_to_skip,
+                                                           header=0,
+                                                           low_memory=False,
+                                                           encoding='latin-1')
+                            except Exception:
+                                df_abundance = pd.read_csv(abundance_path,
+                                                           sep=None,
+                                                           engine='python',
+                                                           comment='#',
+                                                           on_bad_lines='skip',
+                                                           header=0,
+                                                           encoding='latin-1')
                     
                     # 3. Standardize the first column name to 'featureid'.
-                    first_col_name = df_abundance.columns[0]
-                    
-                    # First, remove the leading '#' if it exists.
-                    if first_col_name.startswith('#'):
-                        clean_col_name = first_col_name[1:]
-                        df_abundance.rename(columns={first_col_name: clean_col_name}, inplace=True)
-                        first_col_name = clean_col_name # Update for the next check
-                    
-                    # Now, if the column is 'OTU ID', rename it to 'featureid'.
-                    if first_col_name.lower() == 'otu id':
+                    if len(df_abundance.columns) > 0:
+                        first_col_name = df_abundance.columns[0]
+                        # Remove leading '#' if present
+                        if isinstance(first_col_name, str) and first_col_name.startswith('#'):
+                            clean_col_name = first_col_name[1:]
+                            df_abundance.rename(columns={first_col_name: clean_col_name}, inplace=True)
+                            first_col_name = clean_col_name
+                        # Unconditionally standardize the first column to 'featureid' (generic abundance uses seq_id as first column)
                         df_abundance.rename(columns={first_col_name: 'featureid'}, inplace=True)
+                        # Normalize keys
+                        df_abundance['featureid'] = df_abundance['featureid'].astype(str).str.strip()
+
+                        # --- NEW CRITICAL FIX: Clean and normalize ALL sample name headers ---
+                        # This prevents join failures caused by whitespace or type issues from different file formats (.xlsx, .txt)
+                        header_rename_map = {col: str(col).strip() for col in df_abundance.columns if col != 'featureid'}
+                        df_abundance.rename(columns=header_rename_map, inplace=True)
 
                     raw_data_tables[analysis_run_name]['occurrence'] = df_abundance
-                    abundance_shape = raw_data_tables[analysis_run_name]['occurrence'].shape
+                    abundance_shape = df_abundance.shape
                     reporter.add_success(f"Loaded abundance table file: {abundance_path} (shape: {abundance_shape})")
                 except Exception as e:
                     reporter.add_error(f"Failed to load abundance table file {abundance_path}: {e}")
@@ -495,14 +664,41 @@ def drop_some_na_columns(data, reporter):
         
         reporter.add_text("Here I'm going to drop all the columns with some missing data, as I don't need them for submission to OBIS.")
         
-        # Drop columns with some missing values
+        # Drop columns with some missing values, but preserve any column referenced in data_mapper.yaml
         sheets_to_clean = ['sampleMetadata', 'experimentRunMetadata']
+
+        # Build set of columns to preserve from mapper
+        try:
+            preserve_cols = set()
+            import yaml as _yaml_loader
+            with open('data_mapper.yaml','r', encoding='utf-8') as f:
+                mapper = _yaml_loader.safe_load(f) or {}
+            # Consider both generic and default keys
+            mapping_keys = []
+            # We don't know the format here; load both sections if present
+            mapping_keys.extend(['occurrence_core','dna_derived_extension','generic_occurrence_core','generic_dna_derived_extension'])
+            for key in mapping_keys:
+                section = mapper.get(key, {}) or {}
+                for _dwc, info in section.items():
+                    if isinstance(info, dict):
+                        ft = info.get('faire_term')
+                        src = info.get('source')
+                        if ft and src in ['sampleMetadata','experimentRunMetadata']:
+                            preserve_cols.add(str(ft).strip())
+                            preserve_cols.add(f"{str(ft).strip()}_unit")
+        except Exception:
+            preserve_cols = set()
 
         for sheet_name in sheets_to_clean:
             if sheet_name in data and not data[sheet_name].empty: # Check if DataFrame exists and is not empty
                 original_columns = data[sheet_name].columns.tolist() # Get column names before dropping
-                
-                data[sheet_name].dropna(axis=1, how='any', inplace=True)
+
+                # Compute droppable columns (some NAs) excluding preserved
+                cols_with_some_na = data[sheet_name].columns[data[sheet_name].isnull().any(axis=0)]
+                cols_to_drop = [c for c in cols_with_some_na if c not in preserve_cols]
+
+                if cols_to_drop:
+                    data[sheet_name].drop(columns=cols_to_drop, inplace=True, errors='ignore')
                 
                 current_columns = data[sheet_name].columns.tolist() # Get column names after dropping
                 dropped_column_names = [col for col in original_columns if col not in current_columns]
@@ -768,7 +964,7 @@ def main():
             
         # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
-        final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_{api_source}_matched.csv')
+        final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
         try:
             if os.path.exists(final_occurrence_path):
                 # Read the file, remove match_type_debug column, and save back
@@ -822,7 +1018,7 @@ def main():
         api_choice = params.get("taxonomic_api_source", "worms")
         
         files_to_validate = [
-            f'occurrence_{api_choice.lower()}_matched.csv',
+            f'occurrence_core_{api_choice.lower()}.csv',
             f'taxa_assignment_INFO_{api_choice}.csv',
             'dna_derived_extension.csv'
         ]
@@ -871,7 +1067,7 @@ def main():
         
         # Define the list of expected final files
         files = [
-            f'occurrence_{api_choice.lower()}_matched.csv', 
+            f'occurrence_core_{api_choice.lower()}.csv', 
             f'taxa_assignment_INFO_{api_choice}.csv', 
             'dna_derived_extension.csv'
         ]

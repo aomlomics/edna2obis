@@ -325,7 +325,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             reporter.add_text(f"Removed temporary columns: {columns_to_drop}")
             
             # Now, save the final matched dataframe with a new name
-            final_occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_{api_source.lower()}_matched.csv')
+            final_occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_core_{api_source.lower()}.csv')
             
             # --- Reorder columns to final desired spec, removing API-specific IDs that are not relevant ---
             final_col_order = get_final_occurrence_column_order()
@@ -345,7 +345,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             matched_df_final = matched_df[cols_to_keep]
 
             matched_df_final.to_csv(final_occurrence_path, index=False, na_rep='')
-            reporter.add_success(f"Taxonomic assignment completed! Saved {len(matched_df_final):,} records to occurrence_{api_source.lower()}_matched.csv")
+            reporter.add_success(f"Taxonomic assignment completed! Saved {len(matched_df_final):,} records to occurrence_core_{api_source.lower()}.csv")
             
             # Add summary statistics
             unique_taxa = matched_df['scientificName'].nunique()
@@ -382,7 +382,7 @@ def create_taxa_assignment_info(params, reporter):
         else:
             # ORIGINAL PATH (Fallback if info_df is missing)
             reporter.add_text(f"Using standard method (one row per unique verbatim ID) for info file. Note: Ambiguous matches may not be shown.")
-            occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_{api_source}_matched.csv')
+            occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_core_{api_source}.csv')
             if not os.path.exists(occurrence_path):
                 reporter.add_error(f"Taxonomically matched occurrence file not found at {occurrence_path}")
                 return

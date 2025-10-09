@@ -7,7 +7,7 @@ def mark_selected_gbif_matches(params, reporter=None):
     to mark which of the GBIF matches was selected.
     """
     try:
-        api_choice = params.get('taxonomic_api_source', 'WoRMS')
+        api_choice = params.get('taxonomic_api_source', 'GBIF')
         if api_choice != 'GBIF':
             print("Skipping GBIF match marking as the API source is not GBIF.")
             return
@@ -16,7 +16,7 @@ def mark_selected_gbif_matches(params, reporter=None):
         info_filename = f"taxa_assignment_INFO_{api_choice}.csv"
         info_filepath = os.path.join(output_dir, info_filename)
 
-        occurrence_filename = f"occurrence_{api_choice.lower()}_matched.csv"
+        occurrence_filename = f"occurrence_core_{api_choice.lower()}.csv"
         occurrence_filepath = os.path.join(output_dir, occurrence_filename)
 
         if not os.path.exists(info_filepath):

@@ -12,9 +12,8 @@ experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run m
 projectMetadata: "projectMetadata" # Sheet name for project metadata
 
 excel_file: "raw-v3/FAIRe-noaa-sefsc-gu1901_forGBIF.xlsx"
-# excel_file: "raw-v3/FAIRe_checklist_v1.0.2_gomecc_generic.xlsx"
 # excel_file: "raw-v3/FAIRe_NOAA_noaa-aoml-gomecc4_SHARING.xlsx"
-FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.2.xlsx"
+# FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.2.xlsx"
 
 # STEP 2
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
@@ -27,19 +26,6 @@ datafiles:
     assay_name: "ssu12sv5_riaz"
     taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
     occurrence_file: "raw-v3/table_addJ-riaz_sefsc-gu1901.tsv"
-# datafiles:
-#   gomecc4_18s_analysis1:
-#     assay_name: "ssu18sv9-emp"
-#     taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_18s_p1-6_v2024.10_241122.tsv"
-#     occurrence_file: "raw-v3/table_gomecc4_18s_p1-6_v2024.10_241122.tsv"
-#   gomecc4_16s_analysis2:
-#     assay_name: "ssu16sv4v5-emp"
-#     taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p3-6_v2024.10_241122.tsv"
-#     occurrence_file: "raw-v3/table_gomecc4_16s_p3-6_v2024.10_241122.tsv"
-#   gomecc4_16s_analysis3:
-#     assay_name: "ssu16sv4v5-emp"
-#     taxonomy_file: "raw-v3/asvTaxaFeatures_gomecc4_16s_p1-2_v2024.10_241122.tsv"
-#     occurrence_file: "raw-v3/table_gomecc4_16s_p1-2_v2024.10_241122.tsv"
 
 
   # Add other analysis runs here, following the pattern:
@@ -128,7 +114,7 @@ emof_template_path: "raw-v3/eMoF Fields edna2obis .xlsx"
 # -----------------------------------------------------------------------------
 
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
-emof_enabled: false
+emof_enabled: true
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)

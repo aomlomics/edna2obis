@@ -1,0 +1,174 @@
+#-----------------------------------------------#
+# This YAML file serves as the master configuration for edna2obis, telling the script:
+# 1. WHAT Darwin Core fields to include in the output files.
+# 2. WHAT the corresponding field names are in your source FAIRe metadata (the 'faire_term').
+# 3. WHERE to find the source data for each field (the 'source').
+#
+# The 'source' key is critical. Valid options are:
+#   - sampleMetadata: The field is in the sampleMetadata sheet.
+#   - experimentRunMetadata: The field is in the experimentRunMetadata sheet.
+#   - projectMetadata: The field is in the projectMetadata sheet. The script will handle
+#                      looking for a 'project_level' value or a per-assay value.
+#   - analysisMetadata: The field contains bioinformatics data. In NOAA mode, this comes
+#                       from an analysisMetadata sheet. In GENERIC mode, this comes from
+#                       the projectMetadata sheet. The script handles this logic.
+#   - taxonomy: The field comes from the raw ASV/taxonomy file (e.g., sequence, kingdom).
+#   - constructed: The field is not mapped directly but is built by the script (e.g., occurrenceID).
+#-----------------------------------------------#
+
+
+# DNA Derived Extension Mappings
+# https://rs.gbif.org/extension/gbif/1.0/dna_derived_data_2024-07-11.xml
+dna_derived_extension:
+  occurrenceID: { faire_term: eventID, source: constructed} # Not sure how this will work. its criticially important for this file tho. its working currently tho. 
+  eventID: { faire_term: lib_id, source: experimentRunMetadata }
+  
+  env_broad_scale: { faire_term: env_broad_scale, source: sampleMetadata }
+  env_local_scale: { faire_term: env_local_scale, source: sampleMetadata }
+  env_medium: { faire_term: env_medium, source: sampleMetadata }
+  samp_collect_device: { faire_term: samp_collect_device, source: sampleMetadata }
+  samp_mat_process: { faire_term: samp_mat_process, source: sampleMetadata }
+  size_frac: { faire_term: size_frac, source: sampleMetadata }
+  samp_vol_we_dna_ext: { faire_term: samp_vol_we_dna_ext, source: sampleMetadata }
+  nucl_acid_ext: { faire_term: nucl_acid_ext, source: sampleMetadata }
+  concentration: { faire_term: concentration, source: sampleMetadata }
+  concentrationUnit: { faire_term: concentration_unit, source: sampleMetadata }
+  target_gene: { faire_term: target_gene, source: projectMetadata }
+  target_subfragment: { faire_term: target_subfragment, source: projectMetadata }
+  ampliconSize: { faire_term: ampliconSize, source: projectMetadata }
+  pcr_primer_forward: { faire_term: pcr_primer_forward, source: projectMetadata }
+  pcr_primer_reverse: { faire_term: pcr_primer_reverse, source: projectMetadata }
+  pcr_primer_name_forward: { faire_term: pcr_primer_name_forward, source: projectMetadata }
+  pcr_primer_name_reverse: { faire_term: pcr_primer_name_reverse, source: projectMetadata }
+  pcr_primer_reference: { faire_term: pcr_primer_reference_forward, source: constructed } # Constructed: "pcr_primer_reference_forward | pcr_primer_reference_reverse"
+  nucl_acid_amp: { faire_term: nucl_acid_amp, source: projectMetadata }
+  pcr_cond: { faire_term: pcr_cond, source: projectMetadata }
+  seq_meth: { faire_term: instrument, source: projectMetadata }
+  lib_layout: { faire_term: lib_layout, source: projectMetadata }
+
+  DNA_sequence: { faire_term: dna_sequence, source: taxonomy }
+  otu_class_appr: { faire_term: otu_clust_tool, source: analysisMetadata }
+  otu_db: { faire_term: otu_db, source: analysisMetadata }
+  otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
+  source_mat_id: { faire_term: materialSampleID, source: constructed }
+
+# Occurrence Core Mappings
+# https://rs.gbif.org/core/dwc_occurrence_2025-07-10.xml
+occurrence_core:
+  occurrenceID: { faire_term: occurrenceID, source: constructed } # Constructed: featureid_occ_eventid
+  eventID: { faire_term: lib_id, source: experimentRunMetadata }
+  basisOfRecord: { faire_term: basisOfRecord, source: constructed }
+  verbatimIdentification: { faire_term: verbatimIdentification, source: taxonomy }
+  kingdom: { faire_term: kingdom, source: taxonomy }
+  phylum: { faire_term: phylum, source: taxonomy }
+  class: { faire_term: class, source: taxonomy }
+  order: { faire_term: order, source: taxonomy }
+  family: { faire_term: family, source: taxonomy }
+  genus: { faire_term: genus, source: taxonomy }
+  scientificName: { faire_term: scientificName, source: taxonomy }
+  taxonID: { faire_term: taxonID, source: constructed }  # Used if GBIF is selected
+  scientificNameID: { faire_term: scientificNameID, source: constructed } # Used if WoRMS is selected
+  taxonRank: { faire_term: taxonRank, source: taxonomy }
+  parentEventID: { faire_term: samp_name, source: sampleMetadata }
+  datasetID: { faire_term: project_id, source: projectMetadata }
+  bibliographicCitation: { faire_term: bibliographicCitation, source: projectMetadata }
+  license: { faire_term: license, source: projectMetadata }
+  institutionID: { faire_term: institutionID, source: projectMetadata }
+  locationID: { faire_term: locationID, source: constructed } # Constructed (set in config.yaml). Default: "line_id | station_id"
+  occurrenceStatus: { faire_term: occurrenceStatus, source: constructed } 
+  organismQuantity: { faire_term: organismQuantity, source: constructed } # Constructed: calculated
+  organismQuantityType: { faire_term: organismQuantityType, source: constructed }
+  sampleSizeValue: { faire_term: samp_size, source: sampleMetadata }
+  sampleSizeUnit: { faire_term: samp_size_unit, source: sampleMetadata }
+  recordedBy: { faire_term: recordedBy, source: projectMetadata }
+  materialSampleID: { faire_term: materialSampleID, source: sampleMetadata }
+  eventDate: { faire_term: eventDate, source: sampleMetadata }
+  minimumDepthInMeters: { faire_term: minimumDepthInMeters, source: sampleMetadata }
+  maximumDepthInMeters: { faire_term: maximumDepthInMeters, source: sampleMetadata }
+  locality: { faire_term: geo_loc_name, source: sampleMetadata }
+  decimalLatitude: { faire_term: decimalLatitude, source: sampleMetadata }
+  decimalLongitude: { faire_term: decimalLongitude, source: sampleMetadata }
+  geodeticDatum: { faire_term: verbatimSRS, source: sampleMetadata }
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  nameAccordingTo: { faire_term: nameAccordingTo, source: constructed } # Constructed: according to your taxonomic assignment API choice (GBIF or WoRMS)
+  associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }
+
+# -----------------------------------------------
+# --- GENERIC FAIRe Mappings ---
+# -----------------------------------------------
+# These mappings are used when metadata_format is set to "GENERIC" in config.yaml.
+# You can customize the faire_term and source for each field to match your generic template.
+
+# https://rs.gbif.org/extension/gbif/1.0/dna_derived_data_2024-07-11.xml
+generic_dna_derived_extension:
+  occurrenceID: { faire_term: lib_id, source: experimentRunMetadata } # Constructed: featureid_occ_eventID
+  eventID: { faire_term: lib_id, source: experimentRunMetadata }
+  source_mat_id: { faire_term: materialSampleID, source: sampleMetadata }  # constructed?????
+  samp_name: { faire_term: samp_name, source: sampleMetadata }
+  DNA_sequence: { faire_term: dna_sequence, source: taxonomy }
+  pcr_primer_name_forward: { faire_term: pcr_primer_name_forward, source: projectMetadata }
+  pcr_primer_forward: { faire_term: pcr_primer_forward, source: projectMetadata }
+  pcr_primer_name_reverse: { faire_term: pcr_primer_name_reverse, source: projectMetadata }
+  pcr_primer_reverse: { faire_term: pcr_primer_reverse, source: projectMetadata }
+  pcr_primer_reference: { faire_term: pcr_primer_reference_forward, source: constructed } # Constructed: "pcr_primer_reference_forward | pcr_primer_reference_reverse"
+  pcr_cond: { faire_term: pcr_cond, source: projectMetadata }
+  env_broad_scale: { faire_term: env_broad_scale, source: sampleMetadata }
+  env_local_scale: { faire_term: env_local_scale, source: sampleMetadata }
+  env_medium: { faire_term: env_medium, source: sampleMetadata }
+  samp_vol_we_dna_ext: { faire_term: samp_vol_we_dna_ext, source: sampleMetadata } # WE WANT UNIT FOR THIS
+  samp_collect_device: { faire_term: samp_collect_device, source: sampleMetadata } # WE WANT UNIT FOR THIS
+  samp_mat_process: { faire_term: samp_mat_process, source: sampleMetadata }
+  size_frac: { faire_term: size_frac, source: sampleMetadata } # WE WANT UNIT FOR THIS
+  samp_size: { faire_term: samp_size, source: sampleMetadata } # WE WANT UNIT FOR THIS
+  concentration: { faire_term: concentration, source: sampleMetadata }
+  concentrationUnit: { faire_term: concentration_unit, source: sampleMetadata }
+  ampliconSize: { faire_term: ampliconSize, source: projectMetadata } # WE WANT UNIT FOR THIS
+  lib_layout: { faire_term: lib_layout, source: projectMetadata }
+  seq_meth: { faire_term: instrument, source: projectMetadata } # doesnt work? should be grabbing from projectMetadata
+  nucl_acid_ext: { faire_term: nucl_acid_ext, source: sampleMetadata }
+  target_gene: { faire_term: target_gene, source: projectMetadata }
+  target_subfragment: { faire_term: target_subfragment, source: projectMetadata }
+  nucl_acid_amp: { faire_term: nucl_acid_amp, source: projectMetadata }
+  otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
+  otu_class_appr: { faire_term: otu_clust_tool, source: projectMetadata }
+  otu_db: { faire_term: otu_db, source: projectMetadata }
+
+
+# https://rs.gbif.org/core/dwc_occurrence_2025-07-10.xml
+generic_occurrence_core:
+  occurrenceID: { faire_term: occurrenceID, source: constructed } # Constructed: featureid + "_occ_" +eventid
+  eventID: { faire_term: lib_id, source: experimentRunMetadata }
+  parentEventID: { faire_term: samp_name, source: sampleMetadata }
+  datasetID: { faire_term: project_id, source: projectMetadata }
+  bibliographicCitation: { faire_term: bibliographicCitation, source: projectMetadata }
+  license: { faire_term: license, source: projectMetadata }
+  institutionID: { faire_term: institutionID, source: projectMetadata }
+  locationID: { faire_term: locationID, source: constructed } # Constructed (set in config.yaml). Default: "line_id | station_id"
+  materialSampleID: { faire_term: materialSampleID, source: sampleMetadata }
+  basisOfRecord: { faire_term: basisOfRecord, source: constructed }
+  verbatimIdentification: { faire_term: verbatimIdentification, source: taxonomy }
+  kingdom: { faire_term: kingdom, source: taxonomy }
+  phylum: { faire_term: phylum, source: taxonomy }
+  class: { faire_term: class, source: taxonomy }
+  order: { faire_term: order, source: taxonomy }
+  family: { faire_term: family, source: taxonomy }
+  genus: { faire_term: genus, source: taxonomy }
+  scientificName: { faire_term: scientificName, source: taxonomy }
+  taxonRank: { faire_term: taxonRank, source: taxonomy }
+  taxonID: { faire_term: taxonID, source: constructed }  # Used if GBIF is selected
+  scientificNameID: { faire_term: scientificNameID, source: constructed } # Used if WoRMS is selected
+  eventDate: { faire_term: eventDate, source: sampleMetadata }
+  locality: { faire_term: geo_loc_name, source: sampleMetadata }
+  geodeticDatum: { faire_term: verbatimSRS, source: sampleMetadata }
+  decimalLatitude: { faire_term: decimalLatitude, source: sampleMetadata }
+  decimalLongitude: { faire_term: decimalLongitude, source: sampleMetadata }
+  minimumDepthInMeters: { faire_term: minimumDepthInMeters, source: sampleMetadata }
+  maximumDepthInMeters: { faire_term: maximumDepthInMeters, source: sampleMetadata }
+  occurrenceStatus: { faire_term: occurrenceStatus, source: constructed } 
+  organismQuantity: { faire_term: organismQuantity, source: constructed } # Constructed: calculated
+  organismQuantityType: { faire_term: organismQuantityType, source: constructed }
+  sampleSizeValue: { faire_term: samp_size, source: sampleMetadata }
+  sampleSizeUnit: { faire_term: samp_size_unit, source: sampleMetadata }
+  recordedBy: { faire_term: recordedBy, source: projectMetadata }
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }

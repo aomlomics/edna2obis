@@ -26,10 +26,6 @@ REQUIRED_TEMPLATE_COLUMNS_IN_ORDER: List[str] = [
     'measurementType',
     'measurementValue',
     'measurementUnit',
-    'measurementTypeID',
-    'measurementValueID',
-    'measurementUnitID',
-    'measurementRemarks',
 ]
 
 EMOF_OUTPUT_COLUMNS_IN_ORDER: List[str] = [
@@ -63,7 +59,7 @@ def _load_final_occurrence(params, reporter) -> pd.DataFrame:
     """
     output_dir = params.get('output_dir', 'processed-v3/')
     api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
-    final_occurrence_path = os.path.join(output_dir, f"occurrence_{api_choice}_matched.csv")
+    final_occurrence_path = os.path.join(output_dir, f"occurrence_core_{api_choice}.csv")
 
     if os.path.exists(final_occurrence_path):
         try:
@@ -290,7 +286,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                 try:
                     source_name, source_df = _resolve_source_for_measurement(source_field, data)
                 except Exception as e:
-                    reporter.add_error(str(e))
+                    reporter.add_error(f"ERROR: {str(e)}")
                     raise
                 prepared_sources[source_field] = (source_name, source_df)
             else:
@@ -376,7 +372,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                 emof_rows.append({
                     'eventID': event_id,
                     'occurrenceID': '',
-                    'measurementType': source_field,
+                    'measurementType': output_meas_type,
                     'measurementValue': out_value,
                     'measurementUnit': out_unit,
                     'measurementTypeID': _normalize_str(templ_mtid),
