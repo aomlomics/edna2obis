@@ -6,7 +6,8 @@
 
 eml_metadata:
   # Basic Dataset Information
-  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]"  # Should be the dataset title, (overarching dataset ex: project_name)
+  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]"
+  title_source_field: "project_name" 
   abstract: |
     Brief description of your dataset. Include what organisms were studied, 
     where samples were collected, what methods were used, and the purpose of the study.
@@ -22,6 +23,8 @@ eml_metadata:
       given_name: "Your First"
       surname: "Your Last"
     organization_name: "Your Institution" # recommended field: institution
+    # Optional: set to a column name in projectMetadata to pull organization automatically
+    organization_source_field: "institutionID"
     position_name: ""  # Alternative to individual name (e.g., "Data Manager")
     email: "your.email@institution.edu"
     phone: ""
@@ -39,6 +42,8 @@ eml_metadata:
       given_name: "Principal First"
       surname: "Principal Last"
     organization_name: "Research Institution"
+    # Optional: set to a column name in projectMetadata to pull organization automatically
+    organization_source_field: "institutionID"
     position_name: ""
     email: "pi@institution.edu"
     phone: ""
@@ -71,16 +76,25 @@ eml_metadata:
   
   # Coverage Information
   geographic_coverage:
-    description: "Geographic area description (e.g., 'Gulf of Mexico', 'North Atlantic')" # TODO: geo_loc_names from actual data
+    description: "Geographic area description (e.g., 'Gulf of Mexico', 'North Atlantic')" # Consider summarizing sampleMetadata.locality or waterBody
+    # Optional: configure preferred source columns in occurrence for description (in order)
+    description_source_fields:
+      - "locality"
+      - "waterBody"
     bounding_coordinates:
       west: -95.0   # Decimal degrees
       east: -80.0
       north: 30.0
       south: 25.0 # TODO: GUI calculates these, grab from actual data
+    # Optional: customize occurrence latitude/longitude field names
+    latitude_field: "decimalLatitude"
+    longitude_field: "decimalLongitude"
   
   temporal_coverage: # TODO: calculate from actual data.....TIME FORMATS? 
     begin_date: "2020-01-01"  # YYYY-MM-DD format
     end_date: "2020-12-31"
+    # Optional: customize occurrence date column name
+    event_date_field: "eventDate"
   
   taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section). should be a combo of all ranks used across all assays. ALSO assay names from data
     general_description: "Marine organisms identified through eDNA metabarcoding"
@@ -92,9 +106,27 @@ eml_metadata:
       # - taxon_rank_name: "phylum"
       #   taxon_rank_value: "Chordata"
       #   common_name: "Vertebrates"
+    # Optional: configure preferred occurrence rank fields for taxonomic coverage
+    rank_fields:
+      - "kingdom"
+      - "phylum"
+      - "class"
+      - "order"
   
   # Keywords for discoverability
   keywords:
+    #   - sampleMetadata: env_broad_scale, env_local_scale, env_medium, waterBody
+    #   - projectMetadata: target_gene, target_subfragment, instrument, lib_layout, ampliconSize
+    # Example placeholders (uncomment and fill as needed):
+    # - keyword: "<env_broad_scale>"
+    # - keyword: "<env_local_scale>"
+    # - keyword: "<env_medium>"
+    # - keyword: "<waterBody>"
+    # - keyword: "<target_gene>"
+    # - keyword: "<target_subfragment>"
+    # - keyword: "<instrument>"
+    # - keyword: "<lib_layout>"
+    # - keyword: "<ampliconSize>"
     - keyword: "eDNA"
       thesaurus: "ASFA"
     - keyword: "metabarcoding"
@@ -106,7 +138,9 @@ eml_metadata:
   
   # Project Information
   project:
-    title: "Your Project Title" # TODO: project_name from actual data
+    title: "Your Project Title" # Leave as-is to auto-fill from your metadata
+    # Optional: customize which projectMetadata column should auto-fill project title
+    title_source_field: "project_id"
     # TODO: 
     description: |
       Description of the research project under which this dataset was collected.
@@ -146,12 +180,14 @@ eml_metadata:
       processing, and analysis.
   
   # Intellectual Property and Usage Rights
+  # TIP: If you track a license in projectMetadata.license, mirror it here
   license: "CC0"  # Options: CC0, CC-BY, CC-BY-NC
   purpose: |
     A description of the purpose of this dataset.
     Why was it collected? What questions does it aim to answer?
   
   # Citations and References
+  # TIP: Paste projectMetadata.bibliographicCitation here (or customize)
   dataset_citation: |
     How users should cite this dataset. Can be auto-generated or custom.
     Leave blank for auto-generation based on creator, title, etc.

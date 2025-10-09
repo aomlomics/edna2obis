@@ -35,6 +35,55 @@ def _unique_clean_values_from_series(series: pd.Series) -> List[str]:
         return []
 
 
+def _get_project_value(project_df: pd.DataFrame, field_name: str) -> Optional[str]:
+    """Fetch a value for a given field from projectMetadata regardless of layout.
+
+    Supports two layouts:
+      1) Columnar layout: a column literally named `field_name` exists; returns first non-empty value.
+      2) Term-list layout: a row where term_name == field_name; prefer 'project_level' column if present,
+         otherwise use the first non-empty value among remaining columns besides 'term_name'.
+    """
+    if not isinstance(project_df, pd.DataFrame) or project_df.empty or not field_name:
+        return None
+
+    # Case 1: direct column
+    if field_name in project_df.columns:
+        try:
+            series = project_df[field_name]
+            vals = _unique_clean_values_from_series(series)
+            if vals:
+                return str(vals[0])
+        except Exception:
+            pass
+
+    # Case 2: term_name layout
+    cols_lower = {str(c).strip().lower(): c for c in project_df.columns}
+    term_col = cols_lower.get('term_name')
+    if term_col and term_col in project_df.columns:
+        try:
+            row = project_df[project_df[term_col].astype(str).str.strip().str.lower() == str(field_name).strip().lower()]
+            if not row.empty:
+                row0 = row.iloc[0]
+                # Prefer project_level if present
+                if 'project_level' in project_df.columns:
+                    val = row0.get('project_level')
+                    val = None if pd.isna(val) else str(val).strip()
+                    if val:
+                        return val
+                # Else, scan other columns for the first non-empty value
+                for col in project_df.columns:
+                    if str(col).strip().lower() in {'term_name'}:
+                        continue
+                    val = row0.get(col)
+                    val = None if pd.isna(val) else str(val).strip()
+                    if val:
+                        return val
+        except Exception:
+            pass
+
+    return None
+
+
 def _auto_populate_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, reporter) -> Dict:
     """Auto-populates coverage data from the occurrence DataFrame based on config comments."""
     if occurrence_df.empty:
@@ -44,9 +93,13 @@ def _auto_populate_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, repor
     reporter.add_text("Attempting to auto-populate EML coverage fields from data...")
 
     # Geographic Coverage - Bounding Box
-    if 'decimalLatitude' in occurrence_df.columns and 'decimalLongitude' in occurrence_df.columns:
-        latitudes = pd.to_numeric(occurrence_df['decimalLatitude'], errors='coerce').dropna()
-        longitudes = pd.to_numeric(occurrence_df['decimalLongitude'], errors='coerce').dropna()
+    geo_cfg = eml_config.get('geographic_coverage', {})
+    lat_field = str(geo_cfg.get('latitude_field', 'decimalLatitude'))
+    lon_field = str(geo_cfg.get('longitude_field', 'decimalLongitude'))
+
+    if lat_field in occurrence_df.columns and lon_field in occurrence_df.columns:
+        latitudes = pd.to_numeric(occurrence_df[lat_field], errors='coerce').dropna()
+        longitudes = pd.to_numeric(occurrence_df[lon_field], errors='coerce').dropna()
 
         if not latitudes.empty and not longitudes.empty:
             eml_config.setdefault('geographic_coverage', {}).setdefault('bounding_coordinates', {})
@@ -57,28 +110,34 @@ def _auto_populate_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, repor
             if not bounds.get('south'): bounds['south'] = latitudes.min()
             reporter.add_success("Calculated geographic bounding coordinates.")
 
-    # Geographic Coverage - Description (from geo_loc_name, as requested)
+    # Geographic Coverage - Description (configurable source fields)
     geo_desc_field = 'description'
     eml_config.setdefault('geographic_coverage', {})
     current_desc = eml_config['geographic_coverage'].get(geo_desc_field, "")
     if not current_desc or 'Geographic area description' in current_desc:
-        if 'locality' in occurrence_df.columns:
-            locations = occurrence_df['locality'].dropna().unique()
-            if len(locations) > 0:
-                location_str = ', '.join(map(str, sorted(locations)))
-                eml_config['geographic_coverage'][geo_desc_field] = location_str
-                reporter.add_success("Populated geographic description from 'locality' column.")
-                # Update Title with location
-                current_title = eml_config.get('title', '')
-                if '[LOCATION]' in current_title:
-                    eml_config['title'] = current_title.replace('[LOCATION]', location_str)
-                    reporter.add_success(f"Updated EML title with location: {location_str}")
+        source_fields = geo_cfg.get('description_source_fields', ['locality'])
+        values = []
+        for field in source_fields:
+            if field in occurrence_df.columns:
+                vals = [str(v).strip() for v in occurrence_df[field].dropna().unique() if str(v).strip()]
+                values.extend(vals)
+        if values:
+            unique_vals = sorted(pd.unique(pd.Series(values)))
+            location_str = ', '.join(unique_vals)
+            eml_config['geographic_coverage'][geo_desc_field] = location_str
+            reporter.add_success("Populated geographic description from configured source field(s).")
+            # Update Title with location
+            current_title = eml_config.get('title', '')
+            if '[LOCATION]' in current_title:
+                eml_config['title'] = current_title.replace('[LOCATION]', location_str)
+                reporter.add_success(f"Updated EML title with location: {location_str}")
         else:
-            reporter.add_warning("Could not populate geographic description: 'locality' column not found.")
+            reporter.add_warning("Could not populate geographic description: none of the configured fields found or non-empty.")
 
     # Temporal Coverage
-    if 'eventDate' in occurrence_df.columns:
-        dates = pd.to_datetime(occurrence_df['eventDate'], errors='coerce').dropna()
+    event_date_field = str(eml_config.get('temporal_coverage', {}).get('event_date_field', 'eventDate'))
+    if event_date_field in occurrence_df.columns:
+        dates = pd.to_datetime(occurrence_df[event_date_field], errors='coerce').dropna()
         if not dates.empty:
             eml_config.setdefault('temporal_coverage', {})
             temporal = eml_config['temporal_coverage']
@@ -105,7 +164,7 @@ def _auto_populate_taxonomic_coverage(eml_config: Dict, occurrence_df: pd.DataFr
 
     # Populate classifications with higher-level ranks only, across multiple ranks
     if not tax_coverage.get('classifications'):
-        rank_priority = ['phylum', 'class', 'order', 'kingdom', 'domain']
+        rank_priority = tax_coverage.get('rank_fields', ['phylum', 'class', 'order', 'kingdom', 'domain'])
         classifications = []
         rank_counts = {}
         per_rank_limit = 200
@@ -158,11 +217,12 @@ def _auto_populate_from_project_data(eml_config: Dict, project_df: pd.DataFrame,
     # Auto-populate project title if it's empty or template
     current_proj_title = eml_config.get('project', {}).get('title', '')
     if not current_proj_title or "Your Project Title" in current_proj_title:
-        if 'project_name' in project_df.columns:
-            project_name = project_df['project_name'].iloc[0]
-            if project_name:
-                eml_config.setdefault('project', {})['title'] = project_name
-                reporter.add_success(f"Populated EML project title with: {project_name}")
+        title_src_field = str(eml_config.get('project', {}).get('title_source_field', 'project_name'))
+        # Try robust fetch across columnar and term_name layouts
+        project_name = _get_project_value(project_df, title_src_field)
+        if project_name:
+            eml_config.setdefault('project', {})['title'] = project_name
+            reporter.add_success(f"Populated EML project title with: {project_name}")
     return eml_config
 
 
@@ -668,6 +728,18 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
             except Exception as e:
                 reporter.add_warning(f"Could not load occurrence data for EML auto-population: {e}")
         project_df = data.get('projectMetadata', pd.DataFrame())
+
+        # Dataset-level title from eml_metadata.title_source_field (if configured)
+        dataset_title_src = eml_full_config.get('eml_metadata', {}).get('title_source_field')
+        if dataset_title_src:
+            current_title = str(eml_config.get('title', ''))
+            needs_fill = (not current_title) or ('[LOCATION]' in current_title) or ('[TIMEFRAME]' in current_title)
+            if needs_fill:
+                val = _get_project_value(project_df, str(dataset_title_src))
+                if val:
+                    eml_config['title'] = val
+                    reporter.add_success(f"Set EML dataset title from projectMetadata.{dataset_title_src}")
+
         eml_config = _auto_populate_coverage(eml_config, occurrence_df, reporter)
         eml_config = _auto_populate_taxonomic_coverage(eml_config, occurrence_df, reporter)
         eml_config = _auto_populate_from_project_data(eml_config, project_df, reporter)
