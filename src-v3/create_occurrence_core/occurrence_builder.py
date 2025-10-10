@@ -588,17 +588,38 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
 def get_final_occurrence_column_order():
     """
     Returns a list defining the desired final column order for the occurrence core file.
-    This provides a single, authoritative source for column ordering.
+    This now derives from data_mapper.yaml to keep the mapper authoritative.
     """
-    # This function is now deprecated as the column order is derived from the data_mapper.yaml
-    # It is kept for reference and potential future use but is no longer called by the main process.
+    try:
+        import yaml
+        # Load mapper
+        with open('data_mapper.yaml', 'r', encoding='utf-8') as f:
+            mapper = yaml.safe_load(f) or {}
+        # Detect metadata_format from config.yaml (default NOAA)
+        metadata_format = 'NOAA'
+        try:
+            with open('config.yaml', 'r', encoding='utf-8') as cf:
+                cfg = yaml.safe_load(cf) or {}
+                val = cfg.get('metadata_format')
+                if isinstance(val, str):
+                    metadata_format = val.strip().upper()
+        except Exception:
+            pass
+        format_prefix = 'generic_' if metadata_format == 'GENERIC' else ''
+        occurrence_key = f"{format_prefix}occurrence_core"
+        occ_map = mapper.get(occurrence_key, {}) or {}
+        if isinstance(occ_map, dict) and occ_map:
+            return list(occ_map.keys())
+    except Exception:
+        pass
+
+    # Fallback to legacy static order
     return [
-        'occurrenceID', 'eventID', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 
-        'order', 'family', 'genus', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank','parentEventID',  'datasetID', 'locationID', 'basisOfRecord', 
-        'occurrenceStatus', 'organismQuantity', 'organismQuantityType', 
-        'sampleSizeValue', 'sampleSizeUnit', 'recordedBy', 'materialSampleID', 
-        'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters', 'locality', 
-        'decimalLatitude', 'decimalLongitude', 'geodeticDatum', 
+        'occurrenceID', 'eventID', 'verbatimIdentification', 'kingdom', 'phylum', 'class',
+        'order', 'family', 'genus', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank', 'parentEventID', 'datasetID', 'locationID', 'basisOfRecord',
+        'occurrenceStatus', 'organismQuantity', 'organismQuantityType',
+        'sampleSizeValue', 'sampleSizeUnit', 'recordedBy', 'materialSampleID',
+        'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters', 'locality',
+        'decimalLatitude', 'decimalLongitude', 'geodeticDatum',
         'identificationRemarks', 'nameAccordingTo', 'associatedSequences'
-        # 'match_type_debug' is intentionally excluded as it's for internal review in the INFO file.
-    ] 
+    ]

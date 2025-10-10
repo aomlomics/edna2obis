@@ -37,8 +37,8 @@
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> 2025-10-09 15:03:06</p>
-            <p><strong>End Time:</strong> 2025-10-09 15:03:07</p>
+            <p><strong>Start Time:</strong> 2025-10-09 17:51:07</p>
+            <p><strong>End Time:</strong> 2025-10-09 17:51:08</p>
             <p><strong>Duration:</strong> 0:00:01</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF.html</p>
         </div>
@@ -1003,8 +1003,8 @@
 <p>Attempting to load Darwin Core mappings from data_mapper.yaml (preferred). If not found, will fall back to the FAIRe NOAA checklist.</p>
 <p>Loading mappings for 'NOAA' format from keys: occurrence_core, dna_derived_extension</p>
 <p>Loaded Darwin Core mappings from data_mapper.yaml</p>
-<p>Occurrence mappings: 38; DNA Derived mappings: 29</p>
-<h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 38 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Occurrence mappings: 37; DNA Derived mappings: 29</p>
+<h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 37 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1195,11 +1195,6 @@
     </tr>
     <tr>
       <th>36</th>
-      <td>nameAccordingTo</td>
-      <td>nameAccordingTo</td>
-    </tr>
-    <tr>
-      <th>37</th>
       <td>associatedSequences</td>
       <td>associatedSequences</td>
     </tr>
@@ -2483,7 +2478,7 @@
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: 8599484a-91b5-4f19-9965-026b8041c56d/eml-1.xml</p>
+<p>📦 Package ID: d4dddd9b-eb23-40ec-b8a0-1119db1fab2e/eml-1.xml</p>
 <p>📏 File size: 9.2 KB</p>
 <p>🏗️ XML structure: 146 total elements</p>
 <div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
@@ -2491,13 +2486,14 @@
 <ul><li>Review the generated EML file to ensure all information is accurate</li><li>Upload the EML file along with your Darwin Core data files to IPT</li><li>Or submit directly to your OBIS node manager for review</li><li>The EML file conforms to GBIF Metadata Profile v1.1 standards</li></ul>
 <p>EML saved to: processed-v3/eml.xml</p>
 <h3>Final File Validation</h3>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'eMoF.csv'</strong>, the column <strong>'occurrenceID'</strong> was found to be completely empty.</div>
-<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>locationID</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
+<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>locationID</code></li><li>File: <code>eMoF.csv</code>, Column: <code>occurrenceID</code></li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
-<p>✓ occurrence_core_gbif.csv (0.70 MB)</p>
+<p>✓ occurrence_core_gbif.csv (0.79 MB)</p>
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
 <p>✓ dna_derived_extension.csv (1.05 MB)</p>
 <p>✓ eMoF.csv (0.22 MB)</p>
