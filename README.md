@@ -16,9 +16,9 @@ archive.
 
 The latest version of edna2obis (version 3) builds upon the original edna2obis, introducing new features:
 - Moved from a Jupyter Notebook to script architecture (runs in one command)
-- Specify parameters in the `config.yaml`, rather than in the code
-- Takes the new FAIRe NOAA eDNA data format as input, which is compatible for upload to the [Ocean DNA Explorer](https://www.oceandnaexplorer.org/)
-- Users can choose to perform their taxonomic assignment via [WoRMS]() or [GBIF]() APIs 
+- Specify parameters in configuration files, rather than in the code
+- **Supports both generic FAIRe eDNA data format and FAIRe NOAA format** (compatible for upload to the [Ocean DNA Explorer](https://www.oceandnaexplorer.org/))
+- Users can choose to perform their taxonomic assignment via [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs 
 - Improved taxonomic assignment accuracy and performance, with new caching methods
 - Users can specify which assays to NOT include species rank for taxonomic assignment (for example, Bacterial taxonomies often have the HOST organism as the species)
 - A new output file is created, `taxa_assignment_INFO.csv`, which gives information on how the taxonomies were assigned
@@ -34,13 +34,25 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 - [OBIS](https://obis.org/dataset/210efc7c-4762-47ee-b4b5-22a0f436ef44)
 
 ## Input Data Format
+
+### Supported Data Formats
+
+edna2obis supports two FAIRe eDNA data formats:
+
+1. **Generic FAIRe format** - Standard FAIRe eDNA data format
+2. **FAIRe NOAA format** - Slightly modified FAIRe eDNA format, compatible with Ocean DNA Explorer (ODE)
+
+Both formats share similar structure but have key differences in metadata organization and field names. The examples below show the **FAIRe NOAA format** structure. For generic FAIRe format, see the differences noted in each section.
+
 ### Metadata: NOAA Omics FAIR eDNA-based metadata template
-The FAIRe NOAA Google Sheet metadata template developed by NOAA Omics at AOML, and based off the [FAIRe eDNA data standard](https://fair-edna.github.io/index.html). To use the sheet for your own data, run [FAIRe2ODE](https://github.com/aomlomics/FAIRe2ODE), and it will generate the FAIRe NOAA templates in Google Sheets. Here is a filled-in example:  
+The FAIRe NOAA Google Sheet metadata template developed by NOAA Omics at AOML, and based off the [FAIRe eDNA data standard](https://fair-edna.github.io/index.html). To use the sheet for your own data, run [FAIReSheets](https://github.com/aomlomics/FAIReSheets), and it will generate the FAIRe NOAA templates in Google Sheets. Here is a filled-in example:  
 
 [FAIRe_NOAA_noaa-aoml-gomecc4_SHARING](https://docs.google.com/spreadsheets/d/1mkjfUQW3gTn3ezhMQmFDQn4EBoQ2Xv4SZeSd9sqagoU/edit?gid=0#gid=0)
 
 ### projectMetadata
 Project wide (project_level) project metadata, and metadata unique to each assay
+
+**Note**: In generic FAIRe format, analysis metadata is included in this sheet rather than in separate analysisMetadata files.
 
 | **term_name** | project_level | ssu16sv4v5-emp (1st assay) | ssu18sv9-emp (2nd assay) |
 |:--|:--|:--|:--|
@@ -68,6 +80,8 @@ Project wide (project_level) project metadata, and metadata unique to each assay
 ### sampleMetadata
 Contextual data about the samples collected. Each row is a distinct sample (Event)
 
+**Note**: This structure is largely the same between generic FAIRe and FAIRe NOAA formats.
+
 | samp_name | materialSampleID | geo_loc_name | eventDate | decimalLatitude | decimalLongitude | sampleSizeValue | sampleSizeUnit | env_broad_scale | env_local_scale | env_medium | samp_collect_device | samp_vol_we_dna_ext | samp_mat_process | size_frac | 
 |:--|:--|:--|:--|--:|--:|--:|:--|:--|:--|:--|:--|:--|:--|:--|
 | GOMECC4_27N_Sta1_Deep_A | GOMECC4_27N_Sta1_Deep | USA: Atlantic Ocean, east of Florida (27 N) | 2021-09-14T11:00-04:00 | 26.997 | -79.618 | 1920 | mL | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | Niskin bottle on CTD rosette | 1920 mL | Pumped through Sterivex filter (0.22-µm) using peristaltic pump | 0.22 µm |  |
@@ -76,6 +90,8 @@ Contextual data about the samples collected. Each row is a distinct sample (Even
 ### experimentRunMetadata
 Library preparation and sequencing details
 
+**Note**: This structure is largely the same between generic FAIRe and FAIRe NOAA formats.
+
 | samp_name | assay_name | pcr_plate_id | lib_id | seq_run_id | mid_forward | mid_reverse | filename | filename2 | input_read_count |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|--:|
 | GOMECC4_NegativeControl_1 | ssu16sv4v5-emp | not applicable | GOMECC16S_Neg1 | 20220613_Amplicon_PE250 | TAGCAGCT | CTGTGCCTA | GOMECC16S_Neg1_S499_L001_R1_001.fastq.gz | GOMECC16S_Neg1_S499_L001_R2_001.fastq.gz | 29319 |
@@ -83,6 +99,8 @@ Library preparation and sequencing details
 
 ### analysisMetadata
 Bioinformatic analysis configuration metadata. There is one analysisMetadata sheet PER analysis. Append the `analysis_run_name` to the filename, ex: analysisMetadata_gomecc4_16s_p1-2_v2024.10_241122.tsv
+
+**Note**: analysisMetadata sheet(s) is **only present in FAIRe NOAA format**. In generic FAIRe format, this information is included in the projectMetadata sheet.
 
 | **Field** | Value |
 |:--|:--|
@@ -100,6 +118,8 @@ Bioinformatic analysis configuration metadata. There is one analysisMetadata she
 
 ### Raw Data: ASV Taxonomies and Abundance Tables
 You must have 2 raw data files associated with each analysis (analysisMetadata) in your submission. These files are generated by [Tourmaline v2](https://github.com/aomlomics/tourmaline), AOML Omic's amplicon sequence processing workflow. 
+
+**Note**: Raw data structure is largely the same between formats, with one key difference: in generic FAIRe format, the sequence identifier column is named `seq_id` instead of `featureid`.
 
 If your data was generated with Qiime2 or a previous version of Tourmaline, you can convert the `table.qza`, `taxonomy.qza`, and `repseqs.qza` outputs to the correct format using the `create_asv_seq_taxa_obis.sh` shell script.
 
@@ -119,11 +139,15 @@ Your ASV raw data files should look like this:
 | 1ce3b5c6d... | TACGA... | Bacteria;Proteobacteria;Alphaproteoba... | d__Bacteria;p__Proteoba... | Bacteria | Proteobacteria | ... | Clade_Ia | 0.88 |
 | 4e38e8ced... | GCTACTAC... | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota | Obazoa | ... | Clausocalanus furcatus | 0.999 |
 
+**Note**: In generic FAIRe format, the first column would be named `seq_id` instead of `featureid`.
+
 NOTE: We understand taxonomy is complicated, so edna2obis is flexible and can receive any list of taxonomic ranks (as long as they are between columns `verbatimIdentification` and `Confidence`). For example, our 16S and 18S assay data use different taxonomic ranks, and even have a different number of taxonomic ranks. The code can account for this, and assigns taxonomies based on what ranks each API returns.
 
 The verbatimIdentification strings may or may not have the prepending rank with underscores. The code will remove them during processing if they exist.
 
 `featureid` is a hash of the DNA sequence, and they are unique identifiers.
+
+**Note**: In generic FAIRe format, this column is named `seq_id` instead of `featureid`.
 
 Some field's values have been truncated (...) for readability in the documentation. Please include the complete data for each field in your input files.
 
@@ -134,6 +158,8 @@ Some field's values have been truncated (...) for readability in the documentati
 | 4e38e8ced... | 15 | 0 | 45 | 
 
 Each column name after `featureid` is a sample name, and must correspond with your sampleMetadata.
+
+**Note**: In generic FAIRe format, the first column would be named `seq_id` instead of `featureid`.
 
 If your abundance tables have decimal numbers, that is okay too.
 
@@ -178,6 +204,60 @@ edna2obis/
     └── taxa_assignment_INFO.csv    # Extra information on how taxonomic assignment was performed
 ```
 
+## Configuration Files
+
+edna2obis uses several configuration files to customize the conversion process. All configuration files are located in the root directory.
+
+### Main Configuration Files
+
+#### `config.yaml`
+The primary configuration file that controls the overall pipeline behavior:
+
+- **Data file paths**: Specify paths to your Excel metadata file and raw data files
+- **Taxonomic assignment**: Choose between "WoRMS" or "GBIF" APIs for taxonomic assignment
+- **Output settings**: Configure output directory and file naming
+- **Custom field handling**: Configure how to process specific metadata fields
+- **Processing parameters**: Set parallel processing limits and caching options
+
+#### `data_mapper.yaml`
+Maps FAIRe metadata fields to Darwin Core terms:
+
+- **Field mappings**: Maps FAIRe fields to Darwin Core standards
+- **Format-specific mappings**: Different mappings for generic vs NOAA FAIRe formats
+
+#### `EML_config.yaml`
+Controls Ecological Metadata Language (EML) generation:
+
+- **Dataset metadata**: Project descriptions, contact information, licensing
+- **Geographic coverage**: Study area descriptions and bounding boxes
+- **Temporal coverage**: Study period and sampling frequency
+- **Method descriptions**: Detailed protocols and methodologies
+
+### eMoF Configuration
+
+The Extended Measurement or Fact (eMoF) file can be customized to include additional measurements:
+
+- **Template file**: `raw-v3/eMoF_Fields_edna2obis.xlsx`
+- **Custom measurements**: Add your own measurement types and values
+- **Controlled vocabularies**: Use OBIS-approved terms for measurement types and units
+- **Documentation**: See [OBIS eMoF formatting guide](https://manual.obis.org/format_emof.html) for detailed instructions
+
+You can add custom fields to the eMoF template to include additional environmental measurements, sampling parameters, or any other data linked to your events. If there are fields in the eMoF template that are not in your data, don't worry, the code will account for that!
+
+### Example Configuration Files
+
+#### `config_FAIRe_noaa.yaml`
+Example configuration for FAIRe NOAA format data:
+- Pre-configured for Ocean DNA Explorer compatibility
+- Optimized settings for NOAA-specific metadata structure
+- Includes NOAA-specific field mappings
+
+#### `config_FAIRe_generic.yaml`
+Example configuration for generic FAIRe format data:
+- Standard FAIRe eDNA data format settings
+- Generic field mappings and processing parameters
+- Compatible with standard FAIRe workflows
+
 ## 🚀 Setup and Installation
 
 ### Prerequisites
@@ -206,13 +286,21 @@ conda env create -f environment.yml
 conda activate edna2obis
 ```
 
-#### 3. Configure Your Data
+#### 3. Edit the Configuration Files
 
-Edit the `config.yaml` file with your data filepaths and other parameters
+Edit the configuration files with your data filepaths and other parameters:
 
+**Primary configuration**:
+- Edit `config.yaml` for main pipeline settings
+- You can copy `config_FAIRe_noaa.yaml` or `config_FAIRe_generic.yaml` into `config.yaml` as a starting point based on your data format
 
-Key settings to update:
-- `excel_file`: Path to your FAIRe NOAA Excel file (data template)
+**Additional configuration** (optional):
+- Modify `data_mapper.yaml` for custom field mappings
+- Update `EML_config.yaml` for metadata generation settings, or specify you don't want an EML file in `config.yaml`
+- Customize `raw-v3/eMoF_Fields_edna2obis.xlsx` for additional measurements, or specify you don't want an eMoF file in `config.yaml`
+
+Key settings to update in `config.yaml`:
+- `excel_file`: Path to your FAIRe Excel file (data template)
 - `datafiles`: Paths to your ASV taxonomy and occurrence files  
 - `taxonomic_api_source`: Choose "WoRMS" or "GBIF"
 - `output_dir`: Where to save results (default: "processed-v3/")
@@ -273,18 +361,29 @@ The eMoF file captures event-level measurements linked to each `eventID` that ma
   - If the eMoF template specifies a literal unit (e.g., `m`, `°C`), that unit is used for every emitted row of that measurementType.
   - If the template says `provided`, a column named `<measurementType>_unit` must be present in the chosen source sheet and must be non-blank for all emitted rows.
   - If the template leaves the unit blank, output unit is blank (no auto-fallback).
-- **Template**: Configure measurements in `raw-v3/eMoF Fields edna2obis .xlsx` on the `input_file` sheet. Required columns: `measurementType`, `measurementValue`, `measurementUnit`, `measurementTypeID`, `measurementValueID`, `measurementUnitID`, `measurementRemarks`.
-- **Output**: Written to `processed-v3/eMoF.xlsx`.
+- **Template**: Configure measurements in `raw-v3/eMoF_Fields_edna2obis.xlsx` on the `input_file` sheet. Required columns: `measurementType`, `measurementValue`, `measurementUnit`, `measurementTypeID`, `measurementValueID`, `measurementUnitID`, `measurementRemarks`.
+- **Output**: Written to `processed-v3/eMoF.csv`.
+
+#### Customizing eMoF Measurements
+
+You can add custom measurements to your eMoF file by editing the template file `raw-v3/eMoF_Fields_edna2obis.xlsx`. This allows you to include:
+
+- **Environmental measurements**: Temperature, salinity, pH, dissolved oxygen, etc.
+- **Sampling parameters**: Gear type, sampling depth, volume filtered, etc.
+- **Laboratory measurements**: DNA concentration, extraction efficiency, etc.
+- **Any other data**: Linked to your events or occurrences
+
+For detailed guidance on formatting eMoF files and using controlled vocabularies, see the [OBIS eMoF formatting guide](https://manual.obis.org/format_emof.html).
 
 ### eMoF Preview (example)
 
 Below is a small, illustrative preview of the eMoF structure. Your actual content will depend on your eMoF template and metadata.
 
-| eventID | occurrenceID | measurementType | measurementValue | measurementUnit | measurementTypeID | measurementValueID | measurementUnitID | measurementRemarks |
+| eventID | verbatimMeasurementType | measurementType | measurementValue | measurementUnit | measurementTypeID | measurementValueID | measurementUnitID | measurementRemarks |
 |:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| GOMECC4_27N_Sta1_Deep |  | temperature | 24.1 | °C |  |  |  | from CTD profile |
-| GOMECC4_27N_Sta1_Deep |  | salinity | 36.2 | PSU |  |  |  | from CTD profile |
-| GOMECC4_27N_Sta1_DCM |  | chlorophyll | 0.64 | mg/m³ |  |  |  | fluorometric estimate |
+| GOMECC4_27N_Sta1_Deep | temp  | Temperature of seawater | 24.1 | °C |  |  |  | from CTD profile |
+| GOMECC4_27N_Sta1_Deep | salinity  | Salinity measured  | 36.2 | PSU |  |  |  | from CTD profile |
+| GOMECC4_27N_Sta1_DCM | chlorophyll  | Chlorophyll measured | 0.64 | mg/m³ |  |  |  | fluorometric estimate |
 
 
 ### Troubleshooting
