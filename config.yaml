@@ -11,7 +11,7 @@ sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
 experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
 projectMetadata: "projectMetadata" # Sheet name for project metadata
 
-excel_file: "raw-v3/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
+excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
 # excel_file: "raw-v3/FAIRe_NOAA_noaa-aoml-gomecc4_SHARING.xlsx"
 # FAIRe_NOAA_checklist: "raw-v3/FAIRe_NOAA_checklist_v1.0.2.xlsx"
 
@@ -20,12 +20,12 @@ excel_file: "raw-v3/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/table_addJ-mifish_sefsc-gu1901.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-mifish_sefsc-gu1901.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/table_addJ-riaz_sefsc-gu1901.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-riaz_sefsc-gu1901.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
