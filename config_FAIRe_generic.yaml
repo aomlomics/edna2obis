@@ -12,19 +12,19 @@ sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
 experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
 projectMetadata: "projectMetadata" # Sheet name for project metadata
 
-excel_file: "raw-v3/noaa-aoml-gomecc4.xlsx"
+excel_file: "raw-v3/FAIRe_generic_example_dataset/noaa-aoml-gomecc4.xlsx"
 
 # STEP 2
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 datafiles:
   gomecc4_18s_analysis1:
     assay_name: "ssu18sv9-emp"
-    taxonomy_file: "raw-v3/taxaRaw_noaa-aoml-gomecc4_ssu18sv9-emp.xlsx"
-    abundance_file: "raw-v3/otuRaw_noaa-aoml-gomecc4_ssu18sv9-emp_20220718_18S-Amplicon_PE250.csv"
+    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu18sv9-emp.xlsx"
+    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu18sv9-emp_20220718_18S-Amplicon_PE250.csv"
   gomecc4_16s_analysis2:
     assay_name: "ssu16sv4v5-emp"
-    taxonomy_file: "raw-v3/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
-    abundance_file: "raw-v3/otuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831_16S-Amplicon_PE250.txt"
+    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
+    abundance_file: "raw-v3/FAIRe_generic_example_datasetotuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831_16S-Amplicon_PE250.txt"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:

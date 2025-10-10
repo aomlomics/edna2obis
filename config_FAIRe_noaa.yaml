@@ -12,19 +12,19 @@ sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
 experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
 projectMetadata: "projectMetadata" # Sheet name for project metadata
 
-excel_file: "raw-v3/FAIRe-noaa-sefsc-gu1901_forGBIF.xlsx"
+excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-noaa-sefsc-gu1901_forGBIF.xlsx"
 
 # STEP 2
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
     assay_name: "ssu12sv5v6_mifish_u"
-    taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/table_addJ-mifish_sefsc-gu1901.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-mifish_sefsc-gu1901.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001:
     assay_name: "ssu12sv5_riaz"
-    taxonomy_file: "raw-v3/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/table_addJ-riaz_sefsc-gu1901.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-riaz_sefsc-gu1901.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
