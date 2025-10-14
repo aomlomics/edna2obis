@@ -6,7 +6,7 @@
 
 eml_metadata:
   # Basic Dataset Information
-  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]"
+  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]" # title: " " leave defaults blank
   title_source_field: "project_name" 
   abstract: |
     Brief description of your dataset. Include what organisms were studied, 

@@ -23,7 +23,8 @@ class HTMLReporter:
         elif self.status == "FAILED":
             return "#dc3545"  # Red
         elif self.status == "WARNING":
-            return "#ffc107"  # Yellow for warning
+            # Treat WARNING runs as overall success for header coloring
+            return "#28a745"  # Green
         else:
             return "#6c757d"  # Grey for running or other states
     
@@ -216,6 +217,19 @@ class HTMLReporter:
         end_time = datetime.datetime.now()
         duration = end_time - self.start_time
         
+        # Build status header HTML
+        if self.status == "WARNING":
+            # Show a green success bar with a separate centered yellow badge for warnings
+            warning_count = len(self.warnings)
+            status_html = (
+                '<div class="status">'
+                'SUCCESS'
+                '</div>'
+                f'<div style="text-align:center;margin:10px 0;"><div class="alert alert-warning" style="display:inline-block;width:auto;padding:12px 24px;font-size:20px;font-weight:bold;">with WARNINGS ({warning_count})</div></div>'
+            )
+        else:
+            status_html = f"<div class=\"status\">{self.status}</div>"
+
         html_content = f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -247,11 +261,12 @@ class HTMLReporter:
         .header-section {{ text-align: center; margin: 30px 0 50px 0; }}
         .logo-bar {{ display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0; opacity: 0.8; }}
         .logo-bar img {{ height: 60px; object-fit: contain; }}
+        .warnings-top {{ margin: 20px 0 30px 0; }}
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="status">{self.status}</div>
+        {status_html}
         
         <div class="metadata">
             <h3>Run Information</h3>
@@ -269,6 +284,18 @@ class HTMLReporter:
                 <img src="../images/obis_logo.png" alt="OBIS">
                 <img src="../images/gbif_logo.png" alt="GBIF">
             </div>
+        </div>
+"""
+        
+        # Insert aggregated warnings near the top (before other sections)
+        if self.warnings:
+            html_content += """
+        <div class="warnings-top">
+            <h3>Warnings</h3>
+"""
+            for w in self.warnings:
+                html_content += f"            <div class=\"alert alert-warning\"><strong>WARNING:</strong> {w}</div>\n"
+            html_content += """
         </div>
 """
         
