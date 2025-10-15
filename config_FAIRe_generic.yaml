@@ -27,12 +27,12 @@ datafiles:
     abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu18sv9-emp_20220718_18S-Amplicon_PE250.csv"
   gomecc4_16s_analysis2:
     assay_name: "ssu16sv4v5-emp"
-    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
-    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831_16S-Amplicon_PE250.txt"
-  gomecc4_16s_analysis3:
-    assay_name: "ssu16sv4v5-emp"
-    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
-    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otu_gomecc4_ssu16sv4v5_20220831_16S-Amplicon_PE250.txt"
+    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613.xlsx"
+    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613_16S-Amplicon_PE250.xlsx"
+  # gomecc4_16s_analysis3:
+  #   assay_name: "ssu16sv4v5-emp"
+  #   taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
+  #   abundance_file: "raw-v3/FAIRe_generic_example_dataset/otu_gomecc4_ssu16sv4v5_20220831_16S-Amplicon_PE250.txt"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
