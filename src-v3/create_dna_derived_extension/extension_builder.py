@@ -166,220 +166,153 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         reporter.add_text(f"Shape after all merges: {dna_derived_df_final.shape}")
         
-        # --- STEP W: Merge sampleMetadata and experimentRunMetadata directly to ensure fields exist ---
+        # --- STEP W: Merge Metadata using eventID (REVISED LOGIC) ---
+        reporter.add_section("Merging Sample and Experiment Metadata", level=3)
         try:
-            # Collect sampleMetadata faire_terms from mapper (include potential _unit companions)
-            sm_terms = []
-            for _dwc, mapping in dna_derived_map_config.items():
-                if isinstance(mapping, dict) and mapping.get('source') == 'sampleMetadata':
-                    ft = mapping.get('faire_term')
-                    if isinstance(ft, str) and ft.strip():
-                        sm_terms.append(ft)
-                        sm_terms.append(f"{ft}_unit")
+            # 1. Check for necessary dataframes
+            if 'experimentRunMetadata' not in data or data['experimentRunMetadata'].empty:
+                raise ValueError("experimentRunMetadata sheet is missing or empty.")
+            if 'sampleMetadata' not in data or data['sampleMetadata'].empty:
+                raise ValueError("sampleMetadata sheet is missing or empty.")
+            
+            erm_df = data['experimentRunMetadata'].copy()
+            sm_df = data['sampleMetadata'].copy()
 
-            sm_resolved = _resolve_source_columns(data.get('sampleMetadata', pd.DataFrame()), sm_terms)
-            sm_source_cols = sorted(set(['samp_name'] + list(sm_resolved.values()))) if sm_resolved else []
-            if sm_source_cols:
-                sm_merge_df = data['sampleMetadata'][sm_source_cols].copy()
-                sm_merge_df['samp_name'] = sm_merge_df['samp_name'].astype(str).str.strip()
-                dna_derived_df_final['parentEventID'] = dna_derived_df_final['parentEventID'].astype(str).str.strip()
-                dna_derived_df_final = dna_derived_df_final.merge(sm_merge_df, left_on='parentEventID', right_on='samp_name', how='left')
-                # Drop any duplicate samp_name columns
-                if 'samp_name_y' in dna_derived_df_final.columns:
-                    dna_derived_df_final.drop(columns=['samp_name_y'], inplace=True)
-                if 'samp_name_x' in dna_derived_df_final.columns:
-                    dna_derived_df_final.rename(columns={'samp_name_x': 'samp_name'}, inplace=True)
-                # Alias resolved columns back to faire_term names so rename_map later can find them
-                for faire_term, real_col in sm_resolved.items():
-                    if faire_term not in dna_derived_df_final.columns and real_col in dna_derived_df_final.columns:
-                        dna_derived_df_final[faire_term] = dna_derived_df_final[real_col]
-                reporter.add_text(f"✓ Merged {len(sm_resolved)} sampleMetadata field(s) via parentEventID→samp_name (resolved & aliased).")
-            else:
-                reporter.add_text("⚠️ No sampleMetadata fields from mapper could be resolved in sampleMetadata sheet.")
-        except Exception as _e:
-            reporter.add_text(f"⚠️ Could not merge sampleMetadata directly: {_e}")
-
-        # Fallback: derive samp_name from ERM by eventID and re-merge sample fields if still empty
-        try:
-            if sm_source_cols:
-                # Check if most of the sample terms are still empty
-                empty_ratio = []
-                for t in sm_terms:
-                    if isinstance(t, str) and t in dna_derived_df_final.columns:
-                        empty_ratio.append(float(dna_derived_df_final[t].isna().mean()))
-                needs_fb = empty_ratio and any(r > 0.95 for r in empty_ratio)
-                if needs_fb and 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
-                    erm_map = data['experimentRunMetadata'][['lib_id', 'samp_name']].copy()
-                    erm_map.rename(columns={'lib_id': 'eventID', 'samp_name': '_samp_from_erm'}, inplace=True)
-                    erm_map['eventID'] = erm_map['eventID'].astype(str).str.strip()
-                    erm_map['_samp_from_erm'] = erm_map['_samp_from_erm'].astype(str).str.strip()
-                    dna_derived_df_final['eventID'] = dna_derived_df_final['eventID'].astype(str).str.strip()
-                    dna_derived_df_final = dna_derived_df_final.merge(erm_map.drop_duplicates('eventID'), on='eventID', how='left')
-                    # Re-merge sample fields using _samp_from_erm
-                    sm_fb_df = data['sampleMetadata'][sm_source_cols].copy()
-                    sm_fb_df.rename(columns={'samp_name': '_samp_from_erm'}, inplace=True)
-                    sm_fb_df['_samp_from_erm'] = sm_fb_df['_samp_from_erm'].astype(str).str.strip()
-                    dna_derived_df_final = dna_derived_df_final.merge(sm_fb_df, on='_samp_from_erm', how='left', suffixes=('', '_fb'))
-                    # Fill from resolved and fallback columns into the target faire_term column
-                    for faire_term, real_col in sm_resolved.items():
-                        fb_col = f"{real_col}_fb"
-                        # Ensure target column exists
-                        if faire_term not in dna_derived_df_final.columns:
-                            dna_derived_df_final[faire_term] = pd.NA
-                        # Prefer existing target, then resolved col, then fallback column
-                        if real_col in dna_derived_df_final.columns:
-                            dna_derived_df_final[faire_term] = dna_derived_df_final[faire_term].combine_first(dna_derived_df_final[real_col])
-                        if fb_col in dna_derived_df_final.columns:
-                            dna_derived_df_final[faire_term] = dna_derived_df_final[faire_term].combine_first(dna_derived_df_final[fb_col])
-                            dna_derived_df_final.drop(columns=[fb_col], inplace=True)
-                    reporter.add_text("✓ Applied ERM→samp_name fallback for sample fields.")
-        except Exception:
-            pass
-
-        # Merge experimentRunMetadata fields via resolved columns
-        try:
-            erm_terms = []
-            for _dwc, mapping in dna_derived_map_config.items():
-                if isinstance(mapping, dict) and mapping.get('source') == 'experimentRunMetadata':
-                    ft = mapping.get('faire_term')
-                    if isinstance(ft, str) and ft.strip() and ft != 'lib_id':
-                        erm_terms.append(ft)
-            # Ensure lib_id is resolvable
-            erm_resolved = _resolve_source_columns(data.get('experimentRunMetadata', pd.DataFrame()), erm_terms + ['lib_id'])
-            if erm_resolved and 'lib_id' in erm_resolved:
-                erm_cols = sorted(set([erm_resolved['lib_id']] + [erm_resolved[t] for t in erm_terms if t in erm_resolved]))
-                erm_merge_df = data['experimentRunMetadata'][erm_cols].copy()
-                erm_merge_df.rename(columns={erm_resolved['lib_id']: 'eventID'}, inplace=True)
-                erm_merge_df['eventID'] = erm_merge_df['eventID'].astype(str).str.strip()
-                dna_derived_df_final['eventID'] = dna_derived_df_final['eventID'].astype(str).str.strip()
-                dna_derived_df_final = dna_derived_df_final.merge(erm_merge_df, on='eventID', how='left')
-                # Alias back to faire_term names
-                for t in erm_terms:
-                    if t in erm_resolved:
-                        real_col = erm_resolved[t]
-                        if t not in dna_derived_df_final.columns and real_col in dna_derived_df_final.columns:
-                            dna_derived_df_final[t] = dna_derived_df_final[real_col]
-                reporter.add_text(f"✓ Merged {len(erm_terms)} ERM field(s) via eventID with resolved columns.")
-            else:
-                reporter.add_text("⚠️ Could not resolve 'lib_id' in ERM for eventID join.")
-        except Exception as _e:
-            reporter.add_text(f"⚠️ Could not merge ERM fields: {_e}")
-
-        # --- STEP V: FORCE-BACKFILL mapped fields by direct key lookup (robust) ---
-        try:
-            # Helper: resolve a column in a DF by case-insensitive / normalized name
-            def _resolve_col(df: pd.DataFrame, name: str):
-                if not isinstance(df, pd.DataFrame) or df.empty or not isinstance(name, str):
-                    return None
-                if name in df.columns:
-                    return name
-                lower_map = {str(c).lower(): c for c in df.columns}
-                if name.lower() in lower_map:
-                    return lower_map[name.lower()]
-                def _n(s: str) -> str:
-                    return ''.join(ch for ch in str(s).lower().strip().replace(' ', '').replace('\t','').replace('\n','') if ch.isalnum() or ch == '_')
-                col_norm_map = {_n(c): c for c in df.columns}
-                key = _n(name)
-                return col_norm_map.get(key)
-
-            # 1) Backfill from sampleMetadata via parentEventID → samp_name
-            if 'sampleMetadata' in data and not data['sampleMetadata'].empty:
-                sm_df = data['sampleMetadata'].copy()
-                sm_df['samp_name'] = sm_df['samp_name'].astype(str).str.strip()
-                par_series = dna_derived_df_final['parentEventID'].astype(str).str.strip()
-                for dwc_term, mapping in dna_derived_map_config.items():
-                    if not isinstance(mapping, dict):
-                        continue
-                    if mapping.get('source') != 'sampleMetadata':
-                        continue
-                    faire_term = mapping.get('faire_term')
-                    if not isinstance(faire_term, str) or not faire_term.strip():
-                        continue
-                    real_col = _resolve_col(sm_df, faire_term)
-                    if not real_col:
-                        # try unit companion
-                        real_col = _resolve_col(sm_df, f"{faire_term}_unit")
-                        if not real_col:
-                            continue
-                    value_map = sm_df.set_index('samp_name')[real_col]
-                    if faire_term not in dna_derived_df_final.columns:
-                        dna_derived_df_final[faire_term] = pd.NA
-                    dna_derived_df_final[faire_term] = dna_derived_df_final[faire_term].fillna(par_series.map(value_map))
-
-                # If most sample terms are still empty (generic workflows), fallback via ERM → samp_name
-                sample_terms = [m.get('faire_term') for m in dna_derived_map_config.values() if isinstance(m, dict) and m.get('source') == 'sampleMetadata']
-                sample_terms = [t for t in sample_terms if isinstance(t, str)]
-                if sample_terms:
-                    empties = [float(dna_derived_df_final[t].isna().mean()) for t in sample_terms if t in dna_derived_df_final.columns]
-                    # In GENERIC mode, always attempt ERM→samp_name supplement to be robust
-                    if (params.get('metadata_format') == 'GENERIC' or (empties and any(r > 0.95 for r in empties))) and 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
-                        erm_df2 = data['experimentRunMetadata'].copy()
-                        lib_col2 = _resolve_col(erm_df2, 'lib_id') or 'lib_id'
-                        erm_df2[lib_col2] = erm_df2[lib_col2].astype(str).str.strip()
-                        erm_df2['_samp_from_erm'] = erm_df2['samp_name'].astype(str).str.strip() if 'samp_name' in erm_df2.columns else pd.NA
-                        evt_series2 = dna_derived_df_final['eventID'].astype(str).str.strip()
-                        lib_to_samp = erm_df2.set_index(lib_col2)['_samp_from_erm'] if '_samp_from_erm' in erm_df2.columns else None
-                        if lib_to_samp is not None:
-                            samp_from_evt = evt_series2.map(lib_to_samp)
-                            # Map each term from sampleMetadata using _samp_from_erm
-                            for t in sample_terms:
-                                real_col2 = _resolve_col(sm_df, t) or _resolve_col(sm_df, f"{t}_unit")
-                                if real_col2 is None or t not in dna_derived_df_final.columns:
-                                    continue
-                                val_map2 = sm_df.set_index('samp_name')[real_col2]
-                                dna_derived_df_final[t] = dna_derived_df_final[t].fillna(samp_from_evt.map(val_map2))
-
-            # 2) Backfill from ERM via eventID ↔ lib_id
-            if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
-                erm_df = data['experimentRunMetadata'].copy()
-                lib_col = _resolve_col(erm_df, 'lib_id') or 'lib_id'
-                erm_df[lib_col] = erm_df[lib_col].astype(str).str.strip()
-                evt_series = dna_derived_df_final['eventID'].astype(str).str.strip()
-                for dwc_term, mapping in dna_derived_map_config.items():
-                    if not isinstance(mapping, dict):
-                        continue
-                    if mapping.get('source') != 'experimentRunMetadata':
-                        continue
-                    faire_term = mapping.get('faire_term')
-                    if not isinstance(faire_term, str) or not faire_term.strip() or faire_term == 'lib_id':
-                        continue
-                    real_col = _resolve_col(erm_df, faire_term)
-                    if not real_col:
-                        continue
-                    value_map = erm_df.set_index(lib_col)[real_col]
-                    if faire_term not in dna_derived_df_final.columns:
-                        dna_derived_df_final[faire_term] = pd.NA
-                    dna_derived_df_final[faire_term] = dna_derived_df_final[faire_term].fillna(evt_series.map(value_map))
-
-            # 3) GENERIC fallback: map via materialSampleID if present (source_mat_id → sampleMetadata.materialSampleID)
+            # 2. Prepare for robust joins by creating clean, standardized join keys
+            dna_derived_df_final['eventID_join_key'] = dna_derived_df_final['eventID'].astype(str).str.strip()
+            erm_df['lib_id_join_key'] = erm_df['lib_id'].astype(str).str.strip()
+            sm_df['samp_name_join_key'] = sm_df['samp_name'].astype(str).str.strip()
+            
+            # Diagnostics: eventID vs lib_id
             try:
-                if params.get('metadata_format') == 'GENERIC' and 'sampleMetadata' in data and not data['sampleMetadata'].empty:
-                    sm_df2 = data['sampleMetadata'].copy()
-                    mat_col = _resolve_col(sm_df2, 'materialSampleID') or 'materialSampleID'
-                    if mat_col in sm_df2.columns and 'source_mat_id' in dna_derived_df_final.columns:
-                        sm_df2[mat_col] = sm_df2[mat_col].astype(str).str.strip()
-                        src_series = dna_derived_df_final['source_mat_id'].astype(str).str.strip()
-                        for dwc_term, mapping in dna_derived_map_config.items():
-                            if not isinstance(mapping, dict):
-                                continue
-                            if mapping.get('source') != 'sampleMetadata':
-                                continue
-                            faire_term = mapping.get('faire_term')
-                            if not isinstance(faire_term, str) or not faire_term.strip():
-                                continue
-                            real_col = _resolve_col(sm_df2, faire_term) or _resolve_col(sm_df2, f"{faire_term}_unit")
-                            if not real_col:
-                                continue
-                            value_map3 = sm_df2.set_index(mat_col)[real_col]
-                            if faire_term not in dna_derived_df_final.columns:
-                                dna_derived_df_final[faire_term] = pd.NA
-                            dna_derived_df_final[faire_term] = dna_derived_df_final[faire_term].fillna(src_series.map(value_map3))
+                event_keys = set(dna_derived_df_final['eventID_join_key'].dropna().astype(str).unique())
+                lib_keys = set(erm_df['lib_id_join_key'].dropna().astype(str).unique())
+                overlap_evt_lib = event_keys & lib_keys
+                reporter.add_text(f"eventID/lib_id diagnostics: DNA rows={len(dna_derived_df_final)}, unique eventID={len(event_keys)}, unique lib_id={len(lib_keys)}, overlaps={len(overlap_evt_lib)}")
+                if len(overlap_evt_lib) == 0:
+                    sample_evt = list(sorted(event_keys))[:10]
+                    sample_lib = list(sorted(lib_keys))[:10]
+                    reporter.add_warning("No overlap between eventID and lib_id values. Merge will produce nulls.")
+                    reporter.add_list(sample_evt, title="Sample eventID values (first 10):")
+                    reporter.add_list(sample_lib, title="Sample lib_id values (first 10):")
+            except Exception as diag_e:
+                reporter.add_warning(f"Could not compute eventID/lib_id diagnostics: {diag_e}")
+
+            # 3. Add all fields from experimentRunMetadata via eventID -> lib_id
+            merged_df = dna_derived_df_final.merge(
+                erm_df,
+                left_on='eventID_join_key',
+                right_on='lib_id_join_key',
+                how='left',
+                suffixes=('', '_from_erm')
+            )
+            # Post-merge diagnostics
+            try:
+                matched_erm = merged_df['lib_id_join_key'].notna().sum()
+                reporter.add_text(f"ERM merge: matched rows={matched_erm} / {len(merged_df)}")
             except Exception:
                 pass
 
-            reporter.add_text("✓ Force-backfilled sample/ERM fields by direct key mapping.")
-        except Exception as _e:
-            reporter.add_text(f"⚠️ Force-backfill step skipped due to error: {_e}")
+            # Determine which samp_name column to use for the next merge
+            samp_col_to_use = 'samp_name_from_erm' if 'samp_name_from_erm' in merged_df.columns else ('samp_name' if 'samp_name' in merged_df.columns else None)
+            if samp_col_to_use is None:
+                reporter.add_warning("No 'samp_name' column found after ERM merge; cannot merge sampleMetadata.")
+                samp_col_to_use = 'samp_name'
+                merged_df[samp_col_to_use] = pd.NA
+
+            # 4. Use samp_name from the first merge to bring in all of sampleMetadata
+            merged_df['samp_name_join_key'] = merged_df[samp_col_to_use].astype(str).str.strip()
+
+            # Diagnostics: samp_name vs sampleMetadata
+            try:
+                samp_keys = set(merged_df['samp_name_join_key'].dropna().astype(str).unique())
+                sm_keys = set(sm_df['samp_name_join_key'].dropna().astype(str).unique())
+                overlap_samp = samp_keys & sm_keys
+                reporter.add_text(f"samp_name diagnostics: unique samp_name(after ERM)={len(samp_keys)}, unique samp_name(sampleMetadata)={len(sm_keys)}, overlaps={len(overlap_samp)}")
+                if len(overlap_samp) == 0:
+                    sample_samp = list(sorted(samp_keys))[:10]
+                    sample_sm = list(sorted(sm_keys))[:10]
+                    reporter.add_warning("No overlap between samp_name from ERM and sampleMetadata.samp_name. Merge will produce nulls.")
+                    reporter.add_list(sample_samp, title="Sample samp_name from ERM (first 10):")
+                    reporter.add_list(sample_sm, title="Sample samp_name from sampleMetadata (first 10):")
+            except Exception as diag2_e:
+                reporter.add_warning(f"Could not compute samp_name diagnostics: {diag2_e}")
+
+            final_merged_df = merged_df.merge(
+                sm_df,
+                on='samp_name_join_key',
+                how='left',
+                suffixes=('', '_from_sm')
+            )
+            # Post-merge diagnostics for sampleMetadata
+            try:
+                matched_sm = final_merged_df['samp_name_join_key'].notna().sum()
+                crit_cols = [
+                    'materialSampleID', 'depth_category', 'decimalLatitude', 'decimalLongitude',
+                    'temp', 'salinity', 'samp_vol_we_dna_ext', 'concentration', 'concentration_unit'
+                ]
+                coverage_msgs = []
+                for cc in crit_cols:
+                    if cc in final_merged_df.columns:
+                        na_ratio = float(final_merged_df[cc].isna().mean())
+                        coverage_msgs.append(f"{cc}: {(1.0 - na_ratio)*100:.1f}% filled")
+                    else:
+                        coverage_msgs.append(f"{cc}: MISSING COLUMN")
+                reporter.add_text(f"SampleMetadata merge: used column '{samp_col_to_use}', matched rows (by key)={matched_sm} / {len(final_merged_df)}")
+                reporter.add_list(coverage_msgs, title="Post-merge coverage for key sampleMetadata fields:")
+            except Exception:
+                pass
+
+            reporter.add_text("✓ Merged with experimentRunMetadata and sampleMetadata.")
+
+            # 5. Assign the fully merged dataframe back
+            dna_derived_df_final = final_merged_df.copy()
+
+            # 5b. Alias suffixed columns back to their base faire_term names for mapper compatibility
+            try:
+                aliased_count_sm = 0
+                aliased_count_erm = 0
+                # SampleMetadata
+                for dwc_term, mapping_info in dna_derived_map_config.items():
+                    if not isinstance(mapping_info, dict): continue
+                    if mapping_info.get('source') == 'sampleMetadata':
+                        ft = mapping_info.get('faire_term')
+                        if not isinstance(ft, str) or not ft.strip(): continue
+                        src_col = f"{ft}_from_sm"
+                        if src_col in dna_derived_df_final.columns:
+                            if ft not in dna_derived_df_final.columns:
+                                dna_derived_df_final[ft] = dna_derived_df_final[src_col]
+                            else:
+                                dna_derived_df_final[ft] = dna_derived_df_final[ft].combine_first(dna_derived_df_final[src_col])
+                            aliased_count_sm += 1
+                # ERM
+                for dwc_term, mapping_info in dna_derived_map_config.items():
+                    if not isinstance(mapping_info, dict): continue
+                    if mapping_info.get('source') == 'experimentRunMetadata':
+                        ft = mapping_info.get('faire_term')
+                        if not isinstance(ft, str) or not ft.strip(): continue
+                        src_col = f"{ft}_from_erm"
+                        if src_col in dna_derived_df_final.columns:
+                            if ft not in dna_derived_df_final.columns:
+                                dna_derived_df_final[ft] = dna_derived_df_final[src_col]
+                            else:
+                                dna_derived_df_final[ft] = dna_derived_df_final[ft].combine_first(dna_derived_df_final[src_col])
+                            aliased_count_erm += 1
+                # Drop leftover suffixed columns to avoid confusion
+                drop_cols = [c for c in dna_derived_df_final.columns if c.endswith('_from_sm') or c.endswith('_from_erm')]
+                if drop_cols:
+                    dna_derived_df_final.drop(columns=drop_cols, inplace=True, errors='ignore')
+                reporter.add_text(f"Aliased fields: sampleMetadata={aliased_count_sm}, experimentRunMetadata={aliased_count_erm}")
+            except Exception as alias_e:
+                reporter.add_warning(f"Aliasing step failed: {alias_e}")
+            
+            # 6. Cleanup join keys
+            dna_derived_df_final.drop(columns=['eventID_join_key', 'lib_id_join_key', 'samp_name_join_key'], inplace=True, errors='ignore')
+
+        except Exception as e:
+            reporter.add_warning(f"Metadata merge failed with the new logic: {e}")
+            import traceback
+            reporter.add_warning(f"Traceback: {traceback.format_exc()}")
 
         # --- STEP X: Handle Units (Safe and non-destructive) ---
         reporter.add_text("Applying specific unit logic...")
@@ -516,11 +449,34 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                     assay_name = run_config['assay_name']
                     analysis_df = data.get('analysis_data_by_assay', {}).get(assay_name, {}).get(run_name)
                     if analysis_df is not None:
-                        field_row = analysis_df[analysis_df['term_name'] == faire_term]
-                        if not field_row.empty:
-                            value = field_row.iloc[0]['values']
-                            mask = dna_derived_df_final['assay_name'] == assay_name
-                            values_to_apply.loc[mask] = value
+                        # NOAA-specific robustness: resolve columns and match case/format-insensitively
+                        def _resolve_ci(df, name):
+                            lower_map = {str(c).lower(): c for c in df.columns}
+                            return lower_map.get(str(name).lower())
+                        term_col = _resolve_ci(analysis_df, 'term_name') or 'term_name'
+                        val_col = _resolve_ci(analysis_df, 'values') or 'values'
+                        if term_col not in analysis_df.columns or val_col not in analysis_df.columns:
+                            reporter.add_warning(f"analysisMetadata missing expected columns for assay '{assay_name}'. Found columns: {list(analysis_df.columns)}")
+                            continue
+                        def _norm2(s):
+                            return ''.join(ch for ch in str(s).lower().strip() if ch.isalnum())
+                        # Try to match on faire_term first, then DwC term as fallback
+                        target_keys = [_norm2(faire_term)]
+                        if dwc_term and _norm2(dwc_term) != _norm2(faire_term):
+                            target_keys.append(_norm2(dwc_term))
+                        series_norm = analysis_df[term_col].astype(str).map(_norm2)
+                        mask_term = series_norm.isin(target_keys)
+                        field_row_df = analysis_df[mask_term]
+                        if not field_row_df.empty:
+                            value = field_row_df.iloc[0][val_col]
+                            mask_assay = dna_derived_df_final['assay_name'].astype(str).str.strip() == str(assay_name).strip()
+                            values_to_apply.loc[mask_assay] = value
+                        else:
+                            try:
+                                sample_terms = analysis_df[term_col].astype(str).head(15).tolist()
+                                reporter.add_warning(f"analysisMetadata term not found for assay '{assay_name}': looked for '{faire_term}' (or '{dwc_term}'). Sample terms: {sample_terms}")
+                            except Exception:
+                                reporter.add_warning(f"analysisMetadata term not found for assay '{assay_name}': '{faire_term}' (or '{dwc_term}')")
                 dna_derived_df_final[dwc_term] = values_to_apply
                 reporter.add_text(f"✓ Populated '{dwc_term}' from analysisMetadata (faire_term: '{faire_term}')")
 

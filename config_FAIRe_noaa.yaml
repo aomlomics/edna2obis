@@ -4,17 +4,19 @@
 # Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
 
 # STEP 1
+metadata_format: "GENERIC"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
+edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
+# This name will also be used to name your HTML report and Taxa assignment INFO files.
+
+# STEP 2
 # Assign sheets from your FAIRe Excel metadata file
 # NOTE: Left side is what edna2obis calls that data. Right side must be the actual sheetname from your FAIRe Excel metadata file:
-metadata_format: "NOAA"  # "NOAA" or "GENERIC".
-
 sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
 experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
 projectMetadata: "projectMetadata" # Sheet name for project metadata
-
 excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
 
-# STEP 2
+# STEP 3
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
@@ -33,7 +35,7 @@ datafiles:
   #   occurrence_file: "path/to/your/table_your_analysis_run_name.tsv"
 
 
-# STEP 3:
+# STEP 4:
 # Sample filtering configuration
 # Control sample detection - specify the column to check and which values indicate control samples
 control_sample_detection:
@@ -42,7 +44,7 @@ control_sample_detection:
     - "negative control"
     - "positive control"
 
-# STEP 4:
+# STEP 5:
 # The pipeline will construct the Darwin Core 'locationID' based on the following priority:
 # 1. It will first look for a column literally named 'locationID' in your sampleMetadata. If found, it will be used directly.
 # 2. If not found, it will use the list of columns you define below to create a compound ID (e.g., columnA_columnB).
@@ -55,7 +57,7 @@ locationID_components:
 # Taxonomic Assignment Parameters
 # -----------------------------------------------------------------------------
 
-# STEP 5:
+# STEP 6:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
 # taxonomic_api_source: "WoRMS"
@@ -65,7 +67,7 @@ taxonomic_api_source: "GBIF"
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.
 gbif_match_limit: 3
 
-# STEP 6:
+# STEP 7:
 # Define which assays should not consider 'species' rank in their taxonomic assignment.
 # This is because certain assays (for example, 16S) species' level assignments are not useful / correct.
 # Additionally, for example, 18S species' level assignments are good, and we want them!
@@ -87,18 +89,17 @@ gbif_n_proc: 0
 # Output directory (will be created if it doesn't exist)
 output_dir: "processed-v3/"
 
-# Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF Fields edna2obis .xlsx
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.xlsx"
-
+# STEP 8: OPTIONAL output files
 # -----------------------------------------------------------------------------
 # OPTIONAL Output Files: eMoF (extended measurement or fact), and EML (Ecological Metadata Language)
 # Data for these files must be manually entered in their respective input files:
 # eMoF: raw-v3/eMoF Fields edna2obis .xlsx
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
-
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
+emof_template_path: "raw-v3/eMoF_Fields_edna2obis.xlsx"
+# Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)

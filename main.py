@@ -85,6 +85,9 @@ def load_config(config_path="config.yaml"):
         
         # --- NEW: Metadata format switcher ---
         params['metadata_format'] = config.get('metadata_format', 'NOAA').upper()
+        
+        # --- NEW: Run name for config saving and report naming ---
+        params['edna2obis_run_name'] = config.get('edna2obis_run_name', 'unnamed_run')
 
         return params
         
@@ -98,6 +101,38 @@ def setup_pandas_display():
     pd.set_option('display.max_columns', 50)
 
 
+def save_config_for_run(params, reporter):
+    """Save the config.yaml file used for this run with the run name"""
+    try:
+        run_name = params.get('edna2obis_run_name', 'unnamed_run')
+        output_dir = params.get('output_dir', "processed-v3/")
+        
+        # Create the output directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+        
+        # Define the config filename with the run name
+        config_filename = f"config_{run_name}.yaml"
+        config_path = os.path.join(output_dir, config_filename)
+        
+        # Read the original config file
+        with open("config.yaml", 'r', encoding='utf-8') as f:
+            config_content = f.read()
+        
+        # Write the config to the output directory with the run name
+        with open(config_path, 'w', encoding='utf-8') as f:
+            f.write(config_content)
+        
+        reporter.add_success(f"Configuration file saved as: {config_filename}")
+        reporter.add_text(f"Saved config file: {config_path}")
+        
+        return config_path
+        
+    except Exception as e:
+        error_msg = f"Failed to save config file: {str(e)}"
+        reporter.add_warning(error_msg)
+        return None
+
+
 def load_project_data(params, reporter):
     """Load project, sample, experimentRun, and analysis data from FAIRe Excel file"""
     reporter.add_section("Loading Project Data", level=2)
@@ -107,6 +142,19 @@ def load_project_data(params, reporter):
         excel = pd.ExcelFile(params['excel_file'])
         all_sheets = excel.sheet_names
         reporter.add_text(f"Found {len(all_sheets)} sheets in Excel file: {', '.join(all_sheets)}")
+
+        # --- Auto-detect metadata format if misconfigured ---
+        try:
+            has_analysis_sheets = any(str(s).startswith('analysisMetadata') for s in all_sheets)
+            current_fmt = params.get('metadata_format', 'NOAA')
+            if has_analysis_sheets and current_fmt != 'NOAA':
+                reporter.add_warning("Detected 'analysisMetadata' sheets in Excel. Switching metadata_format to 'NOAA' for this run.")
+                params['metadata_format'] = 'NOAA'
+            elif (not has_analysis_sheets) and current_fmt == 'NOAA':
+                reporter.add_warning("No 'analysisMetadata' sheets detected. Switching metadata_format to 'GENERIC' for this run.")
+                params['metadata_format'] = 'GENERIC'
+        except Exception as _fmt_e:
+            reporter.add_warning(f"Could not auto-detect metadata format: {_fmt_e}")
         
         # Find analysis metadata sheets based on the format
         analysis_data_by_assay = {}
@@ -880,10 +928,11 @@ def main():
     global reporter
     output_dir = params.get('output_dir', "processed-v3/")
     api_choice = params.get('taxonomic_api_source', 'unknown')
-    report_filename = f"edna2obis_report_{api_choice}.html"
+    run_name = params.get('edna2obis_run_name', 'unnamed_run')
+    report_filename = f"edna2obis_report_{api_choice}_{run_name}.html"
     os.makedirs(output_dir, exist_ok=True)
     report_path = os.path.join(output_dir, report_filename)
-    reporter = HTMLReporter(report_path)
+    reporter = HTMLReporter(report_path, run_name)
     
     print("Starting edna2obis conversion...")
     print("="*50)
@@ -896,7 +945,13 @@ def main():
         print("🔄 Loading and Cleaning Data...")
         reporter.add_section("Loading Configuration", level=2)
         reporter.add_success("Configuration loaded successfully")
+        
+        # Save the config file used for this run
+        print("💾 Saving configuration file...")
+        save_config_for_run(params, reporter)
+        
         reporter.add_list([
+            f"Run Name: {params.get('edna2obis_run_name', 'unnamed_run')}",
             f"API Source: {params['taxonomic_api_source']}",
             f"Excel file: {params['excel_file']}", 
             f"Number of analysis runs: {len(params['datafiles'])}",
@@ -1082,6 +1137,10 @@ def main():
             files.append('eMoF.csv')
         if params.get('eml_enabled', False):
             files.append('eml.xml')
+        
+        # Add the saved config file
+        run_name = params.get('edna2obis_run_name', 'unnamed_run')
+        files.append(f'config_{run_name}.yaml')
         
         files.append(report_filename)  # Use the dynamic report filename
         

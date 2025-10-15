@@ -9,8 +9,9 @@ from pathlib import Path
 
 
 class HTMLReporter:
-    def __init__(self, filename="edna2obis_report.html"):
+    def __init__(self, filename="edna2obis_report.html", run_name=None):
         self.filename = filename
+        self.run_name = run_name
         self.sections = []
         self.status = "RUNNING"
         self.start_time = datetime.datetime.now()
@@ -261,20 +262,14 @@ class HTMLReporter:
         .header-section {{ text-align: center; margin: 30px 0 50px 0; }}
         .logo-bar {{ display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0; opacity: 0.8; }}
         .logo-bar img {{ height: 60px; object-fit: contain; }}
+        .run-name-display {{ margin: 10px 0; }}
+        .run-name-display h2 {{ margin: 0; font-size: 1.5rem; font-weight: 600; color: #343a40; }}
         .warnings-top {{ margin: 20px 0 30px 0; }}
     </style>
 </head>
 <body>
     <div class="container">
         {status_html}
-        
-        <div class="metadata">
-            <h3>Run Information</h3>
-            <p><strong>Start Time:</strong> {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p><strong>End Time:</strong> {end_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p><strong>Duration:</strong> {str(duration).split('.')[0]}</p>
-            <p><strong>Report File:</strong> {self.filename}</p>
-        </div>
         
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
@@ -284,6 +279,15 @@ class HTMLReporter:
                 <img src="../images/obis_logo.png" alt="OBIS">
                 <img src="../images/gbif_logo.png" alt="GBIF">
             </div>
+        </div>
+        
+        <div class="metadata">
+            <h3>Run Information</h3>
+            {f'<div class="run-name-display"><h2>Run name: {self.run_name}</h2></div>' if self.run_name else ''}
+            <p><strong>Start Time:</strong> {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>End Time:</strong> {end_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p><strong>Duration:</strong> {str(duration).split('.')[0]}</p>
+            <p><strong>Report File:</strong> {self.filename}</p>
         </div>
 """
         
