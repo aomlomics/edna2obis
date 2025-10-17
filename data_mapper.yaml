@@ -33,6 +33,7 @@ dna_derived_extension:
   samp_collect_device: { faire_term: samp_collect_device, source: sampleMetadata }
   samp_mat_process: { faire_term: samp_mat_process, source: sampleMetadata }
   size_frac: { faire_term: size_frac, source: sampleMetadata }
+  samp_size: { faire_term: samp_size, source: sampleMetadata }
   samp_vol_we_dna_ext: { faire_term: samp_vol_we_dna_ext, source: sampleMetadata }
   nucl_acid_ext: { faire_term: nucl_acid_ext, source: sampleMetadata }
   concentration: { faire_term: concentration, source: sampleMetadata }

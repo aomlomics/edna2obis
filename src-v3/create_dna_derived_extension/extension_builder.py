@@ -333,13 +333,13 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         # First, check if we have a source concentration_unit column
         if 'concentration_unit' in dna_derived_df_final.columns:
             # Use the source column to populate concentrationUnit
-            dna_derived_df_final['concentrationUnit'] = dna_derived_df_final['concentration_unit'].fillna('ng/\u00b5l')
+            dna_derived_df_final['concentrationUnit'] = dna_derived_df_final['concentration_unit'].fillna('ng/µl')
             # Drop the source column to avoid duplicates
             dna_derived_df_final.drop(columns=['concentration_unit'], inplace=True)
             reporter.add_text("✓ Populated 'concentrationUnit' from source 'concentration_unit' column.")
         else:
             # No source column, set default
-            _set_unit_if_missing(dna_derived_df_final, 'concentrationUnit', 'ng/\u00b5l')
+            _set_unit_if_missing(dna_derived_df_final, 'concentrationUnit', 'ng/µl')
             reporter.add_text("✓ Set 'concentrationUnit' to default 'ng/µl'.")
 
         # 3) samp_vol_we_dna_extUnit: prefer mapped unit column if present, else default 'mL'
@@ -353,7 +353,36 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         else:
             _set_unit_if_missing(dna_derived_df_final, 'samp_vol_we_dna_extUnit', 'mL')
             reporter.add_text("✓ Set 'samp_vol_we_dna_extUnit' to default 'mL'.")
+        
+        # --- NEW: Combine value and unit columns ---
+        reporter.add_text("Combining specified value and unit fields...")
+        
+        # Define which value/unit pairs to combine
+        pairs_to_combine = {
+            'size_frac': 'size_fracUnit',
+            'samp_vol_we_dna_ext': 'samp_vol_we_dna_extUnit',
+            'samp_size': 'samp_size_unit'
+        }
 
+        cols_to_drop_after_combine = []
+
+        for value_col, unit_col in pairs_to_combine.items():
+            if value_col in dna_derived_df_final.columns and unit_col in dna_derived_df_final.columns:
+                # Convert both to string and handle missing values gracefully
+                value_series = dna_derived_df_final[value_col].astype(str).replace({'nan': '', 'None': ''})
+                unit_series = dna_derived_df_final[unit_col].astype(str).replace({'nan': '', 'None': ''})
+                
+                # Combine them, adding a space only if both exist
+                combined_series = value_series.str.strip() + ' ' + unit_series.str.strip()
+                dna_derived_df_final[value_col] = combined_series.str.strip()
+
+                cols_to_drop_after_combine.append(unit_col)
+                reporter.add_success(f"Combined '{value_col}' and '{unit_col}'.")
+
+        # Drop the unit columns that have been combined
+        if cols_to_drop_after_combine:
+            dna_derived_df_final.drop(columns=cols_to_drop_after_combine, inplace=True)
+            reporter.add_text(f"Dropped combined unit columns: {cols_to_drop_after_combine}")
         
         # --- STEP Y: Populate fields from projectMetadata & analysisMetadata (REWRITTEN) ---
         reporter.add_text("Processing project and analysis metadata fields...")
@@ -518,9 +547,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             final_ordered_columns.append(col)
             # Add unit columns right after their parent, if they exist
             unit_col_map = {
-                'size_frac': 'size_fracUnit',
-                'concentration': 'concentrationUnit',
-                'samp_vol_we_dna_ext': 'samp_vol_we_dna_extUnit'
+                'concentration': 'concentrationUnit'
             }
             # Only auto-inject the unit column if it's NOT explicitly listed in the mapper
             if col in unit_col_map and unit_col_map[col] not in final_ordered_columns and unit_col_map[col] not in DESIRED_DNA_DERIVED_COLUMNS:
@@ -577,7 +604,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             print(f"✅ DNA derived extension created! Saved {len(dna_derived_extension):,} records")
         else:
             reporter.add_error("❌ Error: File was not created")
-        
+            
     except Exception as e:
         reporter.add_error(f"DNA derived extension creation failed: {str(e)}")
         print(f"❌ DNA derived extension creation failed: {str(e)}")
