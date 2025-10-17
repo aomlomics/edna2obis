@@ -1099,6 +1099,7 @@ def main():
             files_to_validate.append('eml.xml')
 
         all_empty_columns_summary = []
+        removed_columns_summary = []
         for filename in files_to_validate:
             filepath = os.path.join(output_dir, filename)
             if os.path.exists(filepath):
@@ -1109,18 +1110,35 @@ def main():
                     else:
                         sep = '\t' if filename.lower().endswith('.tsv') else ','
                         df = pd.read_csv(filepath, sep=sep, low_memory=False)
+                        
+                        # Existing empty column check (for reporting)
                         empty_columns = [col for col in df.columns if df[col].isna().all()]
                         if empty_columns:
                             for col in empty_columns:
                                 reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
                                 all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+                        
+                        # --- NEW: Remove empty columns and overwrite file ---
+                        if empty_columns:
+                            df.drop(columns=empty_columns, inplace=True)
+                            df.to_csv(filepath, index=False, sep=sep, encoding='utf-8-sig')
+                            for col in empty_columns:
+                                removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
+
                 except Exception as e:
-                    reporter.add_warning(f"Could not validate file '{filename}': {e}")
+                    reporter.add_warning(f"Could not validate or clean file '{filename}': {e}")
         
         if not all_empty_columns_summary:
             reporter.add_success("Validation complete: No empty columns found in final output files.")
         else:
-            reporter.add_list(all_empty_columns_summary, "<h4>Summary of All Empty Columns Found:</h4>")
+            # This report section now serves as a pre-cleanup warning
+            reporter.add_list(all_empty_columns_summary, "<h4>Summary of All Empty Columns Found (and subsequently removed):</h4>")
+
+        # --- Report on removed columns ---
+        if removed_columns_summary:
+            reporter.add_section("Empty Column Cleanup", level=3)
+            reporter.add_success("Removed completely empty columns from the final output files.")
+            reporter.add_list(removed_columns_summary, "<h4>Summary of Removed Columns:</h4>")
 
         # --- Final Status Check ---
         # If any warnings were logged during the run, set the final status to WARNING

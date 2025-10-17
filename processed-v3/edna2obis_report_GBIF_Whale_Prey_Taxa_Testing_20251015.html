@@ -51,8 +51,8 @@
         <div class="metadata">
             <h3>Run Information</h3>
             <div class="run-name-display"><h2>Run name: Whale_Prey_Taxa_Testing_20251015</h2></div>
-            <p><strong>Start Time:</strong> 2025-10-17 17:11:14</p>
-            <p><strong>End Time:</strong> 2025-10-17 17:11:16</p>
+            <p><strong>Start Time:</strong> 2025-10-17 17:22:46</p>
+            <p><strong>End Time:</strong> 2025-10-17 17:22:48</p>
             <p><strong>Duration:</strong> 0:00:02</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html</p>
         </div>
@@ -1027,7 +1027,7 @@
 <p>Attempting to load Darwin Core mappings from data_mapper.yaml (preferred). If not found, will fall back to the FAIRe NOAA checklist.</p>
 <p>Loading mappings for 'NOAA' format from keys: occurrence_core, dna_derived_extension</p>
 <p>Loaded Darwin Core mappings from data_mapper.yaml</p>
-<p>Occurrence mappings: 37; DNA Derived mappings: 31</p>
+<p>Occurrence mappings: 37; DNA Derived mappings: 32</p>
 <h4>Darwin Core Occurrence Mappings</h4><p><strong>Shape:</strong> 37 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
@@ -1224,7 +1224,7 @@
     </tr>
   </tbody>
 </table></div>
-<h4>DNA Derived Data Mappings</h4><p><strong>Shape:</strong> 31 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>DNA Derived Data Mappings</h4><p><strong>Shape:</strong> 32 rows × 2 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1387,6 +1387,11 @@
       <th>30</th>
       <td>source_mat_id</td>
       <td>materialSampleID</td>
+    </tr>
+    <tr>
+      <th>31</th>
+      <td>adapters</td>
+      <td>adapters</td>
     </tr>
   </tbody>
 </table></div>
@@ -1961,9 +1966,11 @@
 <p>Constructing 'pcr_primer_reference' field...</p>
 <p>Constructing 'otu_db' field from 'otu_db' and 'otu_db_custom'...</p>
 <div class="alert alert-success">Successfully combined 'otu_db' and 'otu_db_custom' fields.</div>
+<p>Constructing 'adapters' field...</p>
+<div class="alert alert-success">Successfully constructed 'adapters' field.</div>
 <p>Applying Darwin Core mappings...</p>
-<p>Final DNA derived extension shape: (912, 31)</p>
-<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 31 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Final DNA derived extension shape: (912, 32)</p>
+<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 32 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1998,6 +2005,7 @@
       <th>otu_db</th>
       <th>otu_seq_comp_appr</th>
       <th>source_mat_id</th>
+      <th>adapters</th>
     </tr>
   </thead>
   <tbody>
@@ -2034,6 +2042,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>1</th>
@@ -2068,6 +2077,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>2</th>
@@ -2102,6 +2112,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>3</th>
@@ -2136,6 +2147,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>4</th>
@@ -2170,6 +2182,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>5</th>
@@ -2204,6 +2217,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>6</th>
@@ -2238,6 +2252,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>7</th>
@@ -2272,6 +2287,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>8</th>
@@ -2306,6 +2322,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
     <tr>
       <th>9</th>
@@ -2340,6 +2357,7 @@
       <td>custom;rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1</td>
       <td>GU190706-CTD11-220</td>
+      <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
@@ -2347,7 +2365,7 @@
 <div class="alert alert-success">DNA derived extension created successfully</div>
 <p>Saved DNA derived extension: 912 records</p>
 <p>Output file: dna_derived_extension.csv</p>
-<p>File size: 1.12 MB</p>
+<p>File size: 1.16 MB</p>
 <h2>Creating eMoF (extendedMeasurementOrFact)</h2>
 <p>Loaded template with 31 configured measurement row(s)</p>
 <p>Total occurrences included (non-control): 912</p>
@@ -2529,7 +2547,7 @@
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: 86cb2432-ed96-4dac-a6ed-195bff915cf6/eml-1.xml</p>
+<p>📦 Package ID: c5901cd1-91c6-47bc-be86-597004142c9a/eml-1.xml</p>
 <p>📏 File size: 7.1 KB</p>
 <p>🏗️ XML structure: 110 total elements</p>
 <div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
@@ -2539,13 +2557,16 @@
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
-<h4><h4>Summary of All Empty Columns Found:</h4></h4><ul><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>locationID</code></li></ul>
+<h4><h4>Summary of All Empty Columns Found (and subsequently removed):</h4></h4><ul><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_gbif.csv</code>, Column: <code>locationID</code></li></ul>
+<h3>Empty Column Cleanup</h3>
+<div class="alert alert-success">Removed completely empty columns from the final output files.</div>
+<h4><h4>Summary of Removed Columns:</h4></h4><ul><li>File: <code>occurrence_core_gbif.csv</code>, Removed Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_gbif.csv</code>, Removed Column: <code>locationID</code></li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
-<p>✓ occurrence_core_gbif.csv (0.79 MB)</p>
+<p>✓ occurrence_core_gbif.csv (0.78 MB)</p>
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
-<p>✓ dna_derived_extension.csv (1.12 MB)</p>
+<p>✓ dna_derived_extension.csv (1.16 MB)</p>
 <p>✓ eMoF.csv (6.60 MB)</p>
 <p>✓ eml.xml (0.01 MB)</p>
 <p>✓ config_Whale_Prey_Taxa_Testing_20251015.yaml (0.01 MB)</p>

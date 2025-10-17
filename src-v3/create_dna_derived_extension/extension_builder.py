@@ -563,6 +563,25 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         except Exception as e:
             reporter.add_warning(f"Could not combine otu_db fields: {e}")
 
+        # --- SPECIAL LOGIC: Construct adapters field ---
+        reporter.add_text("Constructing 'adapters' field...")
+        try:
+            fwd_series = get_meta_value_series('adapter_forward', data['projectMetadata'], dna_derived_df_final['assay_name'])
+            rev_series = get_meta_value_series('adapter_reverse', data['projectMetadata'], dna_derived_df_final['assay_name'])
+
+            def combine_adapters(fwd, rev):
+                fwd_str = str(fwd).strip().upper() if pd.notna(fwd) else ""
+                rev_str = str(rev).strip().upper() if pd.notna(rev) else ""
+                if fwd_str and rev_str:
+                    return f"{fwd_str};{rev_str}"
+                return fwd_str or rev_str or pd.NA
+            
+            dna_derived_df_final['adapters'] = [combine_adapters(f, r) for f, r in zip(fwd_series, rev_series)]
+            reporter.add_success("Successfully constructed 'adapters' field.")
+
+        except Exception as e:
+            reporter.add_warning(f"Could not construct adapters field: {e}")
+
         # --- FINAL STEP: Select and Order Columns ---
         
         # Now apply the mapper to select and rename columns from the merged data

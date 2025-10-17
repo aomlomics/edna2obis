@@ -55,6 +55,7 @@ dna_derived_extension:
   otu_db: { faire_term: otu_db, source: analysisMetadata }
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
   source_mat_id: { faire_term: materialSampleID, source: constructed }
+  adapters: { faire_term: adapters, source: constructed }
 
 # Occurrence Core Mappings
 # https://rs.gbif.org/core/dwc_occurrence_2025-07-10.xml
@@ -137,6 +138,7 @@ generic_dna_derived_extension:
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
   otu_class_appr: { faire_term: otu_clust_tool, source: projectMetadata }
   otu_db: { faire_term: otu_db, source: projectMetadata }
+  adapters: { faire_term: adapters, source: constructed }
 
 
 # https://rs.gbif.org/core/dwc_occurrence_2025-07-10.xml
