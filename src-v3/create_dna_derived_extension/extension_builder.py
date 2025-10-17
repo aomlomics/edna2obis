@@ -523,6 +523,46 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
 
         dna_derived_df_final['pcr_primer_reference'] = [combine_references(f, r) for f, r in zip(fwd_series, rev_series)]
 
+        # --- SPECIAL LOGIC: Concatenate otu_db and otu_db_custom ---
+        reporter.add_text("Constructing 'otu_db' field from 'otu_db' and 'otu_db_custom'...")
+        try:
+            # First, ensure 'otu_db' is populated if it's in the mapper
+            if 'otu_db' in dna_derived_df_final.columns:
+                otu_db_series = dna_derived_df_final['otu_db']
+            else:
+                otu_db_series = pd.Series([None] * len(dna_derived_df_final), index=dna_derived_df_final.index)
+
+            # Then, get the custom values, which could be in either metadata type
+            custom_db_series = pd.Series([None] * len(dna_derived_df_final), index=dna_derived_df_final.index)
+            if params.get('metadata_format') == 'GENERIC':
+                custom_db_series = get_meta_value_series('otu_db_custom', data['projectMetadata'], dna_derived_df_final['assay_name'])
+            else: # NOAA format
+                for run_name, run_config in params['datafiles'].items():
+                    assay_name = run_config['assay_name']
+                    analysis_df = data.get('analysis_data_by_assay', {}).get(assay_name, {}).get(run_name)
+                    if analysis_df is not None:
+                        # Find the value for 'otu_db_custom'
+                        term_mask = analysis_df['term_name'].astype(str).str.strip().str.lower() == 'otu_db_custom'
+                        if term_mask.any():
+                            value = analysis_df.loc[term_mask, 'values'].iloc[0]
+                            # Apply this value to all rows matching the current assay
+                            assay_mask = dna_derived_df_final['assay_name'] == assay_name
+                            custom_db_series.loc[assay_mask] = value
+            
+            # Combine them
+            def combine_db_fields(db, custom):
+                db_str = str(db).strip() if pd.notna(db) and str(db).strip() not in ['nan', 'None'] else ""
+                custom_str = str(custom).strip() if pd.notna(custom) and str(custom).strip() not in ['nan', 'None'] else ""
+                if db_str and custom_str:
+                    return f"{db_str};{custom_str}"
+                return db_str or custom_str or pd.NA
+
+            dna_derived_df_final['otu_db'] = [combine_db_fields(db, custom) for db, custom in zip(otu_db_series, custom_db_series)]
+            reporter.add_success("Successfully combined 'otu_db' and 'otu_db_custom' fields.")
+        
+        except Exception as e:
+            reporter.add_warning(f"Could not combine otu_db fields: {e}")
+
         # --- FINAL STEP: Select and Order Columns ---
         
         # Now apply the mapper to select and rename columns from the merged data
