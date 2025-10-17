@@ -4,6 +4,11 @@
 # Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
 
 # STEP 1
+# --- OPTIONAL: Specify a path to a different config file for the run ---
+# If you want to use a config file other than this default 'config.yaml',
+# you can specify its path here. The pipeline will then load that file.
+# If left blank or set to 'config.yaml', this file will be used.
+run_config_path: "config.yaml"
 metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.

@@ -101,8 +101,8 @@ def setup_pandas_display():
     pd.set_option('display.max_columns', 50)
 
 
-def save_config_for_run(params, reporter):
-    """Save the config.yaml file used for this run with the run name"""
+def save_config_for_run(params, reporter, config_path):
+    """Save the config file used for this run with the run name"""
     try:
         run_name = params.get('edna2obis_run_name', 'unnamed_run')
         output_dir = params.get('output_dir', "processed-v3/")
@@ -112,20 +112,20 @@ def save_config_for_run(params, reporter):
         
         # Define the config filename with the run name
         config_filename = f"config_{run_name}.yaml"
-        config_path = os.path.join(output_dir, config_filename)
+        config_path_to_save = os.path.join(output_dir, config_filename)
         
-        # Read the original config file
-        with open("config.yaml", 'r', encoding='utf-8') as f:
+        # Read the original config file that was used for the run
+        with open(config_path, 'r', encoding='utf-8') as f:
             config_content = f.read()
         
         # Write the config to the output directory with the run name
-        with open(config_path, 'w', encoding='utf-8') as f:
+        with open(config_path_to_save, 'w', encoding='utf-8') as f:
             f.write(config_content)
         
         reporter.add_success(f"Configuration file saved as: {config_filename}")
-        reporter.add_text(f"Saved config file: {config_path}")
+        reporter.add_text(f"Saved config file: {config_path_to_save}")
         
-        return config_path
+        return config_path_to_save
         
     except Exception as e:
         error_msg = f"Failed to save config file: {str(e)}"
@@ -917,8 +917,23 @@ def load_darwin_core_mappings(params, reporter):
 def main():
     """Main execution function"""
     # --- Load config first to get params for reporter initialization ---
+    
+    # Always load the default config file first to check for a custom path
+    default_config_path = "config.yaml"
+    final_config_path = default_config_path
+    
     try:
-        params = load_config()
+        with open(default_config_path, 'r', encoding='utf-8') as f:
+            initial_config = yaml.safe_load(f)
+
+        # Check if a different config file is specified within the default config
+        if 'run_config_path' in initial_config and initial_config['run_config_path'] and initial_config['run_config_path'] != default_config_path:
+            final_config_path = initial_config['run_config_path']
+            print(f"Redirecting to custom config file: {final_config_path}")
+
+        # Load the final configuration
+        params = load_config(final_config_path)
+
     except Exception as e:
         print(f"CRITICAL ERROR: Could not load configuration file. {e}")
         # We can't create a report if config fails, so exit.
@@ -948,7 +963,7 @@ def main():
         
         # Save the config file used for this run
         print("💾 Saving configuration file...")
-        save_config_for_run(params, reporter)
+        save_config_for_run(params, reporter, final_config_path)
         
         reporter.add_list([
             f"Run Name: {params.get('edna2obis_run_name', 'unnamed_run')}",
