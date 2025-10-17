@@ -26,6 +26,7 @@
 dna_derived_extension:
   occurrenceID: { faire_term: eventID, source: constructed} 
   eventID: { faire_term: lib_id, source: experimentRunMetadata }
+  samp_name : { faire_term: samp_name, source: sampleMetadata}
   env_broad_scale: { faire_term: env_broad_scale, source: sampleMetadata }
   env_local_scale: { faire_term: env_local_scale, source: sampleMetadata }
   env_medium: { faire_term: env_medium, source: sampleMetadata }

@@ -353,9 +353,9 @@ This file displays all potential taxonomic assignments for each unique taxonomy.
 
 ### eMoF (extendedMeasurementOrFact)
 
-The eMoF file captures event-level measurements linked to each `eventID` that made it into the final occurrence file. In this workflow, eMoF rows are event-linked only (for now), so `occurrenceID` is intentionally left blank.
+The eMoF file captures occurrence-level measurements linked to each occurrenceID that made it into the final occurrence file. This creates a larger file but is what GBIF requires for data submission.
 
-- **What it contains**: One row per event per configured measurement.
+- **What it contains**: One row per occurrence per configured measurement.
 - **Where it comes from**: Measurement values are sourced from `sampleMetadata` first, otherwise `experimentRunMetadata`.
 - **Units**:
   - If the eMoF template specifies a literal unit (e.g., `m`, `°C`), that unit is used for every emitted row of that measurementType.
@@ -379,11 +379,10 @@ For detailed guidance on formatting eMoF files and using controlled vocabularies
 
 Below is a small, illustrative preview of the eMoF structure. Your actual content will depend on your eMoF template and metadata.
 
-| eventID | verbatimMeasurementType | measurementType | measurementValue | measurementUnit | measurementTypeID | measurementValueID | measurementUnitID | measurementRemarks |
-|:--|:--|:--|:--|:--|:--|:--|:--|:--|
-| GOMECC4_27N_Sta1_Deep | temp  | Temperature of seawater | 24.1 | °C |  |  |  | from CTD profile |
-| GOMECC4_27N_Sta1_Deep | salinity  | Salinity measured  | 36.2 | PSU |  |  |  | from CTD profile |
-| GOMECC4_27N_Sta1_DCM | chlorophyll  | Chlorophyll measured | 0.64 | mg/m³ |  |  |  | fluorometric estimate |
+| eventID | occurrenceID | verbatimMeasurementType | measurementType | measurementValue | measurementUnit | measurementTypeID | measurementValueID | measurementUnitID | measurementRemarks |
+|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
+| GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220_MiFish_S30_occ_ASV_001 | temperature | Temperature | 25.5 | °C | http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/ | | http://vocab.nerc.ac.uk/collection/P06/current/UPAA/ | |
+| GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220_MiFish_S30_occ_ASV_002 | temperature | Temperature | 25.5 | °C | http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/ | | http://vocab.nerc.ac.uk/collection/P06/current/UPAA/ | |
 
 
 ### Troubleshooting

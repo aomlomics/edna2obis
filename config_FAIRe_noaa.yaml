@@ -4,7 +4,7 @@
 # Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
 
 # STEP 1
-metadata_format: "GENERIC"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
+metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
