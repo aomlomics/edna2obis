@@ -107,7 +107,7 @@ output_dir: "processed-v3/"
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
 # path to the eMoF template Excel. This eMoF input file must be filled out manually. We have provided a template for you to get started.
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.xlsx"
+emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)

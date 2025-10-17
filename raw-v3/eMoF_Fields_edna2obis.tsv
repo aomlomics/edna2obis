@@ -1,0 +1,32 @@
+verbatimMeasurementType	measurementType	measurementValue	measurementUnit	measurementTypeID	measurementValueID	measurementUnitID	measurementRemarks
+expedition_id	Expedition ID	GU19-01		SDN:W01::033	https://doi.org/10.25923/3jjh-dr85		NOAA Ship Gordon Gunter (GU), RESTORE survey  GU1901
+ctd_bottle_number	CTD bottle number						
+depth_category	Depth category of sample collection						
+samp_category	Sample category			https://github.com/FAIR-eDNA/FAIRe_checklist			
+habitat_natural_artificial_0_1	Natural or artificial habitat			https://github.com/FAIR-eDNA/FAIRe_checklist			Boolean: whether samples were taken from natural (0) or artificial (1) habitat.
+samp_store_temp	Temperature sample was stored		degree Celsius	https://github.com/FAIR-eDNA/FAIRe_checklist		https://vocab.nerc.ac.uk/collection/P06/current/UPAA/	
+samp_store_sol	Solution sample was stored in			https://github.com/FAIR-eDNA/FAIRe_checklist			
+samp_store_dur	Duration sample was stored prior to DNA extraction		ISO 8601	https://github.com/FAIR-eDNA/FAIRe_checklist		https://vocab.nerc.ac.uk/collection/P06/current/TISO/	
+samp_store_loc	Location sample was stored			https://github.com/FAIR-eDNA/FAIRe_checklist			
+dna_store_loc	Location extracted DNA was stored			https://github.com/FAIR-eDNA/FAIRe_checklist			
+filter_passive_active_0_1	Active or passive filtration approach			https://github.com/FAIR-eDNA/FAIRe_checklist			Boolean: Whether water samples were collected using active (1) or passive (0) filtration approach.
+filter_diameter	Diameter of water filter		millimeters	http://vocab.nerc.ac.uk/collection/P01/current/DSAMPA01/		http://vocab.nerc.ac.uk/collection/P06/current/UXMM/	
+filter_material	Material of water filter	cellulose ester		https://github.com/FAIR-eDNA/FAIRe_checklist			
+filter_name	Commercial names and brand of filter			https://github.com/FAIR-eDNA/FAIRe_checklist			
+prepped_samp_store_temp	Temperature prepared sample was stored prior to DNA extraction		degree Celsius	https://github.com/FAIR-eDNA/FAIRe_checklist		https://vocab.nerc.ac.uk/collection/P06/current/UPAA/	
+prepped_samp_store_sol	Solution prepared sample was stored prior to DNA extraction	longmire		https://github.com/FAIR-eDNA/FAIRe_checklist	https://doi.org/10.1186/s13104-016-2104-5		
+prepped_samp_store_dur	Duration prepared sample was stored prior to DNA extraction		ISO 8601	https://github.com/FAIR-eDNA/FAIRe_checklist		https://vocab.nerc.ac.uk/collection/P06/current/TISO/	
+date_ext	Date of nucleic acid extraction		ISO 8601	https://github.com/FAIR-eDNA/FAIRe_checklist		https://vocab.nerc.ac.uk/collection/P06/current/TISO/	
+nucl_acid_ext_lysis	Nucleic acid extraction lysis approach			https://github.com/FAIR-eDNA/FAIRe_checklist			Controlled vocabulary (physical | chemical | enzymatic | thermal | osmotic | other:)
+nucl_acid_ext_sep	Nucleic acid extraction separation approach			https://github.com/FAIR-eDNA/FAIRe_checklist			Controlled vocabulary (column-based | magnetic beads | centrifugation | precipitation | phenol chloroform | gel electrophoresis | other:)
+nucl_acid_ext_kit	Nucleic acid extraction kit			https://github.com/FAIR-eDNA/FAIRe_checklist			
+dna_cleanup_0_1	DNA cleanup			https://github.com/FAIR-eDNA/FAIRe_checklist			Boolean: Was the extracted DNA cleaned/purified? Yes = 1, No =0
+dna_cleanup_method	DNA cleanup method			https://github.com/FAIR-eDNA/FAIRe_checklist			
+concentration_method	DNA concentration method			https://github.com/FAIR-eDNA/FAIRe_checklist			
+temp	Water temperature		degree Celsius	http://vocab.nerc.ac.uk/collection/P07/current/CFSN0335/		https://vocab.nerc.ac.uk/collection/P06/current/UPAA/	
+chlorophyll	Chlorophyll fluorescence		micrograms per litre	http://vocab.nerc.ac.uk/collection/P01/current/CPHLMOD2/		http://vocab.nerc.ac.uk/collection/P06/current/UGPL/	Collected by WetLabs WetStar Fluorometer
+salinity	Salinity		psu	http://vocab.nerc.ac.uk/collection/P01/current/ODSDM021/		http://vocab.nerc.ac.uk/collection/P06/current/PSUX/	
+diss_oxygen	Dissolved oxygen		provided			http://vocab.nerc.ac.uk/collection/P06/current/UMGL/	
+transmission	Transmittance of the water column		percent	http://vocab.nerc.ac.uk/collection/P02/current/ATTN/			Collected by WetLabs C-Star
+density	Density of the water column		kilograms per cubic metre	http://vocab.nerc.ac.uk/collection/P01/current/TOKGPR02/		http://vocab.nerc.ac.uk/collection/P06/current/UKMC/	
+input_read_count	Input sequence read count		reads	https://github.com/FAIR-eDNA/FAIRe_checklist			

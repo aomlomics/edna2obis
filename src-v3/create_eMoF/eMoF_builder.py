@@ -288,15 +288,15 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         # ------------------------------------------------------------------
         # Load template (input_file sheet)
         # ------------------------------------------------------------------
-        template_path = params.get('emof_template_path', 'raw-v3/eMoF Fields edna2obis .xlsx')
+        template_path = params.get('emof_template_path', 'raw-v3/eMoF_Fields_edna2obis.tsv')
         if not os.path.exists(template_path):
             reporter.add_error(f"eMoF template not found: {template_path}")
             raise FileNotFoundError(f"Template not found: {template_path}")
 
         try:
-            template_df = pd.read_excel(template_path, sheet_name='input_file', dtype=object)
+            template_df = pd.read_csv(template_path, sep='\t', dtype=object)
         except Exception as e:
-            reporter.add_error(f"Failed to read 'input_file' sheet from template: {e}")
+            reporter.add_error(f"Failed to read eMoF template file: {e}")
             raise
 
         # Normalize header names (but enforce exact required set)
