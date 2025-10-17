@@ -108,5 +108,5 @@ emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: false
+eml_enabled: true
 eml_config_path: "EML_config.yaml"

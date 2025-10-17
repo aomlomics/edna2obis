@@ -36,7 +36,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="status">SUCCESS</div><div style="text-align:center;margin:10px 0;"><div class="alert alert-warning" style="display:inline-block;width:auto;padding:12px 24px;font-size:20px;font-weight:bold;">with WARNINGS (7)</div></div>
+        <div class="status">SUCCESS</div><div style="text-align:center;margin:10px 0;"><div class="alert alert-warning" style="display:inline-block;width:auto;padding:12px 24px;font-size:20px;font-weight:bold;">with WARNINGS (13)</div></div>
         
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
@@ -51,8 +51,8 @@
         <div class="metadata">
             <h3>Run Information</h3>
             <div class="run-name-display"><h2>Run name: Whale_Prey_Taxa_Testing_20251015</h2></div>
-            <p><strong>Start Time:</strong> 2025-10-17 16:28:19</p>
-            <p><strong>End Time:</strong> 2025-10-17 16:28:21</p>
+            <p><strong>Start Time:</strong> 2025-10-17 16:42:57</p>
+            <p><strong>End Time:</strong> 2025-10-17 16:43:00</p>
             <p><strong>Duration:</strong> 0:00:02</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html</p>
         </div>
@@ -64,6 +64,12 @@
             <div class="alert alert-warning"><strong>WARNING:</strong> The 'geodeticDatum' column was empty or missing. It has been filled with the default value 'WGS84'. Please verify this is appropriate for your data.</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> The 'locationID' column is empty. This is likely because the 'line_id' and/or 'station_id' columns were not found in the source sampleMetadata. The pipeline cannot generate a default for this field.</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> The 'eventDate' column contains dates without a specific time. If a more precise time is available in your source data, please include it.</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> EML Recommendations - Consider adding these fields for better metadata quality:</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> • Temporal coverage helps users understand when data was collected</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> Template placeholders detected - please customize:</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> • Title contains placeholder text [LOCATION] or [TIMEFRAME] - please update with specific information</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> • Abstract appears to contain template text - please customize with your specific dataset description</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> • Contact email appears to be template text - please update with actual email address</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
 
@@ -2497,7 +2503,38 @@
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>eMoF saved to: processed-v3/eMoF.csv</p>
-<p>⏭️ Skipping EML creation per config (eml_enabled=false)</p>
+<h2>Creating EML (Ecological Metadata Language) File</h2>
+<p>Loading EML configuration from: EML_config.yaml</p>
+<div class="alert alert-warning"><strong>WARNING:</strong> EML Recommendations - Consider adding these fields for better metadata quality:</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Temporal coverage helps users understand when data was collected</div>
+<p>  💡 Add temporal_coverage -> begin_date and end_date (YYYY-MM-DD format)</p>
+<div class="alert alert-warning"><strong>WARNING:</strong> Template placeholders detected - please customize:</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Title contains placeholder text [LOCATION] or [TIMEFRAME] - please update with specific information</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Abstract appears to contain template text - please customize with your specific dataset description</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> • Contact email appears to be template text - please update with actual email address</div>
+<p><h4>EML Best Practices:</h4></p>
+<ul><li>Use descriptive titles that include taxonomic, geographic, and temporal scope</li><li>Provide detailed abstracts that help users assess fitness-for-use</li><li>Include complete contact information for data inquiries</li><li>Add relevant keywords to improve discoverability</li><li>Document sampling methods similar to a journal article methods section</li><li>Use CC0 license when possible for maximum data reusability</li></ul>
+<p>Using occurrence data from file: processed-v3/occurrence_core_gbif.csv</p>
+<div class="alert alert-success">Set EML dataset title from projectMetadata.project_name</div>
+<p>Attempting to auto-populate EML coverage fields from data...</p>
+<div class="alert alert-success">Calculated geographic bounding coordinates.</div>
+<div class="alert alert-success">Populated geographic description from configured source field(s).</div>
+<div class="alert alert-success">Calculated temporal coverage dates from data.</div>
+<p>Note: Truncated order list to 10 unique values for EML brevity.</p>
+<div class="alert alert-success">Populated taxonomic coverage with 10 classifications across ranks: kingdom=2, phylum=1, class=1, order=6</div>
+<p>Note: Reached total cap of 10 taxonomic classifications.</p>
+<div class="alert alert-success">Populated EML project title with: noaa-sefsc-gu1901</div>
+<p>Building EML XML structure...</p>
+<p>EML sections to be included:</p>
+<ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
+<div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
+<p>📦 Package ID: 1b139fc0-51f5-4168-83ff-046f6b01b8df/eml-1.xml</p>
+<p>📏 File size: 7.1 KB</p>
+<p>🏗️ XML structure: 110 total elements</p>
+<div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
+<p><h4>Next Steps for OBIS/GBIF Submission:</h4></p>
+<ul><li>Review the generated EML file to ensure all information is accurate</li><li>Upload the EML file along with your Darwin Core data files to IPT</li><li>Or submit directly to your OBIS node manager for review</li><li>The EML file conforms to GBIF Metadata Profile v1.1 standards</li></ul>
+<p>EML saved to: processed-v3/eml.xml</p>
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_gbif.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
@@ -2509,6 +2546,7 @@
 <p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
 <p>✓ dna_derived_extension.csv (1.07 MB)</p>
 <p>✓ eMoF.csv (6.60 MB)</p>
+<p>✓ eml.xml (0.01 MB)</p>
 <p>✓ config_Whale_Prey_Taxa_Testing_20251015.yaml (0.01 MB)</p>
 <p>✓ edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html (0.09 MB)</p>
 

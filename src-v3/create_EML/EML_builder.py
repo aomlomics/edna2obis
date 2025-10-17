@@ -141,9 +141,10 @@ def _auto_populate_coverage(eml_config: Dict, occurrence_df: pd.DataFrame, repor
         if not dates.empty:
             eml_config.setdefault('temporal_coverage', {})
             temporal = eml_config['temporal_coverage']
-            if not temporal.get('begin_date'): temporal['begin_date'] = dates.min().strftime('%Y-%m-%d')
-            if not temporal.get('end_date'): temporal['end_date'] = dates.max().strftime('%Y-%m-%d')
-            reporter.add_success("Calculated temporal coverage dates.")
+            # Always override with calculated dates from data
+            temporal['begin_date'] = dates.min().strftime('%Y-%m-%d')
+            temporal['end_date'] = dates.max().strftime('%Y-%m-%d')
+            reporter.add_success("Calculated temporal coverage dates from data.")
             # Update Title with timeframe
             current_title = eml_config.get('title', '')
             if '[TIMEFRAME]' in current_title:
@@ -164,11 +165,12 @@ def _auto_populate_taxonomic_coverage(eml_config: Dict, occurrence_df: pd.DataFr
 
     # Populate classifications with higher-level ranks only, across multiple ranks
     if not tax_coverage.get('classifications'):
-        rank_priority = tax_coverage.get('rank_fields', ['phylum', 'class', 'order', 'kingdom', 'domain'])
+        # Corrected default rank priority
+        rank_priority = tax_coverage.get('rank_fields', ['kingdom', 'phylum', 'class', 'order', 'family', 'genus'])
         classifications = []
         rank_counts = {}
-        per_rank_limit = 200
-        total_limit = 1000
+        per_rank_limit = 10  # Limit per rank to avoid one rank dominating
+        total_limit = 10  # Set total limit to 10 as requested
         total_truncated = False
 
         for rank in rank_priority:

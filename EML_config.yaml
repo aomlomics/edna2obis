@@ -90,10 +90,9 @@ eml_metadata:
     latitude_field: "decimalLatitude"
     longitude_field: "decimalLongitude"
   
-  temporal_coverage: # TODO: calculate from actual data.....TIME FORMATS? 
-    begin_date: "2020-01-01"  # YYYY-MM-DD format
-    end_date: "2020-12-31"
-    # Optional: customize occurrence date column name
+  temporal_coverage:
+    # The begin_date and end_date are now automatically calculated from the eventDate column.
+    # Optional: customize occurrence date column name if it's not 'eventDate'.
     event_date_field: "eventDate"
   
   taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section). should be a combo of all ranks used across all assays. ALSO assay names from data
