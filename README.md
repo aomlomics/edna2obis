@@ -18,11 +18,12 @@ The latest version of edna2obis (version 3) builds upon the original edna2obis, 
 - Moved from a Jupyter Notebook to script architecture (runs in one command)
 - Specify parameters in configuration files, rather than in the code
 - **Supports both generic FAIRe eDNA data format and FAIRe NOAA format** (compatible for upload to the [Ocean DNA Explorer](https://www.oceandnaexplorer.org/))
-- Users can choose to perform their taxonomic assignment via [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs 
 - Improved taxonomic assignment accuracy and performance, with new caching methods
-- Users can specify which assays to NOT include species rank for taxonomic assignment (for example, Bacterial taxonomies often have the HOST organism as the species)
-- A new output file is created, `taxa_assignment_INFO.csv`, which gives information on how the taxonomies were assigned
+  - Users can choose to perform their taxonomic assignment via [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs  
+  - Users can specify which assays to NOT include species rank for taxonomic assignment (for example, Bacterial taxonomies often have the HOST organism as the species)
+  - A new output file is created, `taxa_assignment_INFO.csv`, which gives information on how the taxonomies were assigned
 - Generates an HTML output report, `edna2obis_report.html` to document your run
+- Options to generate an extended Measurement of Fact file and a Project-level EML metadata file
 
 
 ### Example data abstract:
