@@ -298,6 +298,27 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                             else:
                                 dna_derived_df_final[ft] = dna_derived_df_final[ft].combine_first(dna_derived_df_final[src_col])
                             aliased_count_erm += 1
+                # Before dropping suffixed columns, alias any unit columns to their base names
+                # Example: 'samp_vol_we_dna_ext_unit_from_sm' -> 'samp_vol_we_dna_ext_unit'
+                try:
+                    # Prefer values from sampleMetadata over ERM when both exist
+                    unit_from_sm = [c for c in dna_derived_df_final.columns if c.endswith('_unit_from_sm')]
+                    unit_from_erm = [c for c in dna_derived_df_final.columns if c.endswith('_unit_from_erm')]
+                    for c in unit_from_sm:
+                        base = c.replace('_from_sm', '')
+                        if base not in dna_derived_df_final.columns:
+                            dna_derived_df_final[base] = dna_derived_df_final[c]
+                        else:
+                            dna_derived_df_final[base] = dna_derived_df_final[base].combine_first(dna_derived_df_final[c])
+                    for c in unit_from_erm:
+                        base = c.replace('_from_erm', '')
+                        if base not in dna_derived_df_final.columns:
+                            dna_derived_df_final[base] = dna_derived_df_final[c]
+                        else:
+                            dna_derived_df_final[base] = dna_derived_df_final[base].combine_first(dna_derived_df_final[c])
+                except Exception as unit_alias_e:
+                    reporter.add_warning(f"Unit column aliasing failed: {unit_alias_e}")
+
                 # Drop leftover suffixed columns to avoid confusion
                 drop_cols = [c for c in dna_derived_df_final.columns if c.endswith('_from_sm') or c.endswith('_from_erm')]
                 if drop_cols:
@@ -316,45 +337,45 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
 
         # --- STEP X: Handle Units (Safe and non-destructive) ---
         reporter.add_text("Applying specific unit logic...")
-
-        # Helper to set a unit column only when missing or empty
-        def _set_unit_if_missing(df, unit_col, default_value):
-            if unit_col not in df.columns:
-                df[unit_col] = default_value
-            else:
-                # fill only NAs/empty strings
-                df[unit_col] = df[unit_col].where(~(df[unit_col].isna() | (df[unit_col].astype(str).str.strip() == '')), other=default_value)
-
-        # 1) size_fracUnit: default 'micrometer' if absent/empty
-        _set_unit_if_missing(dna_derived_df_final, 'size_fracUnit', 'micrometer')
-        reporter.add_text("✓ Ensured 'size_fracUnit' present (default 'micrometer' if missing).")
-
-        # 2) concentrationUnit: prefer mapped 'concentration_unit' if present, else default 'ng/µl'
-        # First, check if we have a source concentration_unit column
+        
+        # This logic runs after the main data merge. It proactively looks for original
+        # unit columns (e.g., 'samp_size_unit') and prepares them for combination.
+        # It does NOT rely on the data_mapper.yaml to load these, making it robust.
+        
+        # 1) concentrationUnit: Stays as a separate column.
         if 'concentration_unit' in dna_derived_df_final.columns:
-            # Use the source column to populate concentrationUnit
             dna_derived_df_final['concentrationUnit'] = dna_derived_df_final['concentration_unit'].fillna('ng/µl')
-            # Drop the source column to avoid duplicates
-            dna_derived_df_final.drop(columns=['concentration_unit'], inplace=True)
             reporter.add_text("✓ Populated 'concentrationUnit' from source 'concentration_unit' column.")
         else:
-            # No source column, set default
-            _set_unit_if_missing(dna_derived_df_final, 'concentrationUnit', 'ng/µl')
+            dna_derived_df_final['concentrationUnit'] = 'ng/µl'
             reporter.add_text("✓ Set 'concentrationUnit' to default 'ng/µl'.")
-
-        # 3) samp_vol_we_dna_extUnit: prefer mapped unit column if present, else default 'mL'
+        
+        # 2) size_fracUnit: To be combined. Check for 'size_frac_unit' first.
+        if 'size_frac_unit' in dna_derived_df_final.columns:
+            dna_derived_df_final['size_fracUnit'] = dna_derived_df_final['size_frac_unit'].fillna('micrometer')
+            reporter.add_text("✓ Populated 'size_fracUnit' from source 'size_frac_unit' column.")
+        else:
+            dna_derived_df_final['size_fracUnit'] = 'micrometer'
+            reporter.add_text("✓ Set 'size_fracUnit' to default 'micrometer' (source column not found).")
+        
+        # 3) samp_vol_we_dna_extUnit: To be combined. Check for 'samp_vol_we_dna_ext_unit' first.
         if 'samp_vol_we_dna_ext_unit' in dna_derived_df_final.columns:
-            dna_derived_df_final['samp_vol_we_dna_extUnit'] = dna_derived_df_final['samp_vol_we_dna_ext_unit'].fillna('mL')
-            # normalize casing ml -> mL
-            dna_derived_df_final['samp_vol_we_dna_extUnit'] = dna_derived_df_final['samp_vol_we_dna_extUnit'].astype(str).str.replace('ml', 'mL', case=False)
-            # Drop source column to avoid duplicates
-            dna_derived_df_final.drop(columns=['samp_vol_we_dna_ext_unit'], inplace=True)
+            # Use source data, filling any blanks with the default 'mL'.
+            dna_derived_df_final['samp_vol_we_dna_extUnit'] = dna_derived_df_final['samp_vol_we_dna_ext_unit'].fillna('mL').astype(str).str.replace('ml', 'mL', case=False)
             reporter.add_text("✓ Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.")
         else:
-            _set_unit_if_missing(dna_derived_df_final, 'samp_vol_we_dna_extUnit', 'mL')
-            reporter.add_text("✓ Set 'samp_vol_we_dna_extUnit' to default 'mL'.")
+            dna_derived_df_final['samp_vol_we_dna_extUnit'] = 'mL'
+            reporter.add_text("✓ Set 'samp_vol_we_dna_extUnit' to default 'mL' (source column not found).")
         
-        # --- NEW: Combine value and unit columns ---
+        # 4) samp_size_unit: To be combined. Check for 'samp_size_unit' first. No default.
+        if 'samp_size_unit' in dna_derived_df_final.columns:
+            dna_derived_df_final['samp_size_unit'] = dna_derived_df_final['samp_size_unit'].fillna('').astype(str).replace({'nan': '', 'None': ''})
+            reporter.add_text("✓ Populated 'samp_size_unit' from source 'samp_size_unit' column.")
+        else:
+            dna_derived_df_final['samp_size_unit'] = ''
+            reporter.add_warning("⚠️ 'samp_size_unit' column not found in metadata. Units for 'samp_size' will be empty.")
+            
+        # --- Combine value and unit columns ---
         reporter.add_text("Combining specified value and unit fields...")
         
         # Define which value/unit pairs to combine
@@ -363,9 +384,9 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             'samp_vol_we_dna_ext': 'samp_vol_we_dna_extUnit',
             'samp_size': 'samp_size_unit'
         }
-
+        
         cols_to_drop_after_combine = []
-
+        
         for value_col, unit_col in pairs_to_combine.items():
             if value_col in dna_derived_df_final.columns and unit_col in dna_derived_df_final.columns:
                 # Convert both to string and handle missing values gracefully
@@ -375,18 +396,18 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 # Combine them, adding a space only if both exist
                 combined_series = value_series.str.strip() + ' ' + unit_series.str.strip()
                 dna_derived_df_final[value_col] = combined_series.str.strip()
-
+                
                 cols_to_drop_after_combine.append(unit_col)
                 reporter.add_success(f"Combined '{value_col}' and '{unit_col}'.")
-
+        
         # Drop the unit columns that have been combined
         if cols_to_drop_after_combine:
             dna_derived_df_final.drop(columns=cols_to_drop_after_combine, inplace=True)
             reporter.add_text(f"Dropped combined unit columns: {cols_to_drop_after_combine}")
-        
+    
         # --- STEP Y: Populate fields from projectMetadata & analysisMetadata (REWRITTEN) ---
         reporter.add_text("Processing project and analysis metadata fields...")
-
+        
         # Helper: resolve actual column names in a source DataFrame for given faire_terms
         def _resolve_source_columns(source_df: pd.DataFrame, requested_terms: list[str]) -> dict:
             resolved: dict = {}
@@ -413,7 +434,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 if tnorm in col_norm_map:
                     resolved[term] = col_norm_map[tnorm]
             return resolved
-
+        
         # Build assay_map for GENERIC format (maps assay_name to column name in projectMetadata)
         assay_to_column_map = {}
         if params.get('metadata_format') == 'GENERIC' and 'projectMetadata' in data:
@@ -432,15 +453,15 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             field_row_df = source_df[term_mask]
             if field_row_df.empty:
                 return pd.Series(None, index=assay_series.index if isinstance(assay_series, pd.Series) else range(len(dna_derived_df_final)))
-
+            
             field_row = field_row_df.iloc[0]
             project_level_val = field_row.get('project_level')
-
+            
             # If no assay context, use project-level
             if not isinstance(assay_series, pd.Series) or ('assay_name' not in dna_derived_df_final.columns):
                 return pd.Series(project_level_val if pd.notna(project_level_val) and str(project_level_val).strip() else None,
                                  index=(assay_series.index if isinstance(assay_series, pd.Series) else range(len(dna_derived_df_final))))
-
+            
             # Prefer per-assay value if available; else project-level
             def map_assay_value(assay):
                 if assay_to_column_map and assay in assay_to_column_map:
@@ -453,16 +474,16 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                     if pd.notna(val2) and str(val2).strip():
                         return val2
                 return project_level_val if pd.notna(project_level_val) and str(project_level_val).strip() else None
-
+            
             return assay_series.map(map_assay_value)
-
+        
         # Apply projectMetadata fields
         for dwc_term, mapping_info in dna_derived_map_config.items():
             if not isinstance(mapping_info, dict): continue
             
             source = mapping_info.get('source')
             faire_term = mapping_info.get('faire_term')
-
+            
             if source == 'projectMetadata':
                 # Only populate if the field isn't already present from pass-through
                 if dwc_term not in dna_derived_df_final.columns or dna_derived_df_final[dwc_term].isna().all():
@@ -508,7 +529,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                                 reporter.add_warning(f"analysisMetadata term not found for assay '{assay_name}': '{faire_term}' (or '{dwc_term}')")
                 dna_derived_df_final[dwc_term] = values_to_apply
                 reporter.add_text(f"✓ Populated '{dwc_term}' from analysisMetadata (faire_term: '{faire_term}')")
-
+        
         # --- SPECIAL LOGIC: Construct pcr_primer_reference ---
         reporter.add_text("Constructing 'pcr_primer_reference' field...")
         fwd_series = get_meta_value_series('pcr_primer_reference_forward', data['projectMetadata'], dna_derived_df_final['assay_name'])
@@ -520,9 +541,9 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             if fwd_str and rev_str:
                 return fwd_str if fwd_str == rev_str else f"{fwd_str}|{rev_str}"
             return fwd_str or rev_str or pd.NA
-
+        
         dna_derived_df_final['pcr_primer_reference'] = [combine_references(f, r) for f, r in zip(fwd_series, rev_series)]
-
+        
         # --- SPECIAL LOGIC: Concatenate otu_db and otu_db_custom ---
         reporter.add_text("Constructing 'otu_db' field from 'otu_db' and 'otu_db_custom'...")
         try:
@@ -531,7 +552,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 otu_db_series = dna_derived_df_final['otu_db']
             else:
                 otu_db_series = pd.Series([None] * len(dna_derived_df_final), index=dna_derived_df_final.index)
-
+            
             # Then, get the custom values, which could be in either metadata type
             custom_db_series = pd.Series([None] * len(dna_derived_df_final), index=dna_derived_df_final.index)
             if params.get('metadata_format') == 'GENERIC':
@@ -556,19 +577,19 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 if db_str and custom_str:
                     return f"{db_str};{custom_str}"
                 return db_str or custom_str or pd.NA
-
+            
             dna_derived_df_final['otu_db'] = [combine_db_fields(db, custom) for db, custom in zip(otu_db_series, custom_db_series)]
             reporter.add_success("Successfully combined 'otu_db' and 'otu_db_custom' fields.")
-        
+            
         except Exception as e:
             reporter.add_warning(f"Could not combine otu_db fields: {e}")
-
+        
         # --- SPECIAL LOGIC: Construct adapters field ---
         reporter.add_text("Constructing 'adapters' field...")
         try:
             fwd_series = get_meta_value_series('adapter_forward', data['projectMetadata'], dna_derived_df_final['assay_name'])
             rev_series = get_meta_value_series('adapter_reverse', data['projectMetadata'], dna_derived_df_final['assay_name'])
-
+            
             def combine_adapters(fwd, rev):
                 fwd_str = str(fwd).strip().upper() if pd.notna(fwd) else ""
                 rev_str = str(rev).strip().upper() if pd.notna(rev) else ""
@@ -578,10 +599,10 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             
             dna_derived_df_final['adapters'] = [combine_adapters(f, r) for f, r in zip(fwd_series, rev_series)]
             reporter.add_success("Successfully constructed 'adapters' field.")
-
+            
         except Exception as e:
             reporter.add_warning(f"Could not construct adapters field: {e}")
-
+        
         # --- FINAL STEP: Select and Order Columns ---
         
         # Now apply the mapper to select and rename columns from the merged data
@@ -598,7 +619,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                     rename_map[faire_term] = dwc_term
         
         final_df.rename(columns=rename_map, inplace=True)
-
+        
         # --- Ensure we have all required columns and order them correctly ---
         # The mapper is the AUTHORITATIVE source. Only include what's in the mapper, in that exact order.
         final_ordered_columns = []
@@ -611,7 +632,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             # Only auto-inject the unit column if it's NOT explicitly listed in the mapper
             if col in unit_col_map and unit_col_map[col] not in final_ordered_columns and unit_col_map[col] not in DESIRED_DNA_DERIVED_COLUMNS:
                 final_ordered_columns.append(unit_col_map[col])
-
+        
         # Ensure all columns exist in the dataframe, adding empty ones if needed.
         for col in final_ordered_columns:
             if col not in final_df.columns:
@@ -633,16 +654,16 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             dna_derived_extension = dna_derived_extension.drop_duplicates(subset=['occurrenceID'], keep='first')
         else:
             dna_derived_extension = dna_derived_extension.drop_duplicates(keep='first')
-
+        
         final_rows = len(dna_derived_extension)
         if initial_rows > final_rows:
             reporter.add_text(f"Removed {initial_rows - final_rows} duplicate rows after merges.")
-
+        
         reporter.add_text(f"Final DNA derived extension shape: {dna_derived_extension.shape}")
         
         # Add a preview of the dataframe to the HTML report
         reporter.add_dataframe(dna_derived_extension, "DNA Derived Extension Preview", max_rows=10)
-
+        
         # Save DNA derived extension to CSV file
         reporter.add_text("Saving DNA derived extension to CSV...")
         
@@ -663,7 +684,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             print(f"✅ DNA derived extension created! Saved {len(dna_derived_extension):,} records")
         else:
             reporter.add_error("❌ Error: File was not created")
-            
+        
     except Exception as e:
         reporter.add_error(f"DNA derived extension creation failed: {str(e)}")
         print(f"❌ DNA derived extension creation failed: {str(e)}")
