@@ -76,32 +76,72 @@ def get_worms_batch_worker(batch_info):
     
     try:
         batch_results_raw = pyworms.aphiaRecordsByMatchNames(chunk)
-        
+
         # Process results efficiently
         for j, name_list in enumerate(batch_results_raw):
-            if name_list:
-                accepted_matches = []
-                # Find ALL accepted matches
-                for match in name_list:
-                    if match and match.get('status') == 'accepted':
-                        # Build result dict efficiently
-                        res = {
-                            'scientificName': match.get('scientificname'),
-                            'scientificNameID': match.get('lsid'), 
-                            'taxonRank': match.get('rank')
-                        }
-                        # Add rank columns
-                        for rank in DWC_RANKS_STD:
-                            res[rank] = match.get(rank.lower())
-                        
-                        accepted_matches.append(res)
-                
-                if accepted_matches:
-                    batch_results[chunk[j]] = accepted_matches  # Store list of all accepted matches
-        
+            if not name_list:
+                continue
+
+            accepted_matches = []
+            seen_ids = set()
+
+            for match in name_list:
+                if not match:
+                    continue
+
+                status = match.get('status')
+                record_to_use = None
+
+                # Case 1: already an accepted record
+                if status == 'accepted':
+                    record_to_use = match
+
+                # Case 2: unaccepted record with a valid (accepted) name behind it.
+                # For example: Synagrops spinosus -> Parascombrops spinosus.
+                elif status == 'unaccepted':
+                    valid_aphia = (
+                        match.get('valid_AphiaID')
+                        or match.get('valid_aphia_id')
+                        or match.get('valid_aphiaID')
+                    )
+                    if valid_aphia:
+                        try:
+                            resolved = pyworms.aphiaRecordByAphiaID(valid_aphia)
+                            if resolved and resolved.get('status') == 'accepted':
+                                record_to_use = resolved
+                        except Exception:
+                            # If resolution of the valid AphiaID fails, just skip this synonym.
+                            record_to_use = None
+
+                # Ignore any other statuses
+                if not record_to_use:
+                    continue
+
+                sci_id = record_to_use.get('lsid')
+                if sci_id in seen_ids:
+                    # Avoid duplicates when multiple inputs resolve to the same accepted taxon
+                    continue
+                seen_ids.add(sci_id)
+
+                # Build result dict from the accepted record (direct or via valid name)
+                res = {
+                    'scientificName': record_to_use.get('scientificname'),
+                    'scientificNameID': record_to_use.get('lsid'),
+                    'taxonRank': record_to_use.get('rank')
+                }
+                # Add rank columns
+                for rank in DWC_RANKS_STD:
+                    res[rank] = record_to_use.get(rank.lower())
+
+                accepted_matches.append(res)
+
+            if accepted_matches:
+                # Store list of all accepted/valid-name-resolved matches for this queried name
+                batch_results[chunk[j]] = accepted_matches
+
         return batch_num, batch_results
-        
-    except Exception as e:
+
+    except Exception:
         return batch_num, {}
 
 def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
