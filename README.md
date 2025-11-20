@@ -311,13 +311,13 @@ If you only want to assign taxonomy to a list of identifiers (without running th
 Examples:
 
 ```bash
-# Use the example input, default API (GBIF), 3 matches per verbatim, write to processed-v3/taxassign_INFO_GBIF.tsv
+# Use the example input, default API (GBIF), 3 matches per verbatimIdentification, write to processed-v3/taxassign_INFO_GBIF.tsv
 python taxassign.py
 
 # Use WoRMS and a custom input
 python taxassign.py -i raw-v3/taxassign_example_input.tsv -a WoRMS
 
-# Increase number of matches per verbatim to 5
+# Increase number of matches per verbatimIdentification to 5
 python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -n 5
 
 # Specify an explicit output path
