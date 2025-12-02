@@ -681,12 +681,12 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         if os.path.exists(output_path):
             file_size = os.path.getsize(output_path) / (1024*1024)  # Size in MB
             reporter.add_text(f"File size: {file_size:.2f} MB")
-            print(f"✅ DNA derived extension created! Saved {len(dna_derived_extension):,} records")
+            print(f"DNA derived extension created! Saved {len(dna_derived_extension):,} records")
         else:
-            reporter.add_error("❌ Error: File was not created")
+            reporter.add_error("Error: File was not created")
         
     except Exception as e:
         reporter.add_error(f"DNA derived extension creation failed: {str(e)}")
-        print(f"❌ DNA derived extension creation failed: {str(e)}")
+        print(f"DNA derived extension creation failed: {str(e)}")
         import traceback
         traceback.print_exc() 

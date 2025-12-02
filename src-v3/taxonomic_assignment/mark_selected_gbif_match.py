@@ -9,7 +9,6 @@ def mark_selected_gbif_matches(params, reporter=None):
     try:
         api_choice = params.get('taxonomic_api_source', 'GBIF')
         if api_choice != 'GBIF':
-            print("Skipping GBIF match marking as the API source is not GBIF.")
             return
 
         output_dir = params.get('output_dir', '../processed-v3/')
@@ -20,17 +19,13 @@ def mark_selected_gbif_matches(params, reporter=None):
         occurrence_filepath = os.path.join(output_dir, occurrence_filename)
 
         if not os.path.exists(info_filepath):
-            print(f"Error: Taxa info file not found at {info_filepath}")
             return
         if not os.path.exists(occurrence_filepath):
-            print(f"Error: Occurrence file not found at {occurrence_filepath}")
             return
 
-        print("Reading files to mark selected GBIF matches...")
         info_df = pd.read_csv(info_filepath)
         
         if info_df.empty:
-            print(f"Skipping marking for empty file: {info_filename}")
             return
             
         occurrence_df = pd.read_csv(occurrence_filepath, usecols=['verbatimIdentification', 'taxonID'])
@@ -48,7 +43,8 @@ def mark_selected_gbif_matches(params, reporter=None):
         # Identify the selected verbatim-taxon pairs from the occurrence file.
         # We only need the unique pairs that were chosen.
         selected_pairs = occurrence_df[['verbatimIdentification', 'taxonID']].drop_duplicates()
-        print(f"Found {len(selected_pairs)} unique selected pairs in the occurrence file.")
+        if reporter:
+            reporter.add_text(f"Found {len(selected_pairs)} unique selected pairs in the occurrence file.")
 
         # Use a merge operation to find all candidate matches in the info file.
         # This is more robust than iterating or using sets.
@@ -74,7 +70,8 @@ def mark_selected_gbif_matches(params, reporter=None):
         info_df.to_csv(info_filepath, index=False, na_rep='')
         
         num_selected = info_df['selected_match'].sum()
-        print(f"Successfully marked {num_selected} selected matches in {info_filename}.")
+        if reporter:
+            reporter.add_text(f"Marked {num_selected} selected matches in {info_filename}.")
 
         # If a reporter object is provided, force it to update its internal
         # dataframe from the file we just saved. This ensures the report
@@ -82,14 +79,12 @@ def mark_selected_gbif_matches(params, reporter=None):
         if reporter:
             try:
                 reporter.update_dataframe_from_file(info_filename, info_filepath)
-                print(f"Successfully notified reporter to update its view of '{info_filename}'.")
-            except Exception as e:
-                print(f"Warning: Could not update reporter view for {info_filename}. Report may be stale. Error: {e}")
+            except Exception:
+                pass
 
     except Exception as e:
-        print(f"An error occurred during GBIF match marking: {str(e)}")
-        import traceback
-        traceback.print_exc()
+        if reporter:
+            reporter.add_warning(f"GBIF match marking error: {str(e)}")
 
 if __name__ == '__main__':
     # This block allows the script to be run standalone for testing

@@ -15,6 +15,12 @@ import xml.etree.ElementTree as ET
 # Add the src-v3 directory to Python path for imports
 sys.path.insert(0, "src-v3")
 
+# CLI UI
+from cli_output.cli_ui import (
+    console, print_header, print_usage, print_separator,
+    silence_output, silence_stdout, silence_stdouterr
+)
+
 # Import required libraries
 import numpy as np
 import pandas as pd
@@ -917,7 +923,10 @@ def load_darwin_core_mappings(params, reporter):
 def main():
     """Main execution function"""
     # --- Load config first to get params for reporter initialization ---
-    
+    print_header()
+    print_usage()
+    print_separator("Starting Conversion")
+
     # Always load the default config file first to check for a custom path
     default_config_path = "config.yaml"
     final_config_path = default_config_path
@@ -929,13 +938,13 @@ def main():
         # Check if a different config file is specified within the default config
         if 'run_config_path' in initial_config and initial_config['run_config_path'] and initial_config['run_config_path'] != default_config_path:
             final_config_path = initial_config['run_config_path']
-            print(f"Redirecting to custom config file: {final_config_path}")
+            console.print(f"Using config file: {final_config_path}")
 
         # Load the final configuration
         params = load_config(final_config_path)
 
     except Exception as e:
-        print(f"CRITICAL ERROR: Could not load configuration file. {e}")
+        console.print(f"[bold red]CRITICAL ERROR[/]: Could not load configuration file. {e}")
         # We can't create a report if config fails, so exit.
         return
 
@@ -949,20 +958,16 @@ def main():
     report_path = os.path.join(output_dir, report_filename)
     reporter = HTMLReporter(report_path, run_name)
     
-    print("Starting edna2obis conversion...")
-    print("="*50)
-    
     try:
         reporter.add_section("Data Cleaning", level=1)
         reporter.add_text_with_submission_logos("Starting initial data cleaning of eDNA metadata and raw data from FAIRe NOAA format to Darwin Core for OBIS and GBIF submission")
         
         # --- Report on the loaded configuration ---
-        print("🔄 Loading and Cleaning Data...")
+        console.print("Loading and cleaning data...")
         reporter.add_section("Loading Configuration", level=2)
         reporter.add_success("Configuration loaded successfully")
         
         # Save the config file used for this run
-        print("💾 Saving configuration file...")
         save_config_for_run(params, reporter, final_config_path)
         
         reporter.add_list([
@@ -975,63 +980,67 @@ def main():
         ], "Configuration Summary:")
         
         # Set up pandas display options
-        print("Setting up Pandas display options...")
         setup_pandas_display()
         
         # Load project data
-        print("Loading project data and metadata...")
+        console.print("Loading project data and metadata...")
         data = load_project_data(params, reporter)
         
         # Load ASV data
-        print("Loading ASV data...")
+        console.print("Loading ASV data...")
         raw_data_tables = load_asv_data(params, reporter)
         
         # Remove control samples
-        print("Removing control samples...")
+        console.print("Removing control samples...")
         data, raw_data_tables = remove_control_samples(data, raw_data_tables, params, reporter)
         
         # Drop columns with all NAs
-        print("Dropping columns with all NAs...")
+        console.print("Dropping columns with all NAs...")
         data = drop_all_na_columns(data, reporter)
         
         # Drop NA rows of each analysisMetadata sheet
-        print("Dropping empty analysis metadata rows...")
+        console.print("Dropping empty analysis metadata rows...")
         data = drop_empty_analysis_rows(data, reporter)
         
-        # Drop columns with some missing values
-        print("Dropping columns with some missing values...")
+        # Optional: drop columns with some missing values (quiet)
         data = drop_some_na_columns(data, reporter)
         
         # Load Darwin Core mappings
-        print("Loading Darwin Core mappings...")
+        console.print("Loading Darwin Core mappings...")
         dwc_data, checklist_df = load_darwin_core_mappings(params, reporter)
         
         # Create occurrence core
-        print("📄 Creating Occurrence Core...")
+        console.print("Creating Occurrence Core...")
         occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
         
         # Perform taxonomic assignment
-        print("🐟 Performing taxonomic assignment...")
-        assign_taxonomy(params, data, raw_data_tables, reporter)
+        console.print("[bold]Starting Taxonomic Assignment...[/]")
+        with console.status("Running Taxonomic Assignment...", spinner="dots"):
+            # Suppress logs/errors but leave stdout for spinner
+            with silence_output():
+                assign_taxonomy(params, data, raw_data_tables, reporter)
+        console.print("[green]Finished Taxonomic Assignment.[/]")
         
         # Create taxa assignment info file
         from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
-        create_taxa_assignment_info(params, reporter)
+        with silence_output():
+            create_taxa_assignment_info(params, reporter)
         
         # After creating the GBIF info file, remove any duplicate rows
         if params.get('taxonomic_api_source') == 'GBIF':
             from taxonomic_assignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
-            print("Removing duplicate rows from GBIF taxa info file...")
-            remove_duplicates_from_gbif_taxa_info(params)
+            with silence_output():
+                remove_duplicates_from_gbif_taxa_info(params, reporter)
 
             from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
-            print("Marking selected matches in GBIF taxa info file...")
-            mark_selected_gbif_matches(params, reporter)
+            with silence_output():
+                mark_selected_gbif_matches(params, reporter)
 
         elif params.get('taxonomic_api_source') == 'WoRMS':
             from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
-            print("Marking selected matches in WoRMS taxa info file...")
-            mark_selected_worms_matches(params, reporter)
+            # Suppress internal prints while keeping spinner visible (spinner already ended here)
+            with silence_output():
+                mark_selected_worms_matches(params, reporter)
             
         # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
@@ -1057,14 +1066,16 @@ def main():
             reporter.add_text(f"⚠️ Warning: Could not delete intermediate occurrence.csv: {e}")
         
         # Create DNA derived extension
-        print("📄 Creating DNA derived extension...")
-        create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter)
+        console.print("Creating DNA derived extension...")
+        with silence_output():
+            create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter)
         
         # Create eMoF file (optional)
         if params.get('emof_enabled', True):
-            print("📄 Creating eMoF (extendedMeasurementOrFact)...")
+            console.print("Creating eMoF (extendedMeasurementOrFact)...")
             try:
-                emof_path = create_emof_table(params, occurrence_core, data, reporter)
+                with silence_output():
+                    emof_path = create_emof_table(params, occurrence_core, data, reporter)
                 reporter.add_text(f"eMoF saved to: {emof_path}")
             except Exception as e:
                 reporter.add_warning(f"eMoF creation failed: {e}")
@@ -1073,10 +1084,11 @@ def main():
         
         # Create EML file (optional)
         if params.get('eml_enabled', False):
-            print("📄 Creating EML (Ecological Metadata Language) file...")
+            console.print("Creating EML (Ecological Metadata Language) file...")
             try:
                 from create_EML.EML_builder import create_eml_file
-                eml_path = create_eml_file(params, data, reporter)
+                with silence_output():
+                    eml_path = create_eml_file(params, data, reporter)
                 reporter.add_text(f"EML saved to: {eml_path}")
             except Exception as e:
                 reporter.add_warning(f"EML creation failed: {e}")
@@ -1148,8 +1160,8 @@ def main():
             reporter.set_success()
             
         # Generate final report
-        print("\n🎉 Process completed!")
-        print("Generating HTML report...")
+        console.print("\n[bold green]Process completed.[/]")
+        console.print("Generating HTML report...")
         
         reporter.add_section("Process Completion")
         reporter.add_success("All steps completed successfully!")
@@ -1182,11 +1194,22 @@ def main():
             if os.path.exists(filepath):
                 size_mb = os.path.getsize(filepath) / (1024*1024)
                 reporter.add_text(f"✓ {filename} ({size_mb:.2f} MB)")
+                # Clean CLI success messages for final outputs
+                if filename.startswith("occurrence_core_"):
+                    console.print(f"[green]Created Occurrence Core:[/] {filepath}")
+                elif filename == "dna_derived_extension.csv":
+                    console.print(f"[green]Created DNA Derived Extension:[/] {filepath}")
+                elif filename == "eMoF.csv":
+                    console.print(f"[green]Created eMoF:[/] {filepath}")
+                elif filename.endswith(".html"):
+                    console.print(f"[green]HTML report:[/] {filepath}")
+                elif filename.endswith(".xml"):
+                    console.print(f"[green]EML generated:[/] {filepath}")
             else:
                 reporter.add_text(f"✗ {filename} (not found)")
         
     except Exception as e:
-        print(f"\n❌ Error during processing: {str(e)}")
+        console.print(f"\n[bold red]Error during processing:[/] {str(e)}")
         error_msg = f"Pipeline failed: {str(e)}"
         reporter.add_error(error_msg)
         reporter.add_text("Full traceback:")
@@ -1197,9 +1220,8 @@ def main():
     
     finally:
         # Save the report
-        print(f"HTML report saved: {reporter.filename}")
-        print("\n✓ edna2obis conversion complete!")
         reporter.save()
+        console.print("\nedna2obis conversion complete.")
         reporter.open_in_browser()
 
 

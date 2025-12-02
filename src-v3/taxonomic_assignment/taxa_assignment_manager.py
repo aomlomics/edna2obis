@@ -54,7 +54,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             if local_db_path and os.path.exists(local_db_path):
                 try:
                     reporter.add_text(f"🧬 Loading local reference database from: {local_db_path}")
-                    print(f"🧬 Loading local reference database from: {local_db_path}")
                     
                     local_df = pd.read_excel(local_db_path, index_col=None, na_values=[""])
                     
@@ -71,24 +70,20 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     
                     reporter.add_success(f"Successfully loaded local reference database with {len(params['pr2_worms_dict'])} AphiaID mappings")
                     reporter.add_text("This will significantly speed up taxonomic matching via direct AphiaID lookup!")
-                    print(f"✅ Successfully loaded local reference database with {len(params['pr2_worms_dict'])} AphiaID mappings")
                     
                 except Exception as e:
                     reporter.add_warning(f"Could not load local reference database: {e}")
                     params['pr2_worms_dict'] = {}
-                    print(f"⚠️ Could not load local reference database: {e}")
             else:
                 reporter.add_warning(f"Local reference database enabled but file not found at: {local_db_path}")
                 params['pr2_worms_dict'] = {}
-                print(f"⚠️ Local reference database enabled but file not found at: {local_db_path}")
         else:
             if use_local_db and api_source != 'WoRMS':
                 reporter.add_warning("Local reference database optimization is only available for WoRMS API")
             params['pr2_worms_dict'] = {}
         
         # Determine maximum taxonomic ranks for each assay
-        reporter.add_text("Determining maximum taxonomic ranks for each assay...")
-        print("Determining maximum taxonomic ranks for each assay...")
+        # Determine maximum taxonomic ranks for each assay (silent)
         
         assay_rank_info = {}
         if raw_data_tables and data.get('analysis_data_by_assay'):
@@ -110,17 +105,14 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                             rank_cols = tax_df.columns[start_idx:end_idx].tolist()
                             
                             assay_rank_info[assay_name] = {'max_depth': len(rank_cols)}
-                            reporter.add_text(f"  - Assay '{assay_name}': {len(rank_cols)} rank columns")
-                            print(f"  - Assay '{assay_name}': {len(rank_cols)} rank columns")
                         except (KeyError, ValueError):
-                            reporter.add_text(f"  - Assay '{assay_name}': Using default 7 ranks (columns not found)")
                             assay_rank_info[assay_name] = {'max_depth': 7}
         
         # Fallback for any missing assays
         for assay in df_to_match['assay_name'].unique():
             if assay not in assay_rank_info:
                 assay_rank_info[assay] = {'max_depth': 7}
-                reporter.add_text(f"  - Assay '{assay}': Using default 7 ranks")
+                pass
         
         params['assay_rank_info'] = assay_rank_info
         
@@ -143,12 +135,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         captured_output = io.StringIO()
         
         reporter.add_text("Starting taxonomic matching process...")
-        print(f"🐟 Starting taxonomic assignment using {api_source} API...")
         
         try:
             # Run the matching with both logging and stdout/stderr capture
             if api_source == 'WoRMS':
-                print("Running WoRMS API matching...")
                 with redirect_stdout(captured_output), redirect_stderr(captured_output):
                     # The function now returns a dict with 'main_df' and 'info_df'
                     worms_results = WoRMS_v3_matching.get_worms_match_for_dataframe(
@@ -160,7 +150,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 # Store the detailed info df in params to pass it to the next function
                 params['taxa_info_df'] = worms_results['info_df']
             elif api_source == 'GBIF':
-                print("Running GBIF API matching...")
                 # The 'with' block that captures output is temporarily disabled for debugging
                 # to allow real-time logs to appear on the console.
                 # with redirect_stdout(captured_output), redirect_stderr(captured_output):
@@ -189,13 +178,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             if all_progress:
                 progress_text = "\n".join(all_progress)
-                print("\n🐟 Taxonomic matching progress:")
-                print(progress_text)
-                # Add to HTML report
+                # Add to HTML report only
                 reporter.add_text("Taxonomic matching progress:")
                 reporter.add_text(f"<pre>{progress_text}</pre>")
             else:
-                print("📊 Taxonomic matching completed (no detailed progress captured)")
                 reporter.add_text("Taxonomic matching completed")
             
         except Exception as e:
@@ -203,11 +189,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             stdout_output = captured_output.getvalue()
             log_output = log_capture_string.getvalue()
             if stdout_output or log_output:
-                print("Progress before error:")
-                if stdout_output:
-                    print("Console:", stdout_output)
-                if log_output:
-                    print("Logs:", log_output)
                 reporter.add_text(f"Progress before error:<pre>{stdout_output}\n{log_output}</pre>")
             raise e
         finally:
@@ -219,7 +200,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             # Apply post-processing for WoRMS (the manual corrections)
             if api_source == 'WoRMS':
                 reporter.add_text("Applying manual taxonomic corrections...")
-                print("🔧 Applying manual taxonomic corrections...")
                 
                 # Define all taxonomic rank columns that need to be managed
                 ALL_TAX_RANKS = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'taxonRank']
@@ -268,7 +248,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             elif api_source == 'GBIF':
                 reporter.add_text("Applying manual taxonomic corrections for GBIF...")
-                print("🔧 Applying manual taxonomic corrections for GBIF...")
                 
                 # Define all taxonomic rank columns that need to be managed (GBIF doesn't have scientificNameID)
                 ALL_TAX_RANKS_GBIF = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'taxonRank']
@@ -356,9 +335,6 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
     except Exception as e:
         reporter.add_error(f"Taxonomic assignment failed: {str(e)}")
-        print(f"❌ Taxonomic assignment failed: {str(e)}")
-        import traceback
-        traceback.print_exc()
 
 
 def create_taxa_assignment_info(params, reporter):
@@ -369,7 +345,7 @@ def create_taxa_assignment_info(params, reporter):
     """
     try:
         reporter.add_section("Creating Taxa Assignment Info File")
-        print("📄 Creating taxa assignment info file...")
+        # quiet CLI; report in HTML only
         
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
         taxa_info = pd.DataFrame()
@@ -454,9 +430,8 @@ def create_taxa_assignment_info(params, reporter):
         if os.path.exists(output_path):
             file_size = os.path.getsize(output_path) / (1024*1024)  # Size in MB
             reporter.add_text(f"File size: {file_size:.2f} MB")
-            print(f"✅ Taxa assignment info created! Saved {len(taxa_info):,} rows to {output_filename}")
         else:
-            reporter.add_error("❌ Error: File was not created")
+            reporter.add_error("Error: File was not created")
             
         # Add detailed explanation and table view to the report
         reporter.add_text("<h3>Detailed Taxa Assignment Information</h3>")
@@ -487,9 +462,6 @@ def create_taxa_assignment_info(params, reporter):
         
     except Exception as e:
         reporter.add_error(f"Taxa assignment info creation failed: {str(e)}")
-        print(f"❌ Taxa assignment info creation failed: {str(e)}")
-        import traceback
-        traceback.print_exc()
 
 
 

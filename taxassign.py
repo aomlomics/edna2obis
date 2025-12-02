@@ -3,11 +3,14 @@ import sys
 import argparse
 import pandas as pd
 
-# Making sure we can import taxonomic assignment scripts 
+# Ensure we can import from src-v3 before importing CLI UI
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
 SRC_DIR = os.path.join(THIS_DIR, 'src-v3')
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
+
+# CLI UI
+from cli_output.cli_ui import console, print_header, silence_output
 
 
 # ------------------------------
@@ -101,14 +104,18 @@ def run_taxassign(input_path: str,
         'assay_rank_info': {'taxassign': {'max_depth': 99}},
     }
 
-    if api == 'GBIF':
-        from taxonomic_assignment.GBIF_matching import get_gbif_match_for_dataframe
-        results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc)
-        info_df = results.get('info_df', pd.DataFrame())
-    else:
-        from taxonomic_assignment.WoRMS_v3_matching import get_worms_match_for_dataframe
-        results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc)
-        info_df = results.get('info_df', pd.DataFrame())
+    console.print("[bold]Starting Taxonomic Assignment...[/]")
+    with console.status("Running Taxonomic Assignment...", spinner="dots"):
+        with silence_output():
+            if api == 'GBIF':
+                from taxonomic_assignment.GBIF_matching import get_gbif_match_for_dataframe
+                results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc)
+                info_df = results.get('info_df', pd.DataFrame())
+            else:
+                from taxonomic_assignment.WoRMS_v3_matching import get_worms_match_for_dataframe
+                results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc)
+                info_df = results.get('info_df', pd.DataFrame())
+    console.print("[green]Finished Taxonomic Assignment.[/]")
 
     if info_df is None or info_df.empty:
         info_df = pd.DataFrame({'verbatimIdentification': []})
@@ -131,13 +138,15 @@ def run_taxassign(input_path: str,
 
     _write_tsv(info_df_limited, out_path)
 
-    print(f"Wrote {len(info_df_limited):,} rows to {out_path}")
+    console.print(f"[green]Wrote {len(info_df_limited):,} rows[/] to {out_path}")
     return out_path
 
 
 def main():
+    print_header()
     parser = argparse.ArgumentParser(
-        description="Run taxonomy assignment on a list of verbatimIdentification strings and emit an INFO-style TSV."
+        description="Run taxonomy assignment on a list of verbatimIdentification strings and emit an INFO-style TSV.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
         '-i', '--input', default=DEFAULTS['INPUT_PATH'],

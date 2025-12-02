@@ -51,9 +51,9 @@
         <div class="metadata">
             <h3>Run Information</h3>
             <div class="run-name-display"><h2>Run name: Whale_Prey_Taxa_Testing_20251015</h2></div>
-            <p><strong>Start Time:</strong> 2025-10-17 17:22:46</p>
-            <p><strong>End Time:</strong> 2025-10-17 17:22:48</p>
-            <p><strong>Duration:</strong> 0:00:02</p>
+            <p><strong>Start Time:</strong> 2025-12-01 23:39:03</p>
+            <p><strong>End Time:</strong> 2025-12-01 23:39:26</p>
+            <p><strong>Duration:</strong> 0:00:22</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html</p>
         </div>
 
@@ -1520,9 +1520,6 @@
 <p>Loaded occurrence data: 912 records</p>
 <p>Using API source: GBIF</p>
 <p>Assays configured to skip species-level matching: None</p>
-<p>Determining maximum taxonomic ranks for each assay...</p>
-<p>  - Assay 'Fish-12S-MiFish-Miya-Stoeckle': 7 rank columns</p>
-<p>  - Assay 'Fish-12S-Riaz': 7 rank columns</p>
 <p>Starting taxonomic matching process...</p>
 <p>Taxonomic matching completed</p>
 <p>Applying manual taxonomic corrections for GBIF...</p>
@@ -1531,16 +1528,16 @@
 <p>Adjusted final columns for GBIF standard: Removed 'scientificNameID'.</p>
 <p>Removed temporary columns: ['assay_name', 'scientificNameID']</p>
 <div class="alert alert-success">Taxonomic assignment completed! Saved 912 records to occurrence_core_gbif.csv</div>
-<p>Summary: 147 unique taxa identified</p>
+<p>Summary: 148 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
 <p>Using detailed match data from GBIF process for info file.</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
-<p>Saved taxa assignment info: 452 total rows (151 unique strings)</p>
+<p>Saved taxa assignment info: 450 total rows (151 unique strings)</p>
 <p>Output file: taxa_assignment_INFO_GBIF.csv</p>
 <p>File size: 0.12 MB</p>
 <p><h3>Detailed Taxa Assignment Information</h3></p>
 <p><p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. This allows for manual review and complete transparency.</p><ul><li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li><li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li><li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li><li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li><li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li><li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li><li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li></ul></p>
-<h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 227 rows × 15 columns</p><p><em>Showing first 20 rows of 227 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Preview of taxa_assignment_INFO_GBIF.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 223 rows × 15 columns</p><p><em>Showing first 20 rows of 223 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1924,6 +1921,9 @@
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p>Deduplicated taxa_assignment_INFO_GBIF.csv: removed 227 duplicate rows.</p>
+<p>Found 151 unique selected pairs in the occurrence file.</p>
+<p>Marked 151 selected matches in taxa_assignment_INFO_GBIF.csv.</p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
 <p>Building DNA derived extension from occurrence core (one row per occurrence)...</p>
@@ -1940,9 +1940,10 @@
 <p>✓ Merged with experimentRunMetadata and sampleMetadata.</p>
 <p>Aliased fields: sampleMetadata=12, experimentRunMetadata=1</p>
 <p>Applying specific unit logic...</p>
-<p>✓ Ensured 'size_fracUnit' present (default 'micrometer' if missing).</p>
 <p>✓ Populated 'concentrationUnit' from source 'concentration_unit' column.</p>
+<p>✓ Populated 'size_fracUnit' from source 'size_frac_unit' column.</p>
 <p>✓ Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.</p>
+<p>✓ Populated 'samp_size_unit' from source 'samp_size_unit' column.</p>
 <p>Combining specified value and unit fields...</p>
 <div class="alert alert-success">Combined 'size_frac' and 'size_fracUnit'.</div>
 <div class="alert alert-success">Combined 'samp_vol_we_dna_ext' and 'samp_vol_we_dna_extUnit'.</div>
@@ -2020,8 +2021,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2055,8 +2056,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2090,8 +2091,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2125,8 +2126,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2160,8 +2161,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2195,8 +2196,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2230,8 +2231,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2265,8 +2266,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2300,8 +2301,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2335,8 +2336,8 @@
       <td>Niskin bottle</td>
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>0.45 micrometer</td>
-      <td>2 <NA></td>
-      <td>2 mL</td>
+      <td>2 L</td>
+      <td>2 L</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>1.57</td>
       <td>ng/µl</td>
@@ -2547,7 +2548,7 @@
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: c5901cd1-91c6-47bc-be86-597004142c9a/eml-1.xml</p>
+<p>📦 Package ID: 3f8e9701-da84-45bf-aa3b-e647b5729a3f/eml-1.xml</p>
 <p>📏 File size: 7.1 KB</p>
 <p>🏗️ XML structure: 110 total elements</p>
 <div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
@@ -2565,7 +2566,7 @@
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
 <p>✓ occurrence_core_gbif.csv (0.78 MB)</p>
-<p>✓ taxa_assignment_INFO_GBIF.csv (0.07 MB)</p>
+<p>✓ taxa_assignment_INFO_GBIF.csv (0.06 MB)</p>
 <p>✓ dna_derived_extension.csv (1.16 MB)</p>
 <p>✓ eMoF.csv (6.60 MB)</p>
 <p>✓ eml.xml (0.01 MB)</p>
