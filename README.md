@@ -308,6 +308,12 @@ If you only want to assign taxonomy to a list of identifiers (without running th
 - Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxassign_example_input.tsv`.
 - Output: a TSV listing all matches (up to N per input) with fields like `scientificName`, rank fields, identifiers, `confidence` (GBIF), and `nameAccordingTo`.
 
+Help:
+
+```bash
+python taxassign.py --help
+```
+
 Examples:
 
 ```bash
