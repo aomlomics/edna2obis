@@ -56,7 +56,7 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
             result = {
                 'scientificName': record.get('scientificname'), 'scientificNameID': record.get('lsid'),
                 'taxonRank': record.get('rank'), 'nameAccordingTo': api_source_for_record,
-                'match_type_debug': f'Success_AphiaID_{aphia_id_to_check}'
+                'match_type_debug': f'Success_AphiaID_{aphia_id_to_check}', 'name_change': False
             }
             for rank_std in DWC_RANKS_STD:
                 result[rank_std] = record.get(rank_std.lower())
@@ -64,7 +64,7 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
     except Exception:
         pass
     
-    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}'}
+    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}', 'name_change': False}
 
 def get_worms_batch_worker(batch_info):
     """
@@ -77,13 +77,11 @@ def get_worms_batch_worker(batch_info):
     try:
         batch_results_raw = pyworms.aphiaRecordsByMatchNames(chunk)
 
-        # Process results efficiently
         for j, name_list in enumerate(batch_results_raw):
             if not name_list:
                 continue
 
-            accepted_matches = []
-            seen_ids = set()
+            accepted_by_lsid = {}
 
             for match in name_list:
                 if not match:
@@ -91,6 +89,7 @@ def get_worms_batch_worker(batch_info):
 
                 status = match.get('status')
                 record_to_use = None
+                name_changed = False
 
                 # Case 1: already an accepted record
                 if status == 'accepted':
@@ -109,8 +108,8 @@ def get_worms_batch_worker(batch_info):
                             resolved = pyworms.aphiaRecordByAphiaID(valid_aphia)
                             if resolved and resolved.get('status') == 'accepted':
                                 record_to_use = resolved
+                                name_changed = True
                         except Exception:
-                            # If resolution of the valid AphiaID fails, just skip this synonym.
                             record_to_use = None
 
                 # Ignore any other statuses
@@ -118,27 +117,29 @@ def get_worms_batch_worker(batch_info):
                     continue
 
                 sci_id = record_to_use.get('lsid')
-                if sci_id in seen_ids:
-                    # Avoid duplicates when multiple inputs resolve to the same accepted taxon
+                if not sci_id:
                     continue
-                seen_ids.add(sci_id)
 
-                # Build result dict from the accepted record (direct or via valid name)
-                res = {
-                    'scientificName': record_to_use.get('scientificname'),
-                    'scientificNameID': record_to_use.get('lsid'),
-                    'taxonRank': record_to_use.get('rank')
-                }
-                # Add rank columns
-                for rank in DWC_RANKS_STD:
-                    res[rank] = record_to_use.get(rank.lower())
+                existing = accepted_by_lsid.get(sci_id)
+                if existing is None:
+                    res = {
+                        'scientificName': record_to_use.get('scientificname'),
+                        'scientificNameID': record_to_use.get('lsid'),
+                        'taxonRank': record_to_use.get('rank'),
+                        'name_change': name_changed
+                    }
+                    for rank in DWC_RANKS_STD:
+                        res[rank] = record_to_use.get(rank.lower())
+                    accepted_by_lsid[sci_id] = res
+                else:
+                    if name_changed and not existing.get('name_change'):
+                        existing['name_change'] = True
 
-                accepted_matches.append(res)
+            accepted_matches = list(accepted_by_lsid.values())
 
             if accepted_matches:
-                # Store list of all accepted/valid-name-resolved matches for this queried name
                 batch_results[chunk[j]] = accepted_matches
-
+            
         return batch_num, batch_results
 
     except Exception:
@@ -213,7 +214,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis',
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
-                'cleanedTaxonomy': cleaned_verbatim
+                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False
             }
             for col in DWC_RANKS_STD:
                 incertae_sedis_record[col] = None
@@ -357,7 +358,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             no_match_record = {
                 'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None, 'nameAccordingTo': api_source,
-                'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy
+                'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
+                'name_change': False
             }
             for col in DWC_RANKS_STD:
                 no_match_record[col] = None
@@ -369,7 +371,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     empty_fallback_record = { 
         'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
         'taxonRank': None, 'nameAccordingTo': api_source,
-        'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': ''
+        'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
+        'name_change': False
     }
     for col in DWC_RANKS_STD:
         empty_fallback_record[col] = None
