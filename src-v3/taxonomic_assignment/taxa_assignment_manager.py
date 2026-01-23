@@ -385,7 +385,7 @@ def create_taxa_assignment_info(params, reporter):
         # Define final column order, now including selected_match and consistency_check
         if api_source == 'worms':
             final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'selected_match',
+                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change', 'selected_match',
                 'scientificName', 'taxonRank', 'scientificNameID', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
             ]

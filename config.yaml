@@ -65,8 +65,8 @@ locationID_components:
 # STEP 6:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
-# taxonomic_api_source: "WoRMS"
-taxonomic_api_source: "GBIF"
+# taxonomic_api_source: "GBIF"
+taxonomic_api_source: "WoRMS"
 
 # Define the maximum number of matches to request from the GBIF API for each unique taxonomy string.
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.

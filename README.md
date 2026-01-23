@@ -306,7 +306,7 @@ The pipeline will:
 If you only want to assign taxonomy to a list of identifiers (without running the full edna2obis workflow), use `taxassign.py`.
 
 - Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxassign_example_input.tsv`.
-- Output: a TSV listing all matches (up to N per input) with fields like `scientificName`, rank fields, identifiers, `confidence` (GBIF), and `nameAccordingTo`.
+- Output: a TSV listing all matches (up to N per input) with fields like `scientificName`, rank fields, identifiers, `confidence` (GBIF), and `nameAccordingTo`. For WoRMS runs, an additional `name_change` column indicates when WoRMS resolved an unaccepted name to its accepted valid name.
 
 Help:
 
@@ -401,7 +401,7 @@ The pipeline generates several files in your output directory:
 Also writes `taxa_assignment_INFO_WoRMS.csv` or `taxa_assignment_INFO_GBIF.csv`, listing all candidate matches and indicating which one was selected.
 
 ### taxa_assignment_INFO (GBIF example)
-This file displays all potential taxonomic assignments for each unique taxonomy. If a taxonomic assignment appears incorrect in your Occurrence Core, you can refer to this file to explore alternative assignments.
+This file displays all potential taxonomic assignments for each unique taxonomy. If a taxonomic assignment appears incorrect in your Occurrence Core, you can refer to this file to explore alternative assignments. For WoRMS-based runs, the corresponding `taxa_assignment_INFO_WoRMS.csv` file also includes a `name_change` column that flags rows where an initially unaccepted name on WoRMS has since changed to a new accepted name, and that edna2obis replaced the unaccepted name with its more up to date accepted valid name.
 
 | verbatimIdentification | cleanedTaxonomy | selected_match | scientificName | confidence | taxonRank | taxonID | kingdom | phylum | class | order | family | genus | match_type_debug | nameAccordingTo |
 |:--|:--|:--|:--|--:|:--|:--|:--|:--|:--|:--|:--|:--|:--|:--|
