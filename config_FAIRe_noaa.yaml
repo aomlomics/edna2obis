@@ -110,3 +110,19 @@ emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
 eml_enabled: false
 eml_config_path: "EML_config.yaml"
+
+# STEP 9: OPTIONAL - Split output files by cruise/expedition (short_name)
+# -----------------------------------------------------------------------------
+# If your sampleMetadata contains a 'short_name' column (cruise/expedition codes),
+# you can split the final output files into separate subfolders per short_name.
+# This is useful when databases require cruise-by-cruise submissions connected by a parent project.
+# 
+# When enabled:
+#   - Creates subfolders: {output_dir}/{short_name}/
+#   - Saves filtered files with suffix: occurrence_core_{api}_{short_name}.csv
+#   - Splits: occurrence_core, dna_derived_extension, eMoF
+#   - Does NOT split: HTML report, taxa_assignment_INFO
+#
+# IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
+#            Missing values will cause an error.
+split_output_by_short_name: true

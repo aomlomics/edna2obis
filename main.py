@@ -89,6 +89,9 @@ def load_config(config_path="config.yaml"):
         params['use_local_reference_database'] = config.get('use_local_reference_database', False)
         params['local_reference_database_path'] = config.get('local_reference_database_path', '')
         
+        # Output splitting by short_name (cruise/expedition)
+        params['split_output_by_short_name'] = config.get('split_output_by_short_name', False)
+        
         # --- NEW: Metadata format switcher ---
         params['metadata_format'] = config.get('metadata_format', 'NOAA').upper()
         
@@ -137,6 +140,149 @@ def save_config_for_run(params, reporter, config_path):
         error_msg = f"Failed to save config file: {str(e)}"
         reporter.add_warning(error_msg)
         return None
+
+
+def split_output_files_by_short_name(params, data, reporter):
+    """
+    Split output files into separate subfolders based on the 'short_name' column in sampleMetadata.
+    
+    This allows users to submit data cruise-by-cruise to databases that require separate submissions
+    connected by a parent project.
+    
+    Creates:
+        - {output_dir}/{short_name}/ subfolder for each unique short_name
+        - Filtered files with suffix: occurrence_core_{api}_{short_name}.csv, etc.
+    
+    Splits: occurrence_core, dna_derived_extension, eMoF
+    Does NOT split: HTML report, taxa_assignment_INFO, config file, eml.xml
+    """
+    reporter.add_section("Splitting Output Files by short_name", level=2)
+    
+    try:
+        output_dir = params.get('output_dir', 'processed-v3/')
+        api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
+        
+        # Check if short_name column exists in sampleMetadata
+        if 'sampleMetadata' not in data or data['sampleMetadata'].empty:
+            reporter.add_error("Cannot split by short_name: sampleMetadata is missing or empty.")
+            raise ValueError("sampleMetadata is missing or empty")
+        
+        sm_df = data['sampleMetadata']
+        
+        if 'short_name' not in sm_df.columns:
+            reporter.add_error(
+                "Cannot split by short_name: The 'short_name' column was not found in sampleMetadata. "
+                "Please add a 'short_name' column to your sampleMetadata sheet, or set 'split_output_by_short_name: false' in your config."
+            )
+            raise ValueError("'short_name' column not found in sampleMetadata")
+        
+        # Check for missing short_name values
+        missing_short_name = sm_df['short_name'].isna() | (sm_df['short_name'].astype(str).str.strip() == '')
+        if missing_short_name.any():
+            missing_samples = sm_df.loc[missing_short_name, 'samp_name'].tolist()
+            reporter.add_error(
+                f"Cannot split by short_name: {len(missing_samples)} sample(s) have missing or empty 'short_name' values. "
+                f"All samples must have a short_name when 'split_output_by_short_name' is enabled."
+            )
+            reporter.add_list(missing_samples[:20], "Samples with missing short_name (first 20):")
+            raise ValueError(f"{len(missing_samples)} samples have missing short_name values")
+        
+        # Get unique short_names
+        unique_short_names = sm_df['short_name'].astype(str).str.strip().unique().tolist()
+        reporter.add_text(f"Found {len(unique_short_names)} unique short_name value(s): {', '.join(unique_short_names)}")
+        
+        # Build lookup: samp_name -> short_name
+        samp_to_short_name = dict(zip(
+            sm_df['samp_name'].astype(str).str.strip(),
+            sm_df['short_name'].astype(str).str.strip()
+        ))
+        
+        # Build lookup: lib_id (eventID) -> short_name via experimentRunMetadata
+        event_to_short_name = {}
+        if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
+            erm_df = data['experimentRunMetadata']
+            if 'lib_id' in erm_df.columns and 'samp_name' in erm_df.columns:
+                for _, row in erm_df.iterrows():
+                    lib_id = str(row['lib_id']).strip()
+                    samp_name = str(row['samp_name']).strip()
+                    if samp_name in samp_to_short_name:
+                        event_to_short_name[lib_id] = samp_to_short_name[samp_name]
+        
+        reporter.add_text(f"Built eventID -> short_name lookup with {len(event_to_short_name)} entries.")
+        
+        # Define files to split
+        files_to_split = [
+            (f'occurrence_core_{api_choice}.csv', 'eventID'),
+            ('dna_derived_extension.csv', 'eventID'),
+        ]
+        
+        # Add eMoF if it exists
+        emof_path = os.path.join(output_dir, 'eMoF.csv')
+        if os.path.exists(emof_path):
+            files_to_split.append(('eMoF.csv', 'eventID'))
+        
+        # Process each short_name
+        for short_name in unique_short_names:
+            reporter.add_text(f"<h4>Processing short_name: '{short_name}'</h4>")
+            
+            # Create subfolder
+            short_name_dir = os.path.join(output_dir, short_name)
+            os.makedirs(short_name_dir, exist_ok=True)
+            reporter.add_text(f"Created subfolder: {short_name_dir}")
+            
+            # Get eventIDs belonging to this short_name
+            event_ids_for_short_name = {
+                event_id for event_id, sn in event_to_short_name.items() 
+                if sn == short_name
+            }
+            reporter.add_text(f"Found {len(event_ids_for_short_name)} eventID(s) for this short_name.")
+            
+            # Filter and save each file
+            for filename, filter_column in files_to_split:
+                source_path = os.path.join(output_dir, filename)
+                
+                if not os.path.exists(source_path):
+                    reporter.add_text(f"  ⚠️ Skipping {filename}: file not found")
+                    continue
+                
+                try:
+                    df = pd.read_csv(source_path, low_memory=False)
+                    
+                    if filter_column not in df.columns:
+                        reporter.add_warning(f"  ⚠️ Skipping {filename}: column '{filter_column}' not found")
+                        continue
+                    
+                    # Filter rows where eventID belongs to this short_name
+                    df[filter_column] = df[filter_column].astype(str).str.strip()
+                    filtered_df = df[df[filter_column].isin(event_ids_for_short_name)]
+                    
+                    # Generate output filename with short_name suffix
+                    base_name, ext = os.path.splitext(filename)
+                    output_filename = f"{base_name}_{short_name}{ext}"
+                    output_path = os.path.join(short_name_dir, output_filename)
+                    
+                    # Save filtered file
+                    filtered_df.to_csv(output_path, index=False, encoding='utf-8-sig')
+                    
+                    reporter.add_text(f"  ✓ {output_filename}: {len(filtered_df):,} rows (from {len(df):,} total)")
+                    
+                except Exception as e:
+                    reporter.add_warning(f"  ❌ Error processing {filename}: {str(e)}")
+        
+        reporter.add_success(f"Successfully split output files into {len(unique_short_names)} subfolder(s).")
+        
+        # Summary
+        summary_items = []
+        for short_name in unique_short_names:
+            short_name_dir = os.path.join(output_dir, short_name)
+            if os.path.exists(short_name_dir):
+                files_in_dir = [f for f in os.listdir(short_name_dir) if f.endswith('.csv')]
+                summary_items.append(f"<strong>{short_name}/</strong>: {len(files_in_dir)} file(s)")
+        reporter.add_list(summary_items, "Output folders created:")
+        
+    except Exception as e:
+        reporter.add_error(f"Failed to split output files by short_name: {str(e)}")
+        raise
 
 
 def load_project_data(params, reporter):
@@ -1151,6 +1297,21 @@ def main():
             reporter.add_section("Empty Column Cleanup", level=3)
             reporter.add_success("Removed completely empty columns from the final output files.")
             reporter.add_list(removed_columns_summary, "<h4>Summary of Removed Columns:</h4>")
+
+        # --- Split output files by short_name (cruise/expedition) if enabled ---
+        if params.get('split_output_by_short_name', False):
+            console.print("[bold]Splitting output files by short_name (cruise/expedition)...[/]")
+            try:
+                split_output_files_by_short_name(params, data, reporter)
+                console.print("[green]Output files split successfully![/]")
+            except Exception as e:
+                console.print(f"[bold red]Failed to split output files: {e}[/]")
+                reporter.add_error(f"Failed to split output files by short_name: {e}")
+                # Re-raise to stop the pipeline since user explicitly requested splitting
+                raise
+        else:
+            console.print("Skipping output file splitting (split_output_by_short_name=false)")
+            reporter.add_text("⏭️ Skipping output file splitting (split_output_by_short_name=false)")
 
         # --- Final Status Check ---
         # If any warnings were logged during the run, set the final status to WARNING

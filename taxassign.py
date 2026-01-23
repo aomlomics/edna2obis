@@ -145,7 +145,7 @@ def run_taxassign(input_path: str,
 def main():
     print_header()
     parser = argparse.ArgumentParser(
-        description="Run taxonomy assignment on a list of verbatimIdentification strings and emit an INFO-style TSV.",
+        description="Run taxonomy assignment on a CSV column named 'verbatimIdentification' and get a TSV with all matches via the selected API.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
