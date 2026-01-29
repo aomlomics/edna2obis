@@ -14,14 +14,20 @@ edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used 
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
 
-# STEP 2
-# Assign sheets from your FAIRe Excel metadata file
-# NOTE: Left side is what edna2obis calls that data. Right side must be the actual sheetname from your FAIRe Excel metadata file:
-sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
-experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
-projectMetadata: "projectMetadata" # Sheet name for project metadata
+# STEP 2: Metadata source — true = single Excel file, false = separate TSV files
+# Set to true or false; you can keep both sets of paths below. Only the chosen one is read.
+combined_metadata_file: true
 
+# combined_metadata_file: true — You have one Excel file, with all your metadata as seperate sheets in the same Excel file.
+sampleMetadata: "sampleMetadata"
+experimentRunMetadata: "experimentRunMetadata"
+projectMetadata: "projectMetadata"
 excel_file: "raw-v3/FAIRe_generic_example_dataset/noaa-aoml-gomecc4.xlsx"
+
+# combined_metadata_file: false — You have separate TSV files, one for each metadata sheet.
+sampleMetadata_file: "path/to/sampleMetadata.tsv"
+experimentRunMetadata_file: "path/to/experimentRunMetadata.tsv"
+projectMetadata_file: "path/to/projectMetadata.tsv"
 
 # STEP 3
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.

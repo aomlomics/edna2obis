@@ -47,10 +47,38 @@ def load_config(config_path="config.yaml"):
         
         params = {}
         
-        params['sampleMetadata'] = config['sampleMetadata']
-        params['experimentRunMetadata'] = config['experimentRunMetadata'] 
-        params['projectMetadata'] = config['projectMetadata']
-        params['excel_file'] = config['excel_file']
+        # Metadata source: one boolean chooses which paths to use.
+        # true = read from single Excel file (excel_file + sheet names)
+        # false = read from separate TSV files (sampleMetadata_file, experimentRunMetadata_file, projectMetadata_file)
+        # You can have both sets of paths in the config; this parameter decides which is used.
+        combined_metadata_file = config.get('combined_metadata_file', True)
+        params['use_excel'] = bool(combined_metadata_file)
+        
+        if params['use_excel']:
+            params['excel_file'] = config.get('excel_file')
+            params['sampleMetadata'] = config.get('sampleMetadata', 'sampleMetadata')
+            params['experimentRunMetadata'] = config.get('experimentRunMetadata', 'experimentRunMetadata')
+            params['projectMetadata'] = config.get('projectMetadata', 'projectMetadata')
+            if not params['excel_file']:
+                raise ValueError(
+                    "combined_metadata_file is true but 'excel_file' is missing or empty. "
+                    "Provide excel_file path, or set combined_metadata_file: false and provide TSV paths."
+                )
+        else:
+            params['sampleMetadata_file'] = config.get('sampleMetadata_file')
+            params['experimentRunMetadata_file'] = config.get('experimentRunMetadata_file')
+            params['projectMetadata_file'] = config.get('projectMetadata_file')
+            missing = [k for k, v in [
+                ('sampleMetadata_file', params['sampleMetadata_file']),
+                ('experimentRunMetadata_file', params['experimentRunMetadata_file']),
+                ('projectMetadata_file', params['projectMetadata_file']),
+            ] if not v]
+            if missing:
+                raise ValueError(
+                    f"combined_metadata_file is false but required paths are missing: {missing}. "
+                    "Provide sampleMetadata_file, experimentRunMetadata_file, and projectMetadata_file."
+                )
+        
         params['FAIRe_NOAA_checklist'] = config.get('FAIRe_NOAA_checklist') # Made optional
         params['datafiles'] = config['datafiles']
         params['skip_columns'] = config.get('skip_columns', [])
@@ -286,121 +314,243 @@ def split_output_files_by_short_name(params, data, reporter):
 
 
 def load_project_data(params, reporter):
-    """Load project, sample, experimentRun, and analysis data from FAIRe Excel file"""
+    """Load project, sample, experimentRun, and analysis data from FAIRe Excel file or TSV files"""
     reporter.add_section("Loading Project Data", level=2)
     
     try:
-        # Discover all sheets in the Excel file
-        excel = pd.ExcelFile(params['excel_file'])
-        all_sheets = excel.sheet_names
-        reporter.add_text(f"Found {len(all_sheets)} sheets in Excel file: {', '.join(all_sheets)}")
-
-        # --- Auto-detect metadata format if misconfigured ---
-        try:
-            has_analysis_sheets = any(str(s).startswith('analysisMetadata') for s in all_sheets)
-            current_fmt = params.get('metadata_format', 'NOAA')
-            if has_analysis_sheets and current_fmt != 'NOAA':
-                reporter.add_warning("Detected 'analysisMetadata' sheets in Excel. Switching metadata_format to 'NOAA' for this run.")
-                params['metadata_format'] = 'NOAA'
-            elif (not has_analysis_sheets) and current_fmt == 'NOAA':
-                reporter.add_warning("No 'analysisMetadata' sheets detected. Switching metadata_format to 'GENERIC' for this run.")
-                params['metadata_format'] = 'GENERIC'
-        except Exception as _fmt_e:
-            reporter.add_warning(f"Could not auto-detect metadata format: {_fmt_e}")
-        
-        # Find analysis metadata sheets based on the format
+        use_excel = params.get('use_excel', True)
         analysis_data_by_assay = {}
+        
+        if use_excel:
+            # --- EXCEL FORMAT (original implementation) ---
+            # Discover all sheets in the Excel file
+            excel = pd.ExcelFile(params['excel_file'])
+            all_sheets = excel.sheet_names
+            reporter.add_text(f"Found {len(all_sheets)} sheets in Excel file: {', '.join(all_sheets)}")
 
-        # --- FAIRe-NOAA FORMAT ---
-        # Uses separate analysisMetadata sheets for each run.
-        if params['metadata_format'] == 'NOAA':
-            analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
-            reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
+            # --- Auto-detect metadata format if misconfigured ---
+            try:
+                has_analysis_sheets = any(str(s).startswith('analysisMetadata') for s in all_sheets)
+                current_fmt = params.get('metadata_format', 'NOAA')
+                if has_analysis_sheets and current_fmt != 'NOAA':
+                    reporter.add_warning("Detected 'analysisMetadata' sheets in Excel. Switching metadata_format to 'NOAA' for this run.")
+                    params['metadata_format'] = 'NOAA'
+                elif (not has_analysis_sheets) and current_fmt == 'NOAA':
+                    reporter.add_warning("No 'analysisMetadata' sheets detected. Switching metadata_format to 'GENERIC' for this run.")
+                    params['metadata_format'] = 'GENERIC'
+            except Exception as _fmt_e:
+                reporter.add_warning(f"Could not auto-detect metadata format: {_fmt_e}")
 
-            for sheet_name in analysis_sheets:
-                analysis_df = pd.read_excel(params['excel_file'], sheet_name)
-                
-                assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
-                analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
-                
-                reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
-                
-                if assay_name not in analysis_data_by_assay:
-                    analysis_data_by_assay[assay_name] = {}
-                analysis_data_by_assay[assay_name][analysis_run_name] = analysis_df
+            # --- FAIRe-NOAA FORMAT ---
+            # Uses separate analysisMetadata sheets for each run.
+            if params['metadata_format'] == 'NOAA':
+                analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
+                reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
 
-        # --- GENERIC FAIRe FORMAT ---
-        # Synthesizes analysis metadata from projectMetadata sheet.
-        elif params['metadata_format'] == 'GENERIC':
-            reporter.add_text("Using GENERIC FAIRe format. Synthesizing analysis metadata from projectMetadata.")
-            
-            project_meta_df = pd.read_excel(params['excel_file'], params['projectMetadata'], index_col=None, na_values=[""], comment="#")
-            
-            # --- Build a map from assay_name to its column header (e.g., 'ssu16s...': 'assay1') ---
-            assay_map = {}
-            assay_name_row = project_meta_df[project_meta_df['term_name'] == 'assay_name']
-            if not assay_name_row.empty:
-                assay_name_series = assay_name_row.iloc[0]
-                for col_name, assay_name_val in assay_name_series.items():
-                    if col_name in ['term_name', 'project_level'] or pd.isna(assay_name_val):
-                        continue
-                    assay_map[assay_name_val] = col_name
-            
-            reporter.add_text(f"Built assay-to-column map from projectMetadata: {assay_map}")
-
-            for run_name, run_details in params['datafiles'].items():
-                assay_name = run_details.get('assay_name')
-                if not assay_name:
-                    reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Cannot process analysis-specific metadata.")
-                    continue
-
-                # --- Use the map to find the correct column name ---
-                if assay_name not in assay_map:
-                    reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found in the 'assay_name' row of projectMetadata. Please check for typos. Available assays found: {list(assay_map.keys())}")
-                    continue
-                
-                # Get the actual column name (e.g., 'assay1')
-                original_assay_col_name = assay_map[assay_name]
-                
-                # Synthesize the analysis DF
-                rows = []
-                for _, row in project_meta_df.iterrows():
-                    term_name = row['term_name']
-                    # Assay-specific value takes precedence over project-level value
-                    assay_specific_value = row[original_assay_col_name]
-                    project_level_value = row['project_level']
+                for sheet_name in analysis_sheets:
+                    analysis_df = pd.read_excel(params['excel_file'], sheet_name)
                     
-                    final_value = assay_specific_value if pd.notna(assay_specific_value) else project_level_value
-                    rows.append({'term_name': term_name, 'values': final_value})
-                
-                synthesized_df = pd.DataFrame(rows)
-                
-                # Build the nested dictionary structure
-                if assay_name not in analysis_data_by_assay:
-                    analysis_data_by_assay[assay_name] = {}
-                analysis_data_by_assay[assay_name][run_name] = synthesized_df
-                reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
+                    assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
+                    analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
+                    
+                    reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
+                    
+                    if assay_name not in analysis_data_by_assay:
+                        analysis_data_by_assay[assay_name] = {}
+                    analysis_data_by_assay[assay_name][analysis_run_name] = analysis_df
 
-        # Load the main data sheets
-        data = pd.read_excel(
-            params['excel_file'],
-            [params['projectMetadata'], params['sampleMetadata'], params['experimentRunMetadata']],
-            index_col=None, na_values=[""], comment="#"
-        )
+            # --- GENERIC FAIRe FORMAT ---
+            # Synthesizes analysis metadata from projectMetadata sheet.
+            elif params['metadata_format'] == 'GENERIC':
+                reporter.add_text("Using GENERIC FAIRe format. Synthesizing analysis metadata from projectMetadata.")
+                
+                project_meta_df = pd.read_excel(params['excel_file'], params['projectMetadata'], index_col=None, na_values=[""], comment="#")
+                
+                # --- Build a map from assay_name to its column header (e.g., 'ssu16s...': 'assay1') ---
+                assay_map = {}
+                assay_name_row = project_meta_df[project_meta_df['term_name'] == 'assay_name']
+                if not assay_name_row.empty:
+                    assay_name_series = assay_name_row.iloc[0]
+                    for col_name, assay_name_val in assay_name_series.items():
+                        if col_name in ['term_name', 'project_level'] or pd.isna(assay_name_val):
+                            continue
+                        assay_map[assay_name_val] = col_name
+                
+                reporter.add_text(f"Built assay-to-column map from projectMetadata: {assay_map}")
+
+                for run_name, run_details in params['datafiles'].items():
+                    assay_name = run_details.get('assay_name')
+                    if not assay_name:
+                        reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Cannot process analysis-specific metadata.")
+                        continue
+
+                    # --- Use the map to find the correct column name ---
+                    if assay_name not in assay_map:
+                        reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found in the 'assay_name' row of projectMetadata. Please check for typos. Available assays found: {list(assay_map.keys())}")
+                        continue
+                    
+                    # Get the actual column name (e.g., 'assay1')
+                    original_assay_col_name = assay_map[assay_name]
+                    
+                    # Synthesize the analysis DF
+                    rows = []
+                    for _, row in project_meta_df.iterrows():
+                        term_name = row['term_name']
+                        # Assay-specific value takes precedence over project-level value
+                        assay_specific_value = row[original_assay_col_name]
+                        project_level_value = row['project_level']
+                        
+                        final_value = assay_specific_value if pd.notna(assay_specific_value) else project_level_value
+                        rows.append({'term_name': term_name, 'values': final_value})
+                    
+                    synthesized_df = pd.DataFrame(rows)
+                    
+                    # Build the nested dictionary structure
+                    if assay_name not in analysis_data_by_assay:
+                        analysis_data_by_assay[assay_name] = {}
+                    analysis_data_by_assay[assay_name][run_name] = synthesized_df
+                    reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
+
+            # Load the main data sheets
+            data = pd.read_excel(
+                params['excel_file'],
+                [params['projectMetadata'], params['sampleMetadata'], params['experimentRunMetadata']],
+                index_col=None, na_values=[""], comment="#"
+            )
+            
+            # Rename keys to standard terms
+            data['sampleMetadata'] = data.pop(params['sampleMetadata'])
+            data['experimentRunMetadata'] = data.pop(params['experimentRunMetadata'])
+            data['projectMetadata'] = data.pop(params['projectMetadata'])
+            
+            # For backward compatibility
+            if params['metadata_format'] == 'NOAA':
+                analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
+                if analysis_sheets:
+                    data['analysisMetadata'] = pd.read_excel(params['excel_file'], analysis_sheets[0])
         
-        # Add analysis data to main data dictionary
+        else:
+            # --- TSV FORMAT (new implementation) ---
+            reporter.add_text("Using TSV file format. Loading separate TSV files for each metadata sheet.")
+            
+            # Load main metadata sheets from TSV files
+            data = {}
+            
+            # Load projectMetadata
+            project_meta_path = params['projectMetadata_file']
+            reporter.add_text(f"Loading projectMetadata from: {project_meta_path}")
+            data['projectMetadata'] = pd.read_csv(project_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            
+            # Load sampleMetadata
+            sample_meta_path = params['sampleMetadata_file']
+            reporter.add_text(f"Loading sampleMetadata from: {sample_meta_path}")
+            data['sampleMetadata'] = pd.read_csv(sample_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            
+            # Load experimentRunMetadata
+            exp_run_meta_path = params['experimentRunMetadata_file']
+            reporter.add_text(f"Loading experimentRunMetadata from: {exp_run_meta_path}")
+            data['experimentRunMetadata'] = pd.read_csv(exp_run_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            
+            # Handle analysis metadata based on format
+            if params['metadata_format'] == 'NOAA':
+                # For NOAA format with TSV, expect analysisMetadata_file in each datafiles entry
+                reporter.add_text("Using NOAA format with TSV files. Loading analysisMetadata from separate TSV files.")
+                
+                for run_name, run_details in params['datafiles'].items():
+                    assay_name = run_details.get('assay_name')
+                    analysis_meta_file = run_details.get('analysisMetadata_file')
+                    
+                    if not assay_name:
+                        reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Skipping analysis metadata.")
+                        continue
+                    
+                    if not analysis_meta_file:
+                        reporter.add_warning(f"For analysis run '{run_name}', 'analysisMetadata_file' is missing in config.yaml. Skipping analysis metadata for this run.")
+                        continue
+                    
+                    reporter.add_text(f"Loading analysisMetadata for run '{run_name}' (assay: '{assay_name}') from: {analysis_meta_file}")
+                    
+                    # Read the TSV file - TSV format should have term_name and values columns
+                    analysis_df = pd.read_csv(analysis_meta_file, sep='\t', na_values=[""], comment="#", low_memory=False)
+                    
+                    # Validate expected columns exist
+                    if 'term_name' not in analysis_df.columns:
+                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'term_name' column. Found columns: {list(analysis_df.columns)}")
+                        continue
+                    
+                    # The 'values' column might be named differently in TSV, check common names
+                    value_col = None
+                    for col in ['values', 'value', 'Values', 'Value']:
+                        if col in analysis_df.columns:
+                            value_col = col
+                            break
+                    
+                    if not value_col:
+                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'values' column. Found columns: {list(analysis_df.columns)}")
+                        continue
+                    
+                    # Rename to standard 'values' column name
+                    if value_col != 'values':
+                        analysis_df = analysis_df.rename(columns={value_col: 'values'})
+                    
+                    if assay_name not in analysis_data_by_assay:
+                        analysis_data_by_assay[assay_name] = {}
+                    analysis_data_by_assay[assay_name][run_name] = analysis_df
+                    reporter.add_text(f"Successfully loaded analysisMetadata for run '{run_name}' (assay: '{assay_name}')")
+            
+            elif params['metadata_format'] == 'GENERIC':
+                # For GENERIC format with TSV, synthesize from projectMetadata (same as Excel)
+                reporter.add_text("Using GENERIC FAIRe format with TSV files. Synthesizing analysis metadata from projectMetadata.")
+                
+                project_meta_df = data['projectMetadata']
+                
+                # --- Build a map from assay_name to its column header (e.g., 'ssu16s...': 'assay1') ---
+                assay_map = {}
+                assay_name_row = project_meta_df[project_meta_df['term_name'] == 'assay_name']
+                if not assay_name_row.empty:
+                    assay_name_series = assay_name_row.iloc[0]
+                    for col_name, assay_name_val in assay_name_series.items():
+                        if col_name in ['term_name', 'project_level'] or pd.isna(assay_name_val):
+                            continue
+                        assay_map[assay_name_val] = col_name
+                
+                reporter.add_text(f"Built assay-to-column map from projectMetadata: {assay_map}")
+
+                for run_name, run_details in params['datafiles'].items():
+                    assay_name = run_details.get('assay_name')
+                    if not assay_name:
+                        reporter.add_warning(f"For analysis run '{run_name}', 'assay_name' is missing in config.yaml. Cannot process analysis-specific metadata.")
+                        continue
+
+                    # --- Use the map to find the correct column name ---
+                    if assay_name not in assay_map:
+                        reporter.add_warning(f"Assay '{assay_name}' for run '{run_name}' not found in the 'assay_name' row of projectMetadata. Please check for typos. Available assays found: {list(assay_map.keys())}")
+                        continue
+                    
+                    # Get the actual column name (e.g., 'assay1')
+                    original_assay_col_name = assay_map[assay_name]
+                    
+                    # Synthesize the analysis DF
+                    rows = []
+                    for _, row in project_meta_df.iterrows():
+                        term_name = row['term_name']
+                        # Assay-specific value takes precedence over project-level value
+                        assay_specific_value = row[original_assay_col_name]
+                        project_level_value = row['project_level']
+                        
+                        final_value = assay_specific_value if pd.notna(assay_specific_value) else project_level_value
+                        rows.append({'term_name': term_name, 'values': final_value})
+                    
+                    synthesized_df = pd.DataFrame(rows)
+                    
+                    # Build the nested dictionary structure
+                    if assay_name not in analysis_data_by_assay:
+                        analysis_data_by_assay[assay_name] = {}
+                    analysis_data_by_assay[assay_name][run_name] = synthesized_df
+                    reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
+        
+        # Add analysis data to main data dictionary (common for both formats)
         data['analysis_data_by_assay'] = analysis_data_by_assay
-        
-        # For backward compatibility
-        if params['metadata_format'] == 'NOAA':
-            analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
-            if analysis_sheets:
-                data['analysisMetadata'] = pd.read_excel(params['excel_file'], analysis_sheets[0])
-        
-        # Rename keys to standard terms
-        data['sampleMetadata'] = data.pop(params['sampleMetadata'])
-        data['experimentRunMetadata'] = data.pop(params['experimentRunMetadata'])
-        data['projectMetadata'] = data.pop(params['projectMetadata'])
         
         # Report summary
         reporter.add_success(f"Successfully loaded project data:")
@@ -1116,14 +1266,27 @@ def main():
         # Save the config file used for this run
         save_config_for_run(params, reporter, final_config_path)
         
-        reporter.add_list([
+        config_summary = [
             f"Run Name: {params.get('edna2obis_run_name', 'unnamed_run')}",
             f"API Source: {params['taxonomic_api_source']}",
-            f"Excel file: {params['excel_file']}", 
+        ]
+        
+        # Add file format information
+        if params.get('use_excel', True):
+            config_summary.append(f"Excel file: {params['excel_file']}")
+        else:
+            config_summary.append(f"Metadata format: TSV files")
+            config_summary.append(f"  - projectMetadata: {params.get('projectMetadata_file', 'N/A')}")
+            config_summary.append(f"  - sampleMetadata: {params.get('sampleMetadata_file', 'N/A')}")
+            config_summary.append(f"  - experimentRunMetadata: {params.get('experimentRunMetadata_file', 'N/A')}")
+        
+        config_summary.extend([
             f"Number of analysis runs: {len(params['datafiles'])}",
             f"Output directory: {params['output_dir']}",
             f"Local reference database: {params.get('use_local_reference_database', False)}"
-        ], "Configuration Summary:")
+        ])
+        
+        reporter.add_list(config_summary, "Configuration Summary:")
         
         # Set up pandas display options
         setup_pandas_display()
