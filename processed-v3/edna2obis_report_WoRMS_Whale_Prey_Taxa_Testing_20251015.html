@@ -36,7 +36,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="status">SUCCESS</div><div style="text-align:center;margin:10px 0;"><div class="alert alert-warning" style="display:inline-block;width:auto;padding:12px 24px;font-size:20px;font-weight:bold;">with WARNINGS (13)</div></div>
+        <div class="status">SUCCESS</div><div style="text-align:center;margin:10px 0;"><div class="alert alert-warning" style="display:inline-block;width:auto;padding:12px 24px;font-size:20px;font-weight:bold;">with WARNINGS (15)</div></div>
         
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
@@ -51,9 +51,9 @@
         <div class="metadata">
             <h3>Run Information</h3>
             <div class="run-name-display"><h2>Run name: Whale_Prey_Taxa_Testing_20251015</h2></div>
-            <p><strong>Start Time:</strong> 2025-12-01 23:39:42</p>
-            <p><strong>End Time:</strong> 2025-12-01 23:39:51</p>
-            <p><strong>Duration:</strong> 0:00:09</p>
+            <p><strong>Start Time:</strong> 2026-01-29 17:31:00</p>
+            <p><strong>End Time:</strong> 2026-01-29 17:31:17</p>
+            <p><strong>Duration:</strong> 0:00:17</p>
             <p><strong>Report File:</strong> processed-v3/edna2obis_report_WoRMS_Whale_Prey_Taxa_Testing_20251015.html</p>
         </div>
 
@@ -72,6 +72,8 @@
             <div class="alert alert-warning"><strong>WARNING:</strong> • Contact email appears to be template text - please update with actual email address</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
             <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'waterBody'</strong> was found to be completely empty.</div>
+            <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
 
         </div>
 <h1>Data Cleaning</h1>
@@ -82,17 +84,22 @@
 <div class="alert alert-success">Configuration loaded successfully</div>
 <div class="alert alert-success">Configuration file saved as: config_Whale_Prey_Taxa_Testing_20251015.yaml</div>
 <p>Saved config file: processed-v3/config_Whale_Prey_Taxa_Testing_20251015.yaml</p>
-<h4>Configuration Summary:</h4><ul><li>Run Name: Whale_Prey_Taxa_Testing_20251015</li><li>API Source: WoRMS</li><li>Excel file: raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx</li><li>Number of analysis runs: 2</li><li>Output directory: processed-v3/</li><li>Local reference database: False</li></ul>
+<h4>Configuration Summary:</h4><ul><li>Run Name: Whale_Prey_Taxa_Testing_20251015</li><li>API Source: WoRMS</li><li>Metadata format: TSV files</li><li>  - projectMetadata: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv</li><li>  - sampleMetadata: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv</li><li>  - experimentRunMetadata: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv</li><li>Number of analysis runs: 2</li><li>Output directory: processed-v3/</li><li>Local reference database: False</li></ul>
 <h2>Loading Project Data</h2>
-<p>Found 9 sheets in Excel file: README, projectMetadata, sampleMetadata, experimentRunMetadata, analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz, taxaRaw, taxaFinal, Drop-down values</p>
-<p>Found 2 analysis metadata sheets: analysisMetadata_rosel-ctd-mifi, analysisMetadata_rosel-ctd-riaz</p>
-<p>Processing sheet 'analysisMetadata_rosel-ctd-mifi': assay 'Fish-12S-MiFish-Miya-Stoeckle', run 'rosel-ctd-mifish-addMFtrawlJfish-241001'</p>
-<p>Processing sheet 'analysisMetadata_rosel-ctd-riaz': assay 'Fish-12S-Riaz', run 'rosel-ctd-riaz-addMFtrawlJfish-241001'</p>
+<p>Using TSV file format. Loading separate TSV files for each metadata sheet.</p>
+<p>Loading projectMetadata from: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv</p>
+<p>Loading sampleMetadata from: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv</p>
+<p>Loading experimentRunMetadata from: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv</p>
+<p>Using NOAA format with TSV files. Loading analysisMetadata from separate TSV files.</p>
+<p>Loading analysisMetadata for run 'rosel-ctd-mifish-addMFtrawlJfish-241001' (assay: 'Fish-12S-MiFish-Miya-Stoeckle') from: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv</p>
+<p>Successfully loaded analysisMetadata for run 'rosel-ctd-mifish-addMFtrawlJfish-241001' (assay: 'Fish-12S-MiFish-Miya-Stoeckle')</p>
+<p>Loading analysisMetadata for run 'rosel-ctd-riaz-addMFtrawlJfish-241001' (assay: 'Fish-12S-Riaz') from: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv</p>
+<p>Successfully loaded analysisMetadata for run 'rosel-ctd-riaz-addMFtrawlJfish-241001' (assay: 'Fish-12S-Riaz')</p>
 <div class="alert alert-success">Successfully loaded project data:</div>
-<ul><li>Sample metadata: 29 rows</li><li>Experiment run metadata: 58 rows</li><li>Project metadata: 90 rows</li><li>Analysis assays: 2</li></ul>
+<ul><li>Sample metadata: 29 rows</li><li>Experiment run metadata: 58 rows</li><li>Project metadata: 91 rows</li><li>Analysis assays: 2</li></ul>
 <p><h4>sampleMetadata preview:</h4></p>
 <p>Contextual data about the samples collected, such as when it was collected, where it was collected from, what kind of sample it is, and what were the properties of the environment or experimental condition from which the sample was taken. Each row is a distinct sample, or Event. Most of this information is recorded during sample collection. This sheet contains terms from the FAIRe NOAA data template.</p>
-<h4>sampleMetadata (first 5 rows)</h4><p><strong>Shape:</strong> 29 rows × 96 columns</p><p><em>Showing first 5 rows of 29 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>sampleMetadata (first 5 rows)</h4><p><strong>Shape:</strong> 29 rows × 95 columns</p><p><em>Showing first 5 rows of 29 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -102,7 +109,6 @@
       <th>depth_category</th>
       <th>lab_note</th>
       <th>serial_number</th>
-      <th>waterBody</th>
       <th>samp_category</th>
       <th>neg_cont_type</th>
       <th>pos_cont_type</th>
@@ -203,7 +209,6 @@
       <td>Bottom</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Mexico, Gulf of</td>
       <td>sample</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -217,14 +222,14 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>28.662</td>
       <td>-85.793</td>
+      <td>28.662</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>USA: Gulf of Mexico</td>
-      <td>2019-07-06 00:00:00</td>
+      <td>7/6/19</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -245,7 +250,7 @@
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
       <td>not applicable</td>
-      <td>not collected</td>
+      <td>missing: not collected</td>
       <td>NaN</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -261,14 +266,14 @@
       <td>longmire</td>
       <td>P4M</td>
       <td>NaN</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>2</td>
       <td>L</td>
       <td>physical | thermal</td>
       <td>phenol chloroform</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>not provided</td>
+      <td>missing: not provided</td>
       <td>1</td>
       <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td>1.57</td>
@@ -277,7 +282,7 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
       <td>NaN</td>
       <td>220</td>
       <td>220</td>
@@ -302,7 +307,6 @@
       <td>Bottom</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Mexico, Gulf of</td>
       <td>sample</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -316,14 +320,14 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>28.501</td>
       <td>-85.94</td>
+      <td>28.501</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>USA: Gulf of Mexico</td>
-      <td>2019-07-07 00:00:00</td>
+      <td>7/7/19</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -344,7 +348,7 @@
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
       <td>not applicable</td>
-      <td>not collected</td>
+      <td>missing: not collected</td>
       <td>NaN</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -360,14 +364,14 @@
       <td>longmire</td>
       <td>P4M</td>
       <td>NaN</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>2</td>
       <td>L</td>
       <td>physical | thermal</td>
       <td>phenol chloroform</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>not provided</td>
+      <td>missing: not provided</td>
       <td>1</td>
       <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td>1.72</td>
@@ -376,7 +380,7 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
       <td>NaN</td>
       <td>310</td>
       <td>310</td>
@@ -401,7 +405,6 @@
       <td>Bottom</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Mexico, Gulf of</td>
       <td>sample</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -415,14 +418,14 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>28.856</td>
       <td>-86.225</td>
+      <td>28.856</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>USA: Gulf of Mexico</td>
-      <td>2019-07-07 00:00:00</td>
+      <td>7/7/19</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -443,7 +446,7 @@
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
       <td>not applicable</td>
-      <td>not collected</td>
+      <td>missing: not collected</td>
       <td>NaN</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -459,14 +462,14 @@
       <td>longmire</td>
       <td>P4M</td>
       <td>NaN</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>2</td>
       <td>L</td>
       <td>physical | thermal</td>
       <td>phenol chloroform</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>not provided</td>
+      <td>missing: not provided</td>
       <td>1</td>
       <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td>2.12</td>
@@ -475,7 +478,7 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
       <td>NaN</td>
       <td>315</td>
       <td>315</td>
@@ -500,7 +503,6 @@
       <td>Bottom</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Mexico, Gulf of</td>
       <td>sample</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -514,14 +516,14 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>29.452</td>
       <td>-86.548</td>
+      <td>29.452</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>USA: Gulf of Mexico</td>
-      <td>2019-07-08 00:00:00</td>
+      <td>7/8/19</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -542,7 +544,7 @@
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
       <td>not applicable</td>
-      <td>not collected</td>
+      <td>missing: not collected</td>
       <td>NaN</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -558,14 +560,14 @@
       <td>longmire</td>
       <td>P4M</td>
       <td>NaN</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>2</td>
       <td>L</td>
       <td>physical | thermal</td>
       <td>phenol chloroform</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>not provided</td>
+      <td>missing: not provided</td>
       <td>1</td>
       <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td>3.79</td>
@@ -574,7 +576,7 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
       <td>NaN</td>
       <td>252</td>
       <td>252</td>
@@ -599,7 +601,6 @@
       <td>Bottom</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Mexico, Gulf of</td>
       <td>sample</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -613,14 +614,14 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>29.439</td>
       <td>-86.342</td>
+      <td>29.439</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>USA: Gulf of Mexico</td>
-      <td>2019-07-08 00:00:00</td>
+      <td>7/8/19</td>
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
@@ -641,7 +642,7 @@
       <td>Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with a 0.45 µm pore size in a disposable 250 mL filter cup (MilliporeSigma EZ-Fit Filtration Unit) using an EZ-Fit 1-place manifold and EZ-Stream vacuum pump (MilliporeSigma).</td>
       <td>1</td>
       <td>not applicable</td>
-      <td>not collected</td>
+      <td>missing: not collected</td>
       <td>NaN</td>
       <td>not applicable</td>
       <td>not applicable</td>
@@ -657,14 +658,14 @@
       <td>longmire</td>
       <td>P4M</td>
       <td>NaN</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>2</td>
       <td>L</td>
       <td>physical | thermal</td>
       <td>phenol chloroform</td>
       <td>https://doi.org/10.1002/edn3.70074</td>
       <td>not applicable</td>
-      <td>not provided</td>
+      <td>missing: not provided</td>
       <td>1</td>
       <td>Zymo OneStep PCR Inhibitor Removal kit</td>
       <td>2.37</td>
@@ -673,7 +674,7 @@
       <td>NaN</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz</td>
+      <td>ssu12sv5v6_mifish_u | ssu12sv5_riaz</td>
       <td>NaN</td>
       <td>171</td>
       <td>171</td>
@@ -735,8 +736,8 @@
       <td>Control10_20190721_MiFish_S52_L001_R2_001.fastq.gz</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>https://www.ncbi.nlm.nih.gov/sra/SRX30428770 | https://www.ncbi.nlm.nih.gov/biosample/SAMN51247883 | https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1322479</td>
-      <td>1014</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
     <tr>
       <th>1</th>
@@ -755,44 +756,44 @@
       <td>Control12_20190731_MiFish_S53_L001_R2_001.fastq.gz</td>
       <td>NaN</td>
       <td>NaN</td>
-      <td>https://www.ncbi.nlm.nih.gov/sra/SRX30428771 | https://www.ncbi.nlm.nih.gov/biosample/SAMN51247884 | https://www.ncbi.nlm.nih.gov/bioproject/PRJNA1322479</td>
-      <td>77</td>
+      <td>NaN</td>
+      <td>NaN</td>
     </tr>
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <h2>Loading ASV Data</h2>
 <p>Processing analysis run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
-<div class="alert alert-success">Loaded taxonomy file: raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 12))</div>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv (shape: (243, 12))</div>
 <p>Taxonomy columns detected: ['featureid', 'dna_sequence', 'taxonomy', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'scientificName', 'Confidence']</p>
-<div class="alert alert-success">Loaded abundance table file: raw-v3/FAIRe_NOAA_example_dataset/table_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 30))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv (shape: (243, 30))</div>
 <p>Processing analysis run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
-<div class="alert alert-success">Loaded taxonomy file: raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 12))</div>
+<div class="alert alert-success">Loaded taxonomy file: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv (shape: (129, 12))</div>
 <p>Taxonomy columns detected: ['featureid', 'dna_sequence', 'taxonomy', 'verbatimIdentification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'scientificName', 'Confidence']</p>
-<div class="alert alert-success">Loaded abundance table file: raw-v3/FAIRe_NOAA_example_dataset/table_addJ-riaz_sefsc-gu1901.tsv (shape: (116, 30))</div>
+<div class="alert alert-success">Loaded abundance table file: raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv (shape: (118, 30))</div>
 <h4>Preview of Abundance Table for 'rosel-ctd-mifish-addMFtrawlJfish-241001'</h4><p><strong>Shape:</strong> 5 rows × 20 columns</p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
       <th>featureid</th>
-      <th>Control10_20190721</th>
-      <th>Control12_20190731</th>
-      <th>Control9_20190715</th>
-      <th>ExtNeg_20190910</th>
-      <th>ExtNeg_20190918</th>
-      <th>ExtNeg_20191028</th>
-      <th>ExtNeg_20191031</th>
-      <th>GU190706-CTD11-220</th>
-      <th>GU190707-CTD13-310</th>
-      <th>GU190707-CTD14-315</th>
-      <th>GU190708-CTD16-252</th>
-      <th>GU190708-CTD17-171</th>
-      <th>GU190709-CTD20-280</th>
-      <th>GU190710-CTD22-245</th>
-      <th>GU190710-CTD23-190</th>
-      <th>GU190714-CTD25-185</th>
-      <th>GU190714-CTD26-260</th>
-      <th>GU190715-CTD28-310</th>
-      <th>GU190721-CTD31-205</th>
+      <th>Control10_20190721_MiFish_S52</th>
+      <th>Control12_20190731_MiFish_S53</th>
+      <th>Control9_20190715_MiFish_S51</th>
+      <th>ExtNeg_20190910_MiFish_S55</th>
+      <th>ExtNeg_20190918_MiFish_S56</th>
+      <th>ExtNeg_20191028_MiFish_S57</th>
+      <th>ExtNeg_20191031_MiFish_S58</th>
+      <th>GU190706-CTD11-220_MiFish_S30</th>
+      <th>GU190707-CTD13-310_MiFish_S31</th>
+      <th>GU190707-CTD14-315_MiFish_S32</th>
+      <th>GU190708-CTD16-252_MiFish_S33</th>
+      <th>GU190708-CTD17-171_MiFish_S34</th>
+      <th>GU190709-CTD20-280_MiFish_S35</th>
+      <th>GU190710-CTD22-245_MiFish_S36</th>
+      <th>GU190710-CTD23-190_MiFish_S37</th>
+      <th>GU190714-CTD25-185_MiFish_S38</th>
+      <th>GU190714-CTD26-260_MiFish_S39</th>
+      <th>GU190715-CTD28-310_MiFish_S40</th>
+      <th>GU190721-CTD31-205_MiFish_S41</th>
     </tr>
   </thead>
   <tbody>
@@ -920,12 +921,14 @@
 <p>Found 8 control/blank samples to remove</p>
 <p>You can view the list of samples to be dropped below:</p>
 <h4>Complete list of samples being removed:</h4><ul><li>Control9_20190715</li><li>Control10_20190721</li><li>Control12_20190731</li><li>PCRNeg</li><li>ExtNeg_20190910</li><li>ExtNeg_20190918</li><li>ExtNeg_20191028</li><li>ExtNeg_20191031</li></ul>
-<p>Sample metadata shape after removal: (21, 96)</p>
+<p>Sample metadata shape after removal: (21, 95)</p>
 <p>Check the samp_category values left in your sampleMetadata.</p>
 <p>Remaining samp_category values: sample</p>
+<p>Found 16 lib_id(s) corresponding to control samples to remove from abundance tables</p>
+<p>Control lib_ids to remove: ['Control10_20190721_Riaz_S23', 'PCRNeg_MiFish_S54', 'ExtNeg_20190918_MiFish_S56', 'Control12_20190731_MiFish_S53', 'ExtNeg_20191028_MiFish_S57', 'ExtNeg_20191028_Riaz_S28', 'ExtNeg_20190910_MiFish_S55', 'ExtNeg_20190918_Riaz_S27', 'Control9_20190715_Riaz_S22', 'Control9_20190715_MiFish_S51']...</p>
 <p>Experiment run metadata shape after removal: (42, 17)</p>
-<p>Analysis 'rosel-ctd-mifish-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
-<p>Analysis 'rosel-ctd-riaz-addMFtrawlJfish-241001': removed 8 columns (30 → 22)</p>
+<p>Analysis 'rosel-ctd-mifish-addMFtrawlJfish-241001': removed 8 control columns (30 → 22)</p>
+<p>Analysis 'rosel-ctd-riaz-addMFtrawlJfish-241001': removed 8 control columns (30 → 22)</p>
 <div class="alert alert-success">Successfully removed control samples from all datasets</div>
 <h2>Drop columns with all NAs</h2>
 <p>Which columns in each sheet have only NA values?</p>
@@ -971,12 +974,12 @@
     <tr>
       <th>6</th>
       <td>extract_number</td>
-      <td>NaN</td>
+      <td>associatedSequences</td>
     </tr>
     <tr>
       <th>7</th>
       <td>plate_number</td>
-      <td>NaN</td>
+      <td>input_read_count</td>
     </tr>
     <tr>
       <th>8</th>
@@ -991,7 +994,7 @@
   </tbody>
 </table></div>
 <p>Dropping from data['sampleMetadata']: ['lab_note', 'serial_number', 'sample_derived_from', 'sample_composed_of', 'rel_cont_id', 'biological_rep_relation', 'extract_number', 'plate_number', 'well_number', 'well_position', 'extraction_status', 'verbatimLongitude', 'verbatimLatitude', 'verbatimCoordinateSystem', 'verbatimSRS', 'eventDurationValue', 'verbatimEventDate', 'verbatimEventTime', 'samp_store_method_additional', 'pump_flow_rate_unit', 'filter_surface_area', 'prep_method_additional', 'ratioOfAbsorbance260_280', 'pool_dna_num', 'nucl_acid_ext_method_additional', 'samp_weather', 'tot_depth_water_col', 'light_intensity', 'ph', 'ph_meth', 'turbidity']</p>
-<p>Dropping from data['experimentRunMetadata']: ['lib_conc', 'lib_conc_unit', 'mid_forward', 'mid_reverse', 'checksum_filename', 'checksum_filename2']</p>
+<p>Dropping from data['experimentRunMetadata']: ['lib_conc', 'lib_conc_unit', 'mid_forward', 'mid_reverse', 'checksum_filename', 'checksum_filename2', 'associatedSequences', 'input_read_count']</p>
 <div class="alert alert-success">Successfully dropped all-NA columns</div>
 <h2>Now lets drop NA rows of each analysisMetadata sheet</h2>
 <p>Identifying rows with empty 'values' column in analysisMetadata sheets...</p>
@@ -1398,26 +1401,23 @@
 <div class="alert alert-success">Loaded Darwin Core mappings</div>
 <h2>Building Combined Occurrence Core</h2>
 <p>🚀 Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
-<p>✓ Built eventID lookup map from experimentRunMetadata with 42 entries.</p>
 <p>Processing Analysis Run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
-<p>  Join diagnostic: taxonomy fields present for 491/491 rows after merge.</p>
 <p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
-<p>  Successfully processed rosel-ctd-mifish-addMFtrawlJfish-241001: Generated 491 records.</p>
+<p>  ✓ Processed rosel-ctd-mifish-addMFtrawlJfish-241001: 491 records.</p>
 <p>Processing Analysis Run: rosel-ctd-riaz-addMFtrawlJfish-241001</p>
-<p>  Join diagnostic: taxonomy fields present for 421/421 rows after merge.</p>
 <p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
-<p>  Successfully processed rosel-ctd-riaz-addMFtrawlJfish-241001: Generated 421 records.</p>
+<p>  ✓ Processed rosel-ctd-riaz-addMFtrawlJfish-241001: 425 records.</p>
 <p>🏁 LOOP COMPLETED: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
 <h3>Data Quality Checks</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'geodeticDatum' column was empty or missing. It has been filled with the default value 'WGS84'. Please verify this is appropriate for your data.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'locationID' column is empty. This is likely because the 'line_id' and/or 'station_id' columns were not found in the source sampleMetadata. The pipeline cannot generate a default for this field.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'eventDate' column contains dates without a specific time. If a more precise time is available in your source data, please include it.</div>
 <p>🔄 No duplicate occurrenceID records found to drop.</p>
-<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 912 records.</p>
+<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 916 records.</p>
 <p>👀 Preview of final combined occurrence data (first 5 rows, selected columns):</p>
-<h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 912 rows × 12 columns</p><p><em>Showing first 5 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 916 rows × 12 columns</p><p><em>Showing first 5 rows of 916 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1445,8 +1445,8 @@
       <td>noaa-sefsc-gu1901</td>
       <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
       <td>USA: Gulf of Mexico</td>
-      <td>-85.793</td>
       <td>28.662</td>
+      <td>-85.793</td>
       <td>WGS84</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: unknown confidence, against reference database: custom</td>
       <td><NA></td>
@@ -1460,8 +1460,8 @@
       <td>noaa-sefsc-gu1901</td>
       <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
       <td>USA: Gulf of Mexico</td>
-      <td>-85.793</td>
       <td>28.662</td>
+      <td>-85.793</td>
       <td>WGS84</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: unknown confidence, against reference database: custom</td>
       <td><NA></td>
@@ -1475,8 +1475,8 @@
       <td>noaa-sefsc-gu1901</td>
       <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
       <td>USA: Gulf of Mexico</td>
-      <td>-85.793</td>
       <td>28.662</td>
+      <td>-85.793</td>
       <td>WGS84</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: unknown confidence, against reference database: custom</td>
       <td><NA></td>
@@ -1490,8 +1490,8 @@
       <td>noaa-sefsc-gu1901</td>
       <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
       <td>USA: Gulf of Mexico</td>
-      <td>-85.793</td>
       <td>28.662</td>
+      <td>-85.793</td>
       <td>WGS84</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: unknown confidence, against reference database: custom</td>
       <td><NA></td>
@@ -1505,8 +1505,8 @@
       <td>noaa-sefsc-gu1901</td>
       <td>Lynsey Wilcox Talbot | Katherine Silliman</td>
       <td>USA: Gulf of Mexico</td>
-      <td>-85.793</td>
       <td>28.662</td>
+      <td>-85.793</td>
       <td>WGS84</td>
       <td>qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1, confidence: unknown confidence, against reference database: custom</td>
       <td><NA></td>
@@ -1515,9 +1515,9 @@
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p><h4>📝 NOTE:</h4></p>
 <p>The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.</p>
-<div class="alert alert-success">Successfully created occurrence core with 912 records</div>
+<div class="alert alert-success">Successfully created occurrence core with 916 records</div>
 <h2>Taxonomic Assignment</h2>
-<p>Loaded occurrence data: 912 records</p>
+<p>Loaded occurrence data: 916 records</p>
 <p>Using API source: WoRMS</p>
 <p>Assays configured to skip species-level matching: None</p>
 <p>Starting taxonomic matching process...</p>
@@ -1526,17 +1526,17 @@
 <p>Reassigned 0 complex Eukaryota records to 'incertae sedis'.</p>
 <p>Starting post-matching processing.</p>
 <p>Removed temporary columns: ['assay_name']</p>
-<div class="alert alert-success">Taxonomic assignment completed! Saved 912 records to occurrence_core_worms.csv</div>
-<p>Summary: 151 unique taxa identified</p>
+<div class="alert alert-success">Taxonomic assignment completed! Saved 916 records to occurrence_core_worms.csv</div>
+<p>Summary: 153 unique taxa identified</p>
 <h2>Creating Taxa Assignment Info File</h2>
 <p>Using detailed match data from WORMS process for info file.</p>
 <div class="alert alert-success">Taxa assignment info file created successfully</div>
-<p>Saved taxa assignment info: 200 total rows (151 unique strings)</p>
+<p>Saved taxa assignment info: 202 total rows (153 unique strings)</p>
 <p>Output file: taxa_assignment_INFO_WoRMS.csv</p>
-<p>File size: 0.06 MB</p>
+<p>File size: 0.07 MB</p>
 <p><h3>Detailed Taxa Assignment Information</h3></p>
 <p><p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. This allows for manual review and complete transparency.</p><ul><li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li><li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li><li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li><li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li><li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li><li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li><li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li></ul></p>
-<h4>Preview of taxa_assignment_INFO_WoRMS.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 200 rows × 15 columns</p><p><em>Showing first 20 rows of 200 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<h4>Preview of taxa_assignment_INFO_WoRMS.csv (showing up to 20 rows)</h4><p><strong>Shape:</strong> 202 rows × 16 columns</p><p><em>Showing first 20 rows of 202 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -1544,6 +1544,7 @@
       <th>cleanedTaxonomy</th>
       <th>ambiguous</th>
       <th>selected_match</th>
+      <th>name_change</th>
       <th>scientificName</th>
       <th>taxonRank</th>
       <th>scientificNameID</th>
@@ -1564,6 +1565,7 @@
       <td>Bacteria</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Bacteria</td>
       <td>Kingdom</td>
       <td>urn:lsid:marinespecies.org:taxname:6</td>
@@ -1582,6 +1584,7 @@
       <td>Eukaryota;Chordata;Actinopteri</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Actinopteri</td>
       <td>Superclass</td>
       <td>urn:lsid:marinespecies.org:taxname:843664</td>
@@ -1598,6 +1601,7 @@
       <th>2</th>
       <td>Eukaryota;Chordata;Actinopteri</td>
       <td>Eukaryota;Chordata;Actinopteri</td>
+      <td>False</td>
       <td>False</td>
       <td>False</td>
       <td>Actinopteri</td>
@@ -1618,6 +1622,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Antigonia capros</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:127418</td>
@@ -1634,6 +1639,7 @@
       <th>4</th>
       <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
       <td>Eukaryota;Chordata;Actinopteri;Acanthuriformes;Antigoniidae;Antigonia;Antigonia capros</td>
+      <td>False</td>
       <td>False</td>
       <td>False</td>
       <td>Antigonia capros</td>
@@ -1654,6 +1660,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Acropomatidae</td>
       <td>Family</td>
       <td>urn:lsid:marinespecies.org:taxname:151434</td>
@@ -1672,6 +1679,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops bellus</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Synagrops bellus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:159584</td>
@@ -1679,7 +1687,7 @@
       <td>Chordata</td>
       <td>Teleostei</td>
       <td>Acropomatiformes</td>
-      <td>Acropomatidae</td>
+      <td>Synagropidae</td>
       <td>Synagrops</td>
       <td>Success_Batch_Synagrops bellus</td>
       <td>WoRMS</td>
@@ -1690,6 +1698,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
       <td>False</td>
       <td>True</td>
+      <td>True</td>
       <td>Parascombrops spinosus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:1486846</td>
@@ -1697,7 +1706,7 @@
       <td>Chordata</td>
       <td>Teleostei</td>
       <td>Acropomatiformes</td>
-      <td>Acropomatidae</td>
+      <td>Synagropidae</td>
       <td>Parascombrops</td>
       <td>Success_Batch_Synagrops spinosus</td>
       <td>WoRMS</td>
@@ -1708,6 +1717,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Synagrops;Synagrops spinosus</td>
       <td>False</td>
       <td>False</td>
+      <td>True</td>
       <td>Parascombrops spinosus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:1486846</td>
@@ -1715,7 +1725,7 @@
       <td>Chordata</td>
       <td>Teleostei</td>
       <td>Acropomatiformes</td>
-      <td>Acropomatidae</td>
+      <td>Synagropidae</td>
       <td>Parascombrops</td>
       <td>Success_Batch_Synagrops spinosus</td>
       <td>WoRMS</td>
@@ -1726,6 +1736,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Verilus</td>
       <td>Genus</td>
       <td>urn:lsid:marinespecies.org:taxname:271211</td>
@@ -1733,7 +1744,7 @@
       <td>Chordata</td>
       <td>Teleostei</td>
       <td>Acropomatiformes</td>
-      <td>Acropomatidae</td>
+      <td>Malakichthyidae</td>
       <td>Verilus</td>
       <td>Success_Batch_Verilus</td>
       <td>WoRMS</td>
@@ -1744,6 +1755,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Acropomatiformes;Acropomatidae;Verilus</td>
       <td>False</td>
       <td>False</td>
+      <td>False</td>
       <td>Verilus</td>
       <td>Genus</td>
       <td>urn:lsid:marinespecies.org:taxname:271211</td>
@@ -1751,7 +1763,7 @@
       <td>Chordata</td>
       <td>Teleostei</td>
       <td>Acropomatiformes</td>
-      <td>Acropomatidae</td>
+      <td>Malakichthyidae</td>
       <td>Verilus</td>
       <td>Success_Batch_Verilus</td>
       <td>WoRMS</td>
@@ -1762,6 +1774,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Anguilliformes</td>
       <td>Order</td>
       <td>urn:lsid:marinespecies.org:taxname:10295</td>
@@ -1780,6 +1793,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Chlopsidae;Chilorhinus;Chilorhinus suensonii</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Chilorhinus suensonii</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:280152</td>
@@ -1798,6 +1812,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Ariosoma;Ariosoma balearicum</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Ariosoma balearicum</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:126283</td>
@@ -1816,6 +1831,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Paraconger caudilimbatus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:158569</td>
@@ -1832,6 +1848,7 @@
       <th>15</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Paraconger;Paraconger caudilimbatus</td>
+      <td>False</td>
       <td>False</td>
       <td>False</td>
       <td>Paraconger caudilimbatus</td>
@@ -1852,6 +1869,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Rhynchoconger flavus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:158571</td>
@@ -1868,6 +1886,7 @@
       <th>17</th>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Rhynchoconger;Rhynchoconger flavus</td>
+      <td>False</td>
       <td>False</td>
       <td>False</td>
       <td>Rhynchoconger flavus</td>
@@ -1888,6 +1907,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Uroconger;Uroconger syringinus</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Uroconger syringinus</td>
       <td>Species</td>
       <td>urn:lsid:marinespecies.org:taxname:158574</td>
@@ -1906,6 +1926,7 @@
       <td>Eukaryota;Chordata;Actinopteri;Anguilliformes;Congridae;Xenomystax</td>
       <td>False</td>
       <td>True</td>
+      <td>False</td>
       <td>Xenomystax</td>
       <td>Genus</td>
       <td>urn:lsid:marinespecies.org:taxname:271244</td>
@@ -1921,20 +1942,20 @@
   </tbody>
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Summary: Found 2 unique verbatim strings with ambiguous matches.</p>
-<p>Found 151 unique selected pairs in the WoRMS occurrence file.</p>
-<p>Marked 151 selected matches in taxa_assignment_INFO_WoRMS.csv.</p>
+<p>Found 153 unique selected pairs in the WoRMS occurrence file.</p>
+<p>Marked 153 selected matches in taxa_assignment_INFO_WoRMS.csv.</p>
 <p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
 <p>Building DNA derived extension from occurrence core (one row per occurrence)...</p>
 <p>Using 'taxonID' field (GBIF workflow)</p>
-<p>Starting with 912 occurrence records.</p>
+<p>Starting with 916 occurrence records.</p>
 <p>✓ Brought forward 25 pass-through field(s) from occurrence core.</p>
-<p>Shape after all merges: (912, 31)</p>
+<p>Shape after all merges: (916, 31)</p>
 <h3>Merging Sample and Experiment Metadata</h3>
-<p>eventID/lib_id diagnostics: DNA rows=912, unique eventID=42, unique lib_id=42, overlaps=42</p>
-<p>ERM merge: matched rows=912 / 912</p>
+<p>eventID/lib_id diagnostics: DNA rows=916, unique eventID=42, unique lib_id=42, overlaps=42</p>
+<p>ERM merge: matched rows=916 / 916</p>
 <p>samp_name diagnostics: unique samp_name(after ERM)=21, unique samp_name(sampleMetadata)=21, overlaps=21</p>
-<p>SampleMetadata merge: used column 'samp_name_from_erm', matched rows (by key)=912 / 912</p>
+<p>SampleMetadata merge: used column 'samp_name_from_erm', matched rows (by key)=916 / 916</p>
 <h4>Post-merge coverage for key sampleMetadata fields:</h4><ul><li>materialSampleID: 100.0% filled</li><li>depth_category: 100.0% filled</li><li>decimalLatitude: 100.0% filled</li><li>decimalLongitude: 100.0% filled</li><li>temp: 100.0% filled</li><li>salinity: 100.0% filled</li><li>samp_vol_we_dna_ext: 0.0% filled</li><li>concentration: 0.0% filled</li><li>concentration_unit: 0.0% filled</li></ul>
 <p>✓ Merged with experimentRunMetadata and sampleMetadata.</p>
 <p>Aliased fields: sampleMetadata=12, experimentRunMetadata=1</p>
@@ -1969,8 +1990,8 @@
 <p>Constructing 'adapters' field...</p>
 <div class="alert alert-success">Successfully constructed 'adapters' field.</div>
 <p>Applying Darwin Core mappings...</p>
-<p>Final DNA derived extension shape: (912, 32)</p>
-<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 912 rows × 32 columns</p><p><em>Showing first 10 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
+<p>Final DNA derived extension shape: (916, 32)</p>
+<h4>DNA Derived Extension Preview</h4><p><strong>Shape:</strong> 916 rows × 32 columns</p><p><em>Showing first 10 rows of 916 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
       <th></th>
@@ -2363,15 +2384,16 @@
 </table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Saving DNA derived extension to CSV...</p>
 <div class="alert alert-success">DNA derived extension created successfully</div>
-<p>Saved DNA derived extension: 912 records</p>
+<p>Saved DNA derived extension: 916 records</p>
 <p>Output file: dna_derived_extension.csv</p>
 <p>File size: 1.16 MB</p>
 <h2>Creating eMoF (extendedMeasurementOrFact)</h2>
 <p>Loaded template with 31 configured measurement row(s)</p>
-<p>Total occurrences included (non-control): 912</p>
-<div class="alert alert-success">eMoF created successfully with 28272 row(s) (occurrence-based)</div>
+<p>Total occurrences included (non-control): 916</p>
+<p>Skipping measurementType 'Input sequence read count': source field 'input_read_count' not found in metadata for this dataset.</p>
+<div class="alert alert-success">eMoF created successfully with 27480 row(s) (occurrence-based)</div>
 <p>Saved eMoF CSV to: processed-v3/eMoF.csv</p>
-<p>File size: 28272 rows (one per occurrence per measurement)</p>
+<p>File size: 27480 rows (one per occurrence per measurement)</p>
 <h4>eMoF Preview (first 15 rows)</h4><p><strong>Shape:</strong> 15 rows × 10 columns</p><p><em>Showing first 10 rows of 15 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
@@ -2486,7 +2508,7 @@
       <td>GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502</td>
       <td>date_ext</td>
       <td>Date of nucleic acid extraction</td>
-      <td>2019-10-28 00:00:00</td>
+      <td>10/28/19</td>
       <td>ISO 8601</td>
       <td>https://github.com/FAIR-eDNA/FAIRe_checklist</td>
       <td></td>
@@ -2540,14 +2562,14 @@
 <div class="alert alert-success">Populated geographic description from configured source field(s).</div>
 <div class="alert alert-success">Calculated temporal coverage dates from data.</div>
 <p>Note: Truncated order list to 10 unique values for EML brevity.</p>
-<div class="alert alert-success">Populated taxonomic coverage with 10 classifications across ranks: kingdom=2, phylum=2, class=3, order=3</div>
+<div class="alert alert-success">Populated taxonomic coverage with 10 classifications across ranks: kingdom=2, phylum=3, class=4, order=1</div>
 <p>Note: Reached total cap of 10 taxonomic classifications.</p>
 <div class="alert alert-success">Populated EML project title with: noaa-sefsc-gu1901</div>
 <p>Building EML XML structure...</p>
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: 014bd5ad-106d-4e1d-b1a0-c72701e2fe96/eml-1.xml</p>
+<p>📦 Package ID: 5b9484ba-c22f-4543-adb5-5550bfae00f4/eml-1.xml</p>
 <p>📏 File size: 7.1 KB</p>
 <p>🏗️ XML structure: 110 total elements</p>
 <div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
@@ -2557,20 +2579,23 @@
 <h3>Final File Validation</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'bibliographicCitation'</strong> was found to be completely empty.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'locationID'</strong> was found to be completely empty.</div>
-<h4><h4>Summary of All Empty Columns Found (and subsequently removed):</h4></h4><ul><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>locationID</code></li></ul>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'waterBody'</strong> was found to be completely empty.</div>
+<div class="alert alert-warning"><strong>WARNING:</strong> In output file <strong>'occurrence_core_worms.csv'</strong>, the column <strong>'associatedSequences'</strong> was found to be completely empty.</div>
+<h4><h4>Summary of All Empty Columns Found (and subsequently removed):</h4></h4><ul><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>locationID</code></li><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>waterBody</code></li><li>File: <code>occurrence_core_worms.csv</code>, Column: <code>associatedSequences</code></li></ul>
 <h3>Empty Column Cleanup</h3>
 <div class="alert alert-success">Removed completely empty columns from the final output files.</div>
-<h4><h4>Summary of Removed Columns:</h4></h4><ul><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>locationID</code></li></ul>
+<h4><h4>Summary of Removed Columns:</h4></h4><ul><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>bibliographicCitation</code></li><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>locationID</code></li><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>waterBody</code></li><li>File: <code>occurrence_core_worms.csv</code>, Removed Column: <code>associatedSequences</code></li></ul>
+<p>⏭️ Skipping output file splitting (split_output_by_short_name=false)</p>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
-<p>✓ occurrence_core_worms.csv (0.80 MB)</p>
+<p>✓ occurrence_core_worms.csv (0.65 MB)</p>
 <p>✓ taxa_assignment_INFO_WoRMS.csv (0.07 MB)</p>
 <p>✓ dna_derived_extension.csv (1.16 MB)</p>
-<p>✓ eMoF.csv (6.60 MB)</p>
+<p>✓ eMoF.csv (6.44 MB)</p>
 <p>✓ eml.xml (0.01 MB)</p>
 <p>✓ config_Whale_Prey_Taxa_Testing_20251015.yaml (0.01 MB)</p>
-<p>✓ edna2obis_report_WoRMS_Whale_Prey_Taxa_Testing_20251015.html (0.10 MB)</p>
+<p>✓ edna2obis_report_WoRMS_Whale_Prey_Taxa_Testing_20251015.html (0.07 MB)</p>
 
     </div>
 </body>

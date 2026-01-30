@@ -13,31 +13,44 @@ metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysi
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
-# STEP 2
-# Assign sheets from your FAIRe Excel metadata file
-# NOTE: Left side is what edna2obis calls that data. Right side must be the actual sheetname from your FAIRe Excel metadata file:
-sampleMetadata: "sampleMetadata" # Sheet name for sample metadata
-experimentRunMetadata: "experimentRunMetadata" # Sheet name for experiment run metadata
-projectMetadata: "projectMetadata" # Sheet name for project metadata
+# STEP 2: Metadata source — true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
+# false = You have separate TSV files, one for each metadata sheet.
+# Set to true or false; you can keep both sets of paths below. Only the chosen one is read.
+combined_metadata_file: false
+
+# When combined_metadata_file: true — single Excel file and sheet names
+sampleMetadata: "sampleMetadata"
+experimentRunMetadata: "experimentRunMetadata"
+projectMetadata: "projectMetadata"
 excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
+
+# When combined_metadata_file: false — separate TSV files (one path per sheet)
+sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
+experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
+projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
 # STEP 3
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
+# For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
+# If your metadata sheets are all in the same Excel file, you do NOT need to include 'analysisMetadata_file' for each run.
 datafiles:
-  rosel-ctd-mifish-addMFtrawlJfish-241001:
+  rosel-ctd-mifish-addMFtrawlJfish-241001: #analysis_run_name
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-mifish_sefsc-gu1901.tsv"
-  rosel-ctd-riaz-addMFtrawlJfish-241001:
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+  rosel-ctd-riaz-addMFtrawlJfish-241001: #analysis_run_name
     assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-riaz_sefsc-gu1901.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_addJ-riaz_sefsc-gu1901.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
   #   assay_name: "your_assay_name_from_projectMetadata_column"
   #   taxonomy_file: "path/to/your/asvTaxaFeatures_your_analysis_run_name.tsv"
   #   occurrence_file: "path/to/your/table_your_analysis_run_name.tsv"
+  #   analysisMetadata_file: "path/to/analysisMetadata_your_analysis_run_name.tsv" 
 
 
 # STEP 4:
@@ -65,7 +78,7 @@ locationID_components:
 # STEP 6:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
-# taxonomic_api_source: "WoRMS"
+# taxonomic_api_source: "GBIF"
 taxonomic_api_source: "WoRMS"
 
 # Define the maximum number of matches to request from the GBIF API for each unique taxonomy string.
@@ -110,3 +123,19 @@ emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
 eml_enabled: true
 eml_config_path: "EML_config.yaml"
+
+# STEP 9: OPTIONAL - Split output files by cruise/expedition (short_name)
+# -----------------------------------------------------------------------------
+# If your sampleMetadata contains a 'short_name' column (cruise/expedition codes),
+# you can split the final output files into separate subfolders per short_name.
+# This is useful when databases require cruise-by-cruise submissions connected by a parent project.
+# 
+# When enabled:
+#   - Creates subfolders: {output_dir}/{short_name}/
+#   - Saves filtered files with suffix: occurrence_core_{api}_{short_name}.csv
+#   - Splits: occurrence_core, dna_derived_extension, eMoF
+#   - Does NOT split: HTML report, taxa_assignment_INFO
+#
+# IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
+#            Missing values will cause an error.
+split_output_by_short_name: false

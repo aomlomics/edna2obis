@@ -144,20 +144,8 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
             project_license = pd.NA
             project_institution_id = pd.NA
 
-        # --- NEW: Pre-build a robust lookup map for eventID from experimentRunMetadata ---
-        event_id_lookup = {}
-        if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
-            erm_df = data['experimentRunMetadata'].copy()
-            # Ensure required columns are present and cleaned
-            if 'samp_name' in erm_df.columns and 'lib_id' in erm_df.columns and 'assay_name' in erm_df.columns:
-                erm_df['samp_name'] = erm_df['samp_name'].astype(str).str.strip()
-                erm_df['assay_name'] = erm_df['assay_name'].astype(str).str.strip()
-                erm_df['lib_id'] = erm_df['lib_id'].astype(str).str.strip()
-                # Create a multi-index for fast lookup
-                event_id_lookup = erm_df.set_index(['samp_name', 'assay_name'])['lib_id'].to_dict()
-                reporter.add_text(f"✓ Built eventID lookup map from experimentRunMetadata with {len(event_id_lookup)} entries.")
-            else:
-                reporter.add_warning("Could not build eventID lookup map: 'samp_name', 'lib_id', or 'assay_name' columns are missing from experimentRunMetadata.")
+        # Note: Abundance table columns are now lib_id (not samp_name), so we no longer need
+        # an event_id_lookup map. The melted column from the abundance table IS the lib_id/eventID.
 
 
         # --- MAIN DATA PROCESSING LOOP ---
@@ -235,26 +223,60 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     current_tax_df_processed.rename(columns=rename_map_for_tax, inplace=True)
                     
                     # --- STEP 2: Melt Abundance and Merge with Taxonomy ---
+                    # Abundance table columns may be lib_id or (legacy) samp_name
                     current_assay_occ_melted = pd.melt(
                         current_abundance_df_raw, id_vars=['featureid'],
-                        var_name='samp_name', value_name='organismQuantity'
+                        var_name='lib_id', value_name='organismQuantity'
                     )
+                    # Coerce to numeric so filter works even when read as strings (e.g. from Excel)
+                    current_assay_occ_melted['organismQuantity'] = pd.to_numeric(current_assay_occ_melted['organismQuantity'], errors='coerce').fillna(0)
                     current_assay_occ_melted = current_assay_occ_melted[current_assay_occ_melted['organismQuantity'] > 0.0]
+                    
+                    # Normalize lib_id for safe joins
+                    current_assay_occ_melted['lib_id'] = current_assay_occ_melted['lib_id'].astype(str).str.strip()
+                    
+                    # If abundance columns were samp_names (not lib_id), map to lib_id via ERM for this assay
+                    final_assay_name = params.get('datafiles', {}).get(analysis_run_name, {}).get('assay_name')
+                    if final_assay_name and 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
+                        erm_df = data['experimentRunMetadata'].copy()
+                        if 'lib_id' in erm_df.columns and 'samp_name' in erm_df.columns and 'assay_name' in erm_df.columns:
+                            erm_for_assay = erm_df[erm_df['assay_name'].astype(str).str.strip() == str(final_assay_name).strip()]
+                            valid_lib_ids = set(erm_for_assay['lib_id'].astype(str).str.strip().unique())
+                            # If melted lib_id values are not in ERM lib_id, treat them as samp_name and map to lib_id
+                            samp_to_lib = erm_for_assay.set_index(erm_for_assay['samp_name'].astype(str).str.strip())['lib_id'].astype(str).str.strip().to_dict()
+                            def resolve_lib_id(val):
+                                v = str(val).strip()
+                                if v in valid_lib_ids:
+                                    return v
+                                return samp_to_lib.get(v, v)
+                            current_assay_occ_melted['lib_id'] = current_assay_occ_melted['lib_id'].map(resolve_lib_id)
+                    
+                    # --- Validation: Check that all abundance lib_ids exist in experimentRunMetadata for this assay ---
+                    # Get assay_name for this run
+                    final_assay_name = params.get('datafiles', {}).get(analysis_run_name, {}).get('assay_name')
+                    
+                    # Validate lib_ids exist in ERM for this assay
+                    if final_assay_name and 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
+                        erm_df = data['experimentRunMetadata'].copy()
+                        if 'lib_id' in erm_df.columns and 'assay_name' in erm_df.columns:
+                            erm_for_assay = erm_df[erm_df['assay_name'].astype(str).str.strip() == str(final_assay_name).strip()]
+                            if len(erm_for_assay) == 0:
+                                reporter.add_warning(f"No ERM rows match assay_name '{final_assay_name}'. Check for typos or case mismatch.")
+                            else:
+                                valid_lib_ids = set(erm_for_assay['lib_id'].astype(str).str.strip().unique())
+                                abundance_lib_ids = set(current_assay_occ_melted['lib_id'].unique())
+                                missing_lib_ids = abundance_lib_ids - valid_lib_ids
+                                if missing_lib_ids:
+                                    reporter.add_warning(
+                                        f"Found {len(missing_lib_ids)} lib_id(s) in abundance table not in ERM for assay '{final_assay_name}': "
+                                        f"{', '.join(list(missing_lib_ids)[:10])}{'...' if len(missing_lib_ids) > 10 else ''}"
+                                    )
                     
                     current_assay_occurrence_intermediate_df = pd.merge(
                         current_assay_occ_melted, current_tax_df_processed,
                         on='featureid', how='left'
                     )
                     
-                    # Optional diagnostic: how many taxonomy rows matched
-                    try:
-                        tax_cols_present = [c for c in ['verbatimIdentification','kingdom','scientificName'] if c in current_tax_df_processed.columns]
-                        if tax_cols_present:
-                            matched = current_assay_occurrence_intermediate_df[tax_cols_present].notna().any(axis=1).sum()
-                            total = len(current_assay_occurrence_intermediate_df)
-                            reporter.add_text(f"  Join diagnostic: taxonomy fields present for {matched}/{total} rows after merge.")
-                    except Exception:
-                        pass
 
                     # --- FIX for GENERIC format: Check for a 'Taxon' column to use as verbatimIdentification ---
                     if params.get('metadata_format') == 'GENERIC':
@@ -268,7 +290,6 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     
                         if taxon_col_found and 'verbatimIdentification' not in current_assay_occurrence_intermediate_df.columns:
                             current_assay_occurrence_intermediate_df.rename(columns={taxon_col_found: 'verbatimIdentification'}, inplace=True)
-                            reporter.add_text(f"  DIAGNOSTIC: For GENERIC format, found and used column <strong>'{taxon_col_found}'</strong> to populate 'verbatimIdentification'.")
 
 
                     # --- NEW: Robustly construct verbatimIdentification ---
@@ -284,7 +305,6 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                         rank_cols_present = [col for col in DWC_RANKS_ORDER if col in current_assay_occurrence_intermediate_df.columns]
                         
                         if rank_cols_present:
-                            reporter.add_text(f"  DIAGNOSTIC: verbatimIdentification is mostly empty. Constructing it from available taxonomic rank columns: {rank_cols_present}")
                             # Create a temporary DataFrame with just the rank columns, filled with empty strings for missing values
                             temp_ranks_df = current_assay_occurrence_intermediate_df[rank_cols_present].astype(str).fillna('')
                             
@@ -319,109 +339,36 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     current_assay_occurrence_intermediate_df['recordedBy'] = project_recorded_by
                     current_assay_occurrence_intermediate_df['datasetID'] = project_dataset_id
 
-                    # --- STEP 5: Merge `sampleMetadata` and map FAIRe terms to DwC terms ---
-                    if 'sampleMetadata' in data and not data['sampleMetadata'].empty:
-                        sm_df_to_merge = data['sampleMetadata'].copy()
-                        sm_df_to_merge['samp_name'] = sm_df_to_merge['samp_name'].astype(str).str.strip()
-                        current_assay_occurrence_intermediate_df['samp_name'] = current_assay_occurrence_intermediate_df['samp_name'].astype(str).str.strip()
-
-                        current_assay_occurrence_intermediate_df = pd.merge(
-                            current_assay_occurrence_intermediate_df, sm_df_to_merge,
-                            on='samp_name', how='left', suffixes=('', '_sm') 
-                        )
-                        
-                        # --- NEW: Populate DwC columns from sampleMetadata based on the mapper ---
-                        for dwc_col_target, mapping_info in occurrence_map_config.items():
-                            if isinstance(mapping_info, dict) and mapping_info.get('source') == 'sampleMetadata':
-                                faire_col_source_original = str(mapping_info.get('faire_term')).strip()
-                                
-                                source_col_in_df = None
-                                if faire_col_source_original + '_sm' in current_assay_occurrence_intermediate_df.columns:
-                                    source_col_in_df = faire_col_source_original + '_sm'
-                                elif faire_col_source_original in current_assay_occurrence_intermediate_df.columns:
-                                    source_col_in_df = faire_col_source_original
-                                
-                                if source_col_in_df:
-                                    current_assay_occurrence_intermediate_df[dwc_col_target] = current_assay_occurrence_intermediate_df[source_col_in_df]
-                                elif dwc_col_target in ['locality', 'decimalLatitude', 'decimalLongitude', 'geodeticDatum', 'eventDate']:
-                                     reporter.add_text(f"  DIAGNOSTIC: For DwC term '{dwc_col_target}', its mapped FAIRe term '{faire_col_source_original}' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.")
-                    else:
-                        reporter.add_text(f"  Warning: 'sampleMetadata' is empty or not found. Cannot merge for DwC term population for run {analysis_run_name}.")
-
-                    # --- Construct 'locationID' with new flexible logic ---
-                    
-                    # Priority 1: Use existing 'locationID' column if it's already in the data
-                    if 'locationID' in current_assay_occurrence_intermediate_df.columns and not current_assay_occurrence_intermediate_df['locationID'].isna().all():
-                        reporter.add_text("Found existing 'locationID' column in source data. Using it directly.")
-                    
-                    else:
-                        # Priority 2: Use components from config.yaml
-                        id_components = params.get('locationID_components', [])
-                        
-                        # Check if all specified component columns exist in the dataframe
-                        missing_components = [c for c in id_components if c not in current_assay_occurrence_intermediate_df.columns]
-                        
-                        if id_components and not missing_components:
-                            reporter.add_text(f"Constructing 'locationID' from config components: {', '.join(id_components)}")
-                            
-                            # Convert all component columns to string and combine
-                            component_series = [current_assay_occurrence_intermediate_df[col].astype(str).fillna(f"No_{col}") for col in id_components]
-                            current_assay_occurrence_intermediate_df['locationID'] = pd.Series('_'.join(map(str, t)) for t in zip(*component_series))
-                        
-                        else:
-                            # Priority 3: Fallback to default (and warn if component columns were specified but not found)
-                            if missing_components:
-                                reporter.add_warning(f"Could not construct 'locationID' from config. The following columns were not found: {', '.join(missing_components)}. Falling back to default.")
-                            
-                            # Original default logic
-                            default_components = ['line_id', 'station_id']
-                            if all(c in current_assay_occurrence_intermediate_df.columns for c in default_components):
-                                line_ids = current_assay_occurrence_intermediate_df['line_id'].astype(str).fillna('NoLineID')
-                                station_ids = current_assay_occurrence_intermediate_df['station_id'].astype(str).fillna('NoStationID')
-                                current_assay_occurrence_intermediate_df['locationID'] = line_ids + "_" + station_ids
-                            else:
-                                # If even the default components can't be found, set to NA
-                                 if 'locationID' not in current_assay_occurrence_intermediate_df.columns:
-                                      current_assay_occurrence_intermediate_df['locationID'] = pd.NA
-
-
-                    # --- STEP 6: Define `eventID` and `assay_name` (REWRITTEN) ---
-                    # Get assay_name directly from config - it's hardcoded there!
+                    # --- STEP 5: Merge `experimentRunMetadata` first (on lib_id) to get samp_name and ERM fields ---
                     final_assay_name = params.get('datafiles', {}).get(analysis_run_name, {}).get('assay_name')
                     
-                    if not final_assay_name:
-                        reporter.add_error(f"Could not determine assay_name for run '{analysis_run_name}' from config.yaml. Cannot assign eventID.")
-                        current_assay_occurrence_intermediate_df['eventID'] = "ERROR_NO_ASSAY_NAME"
-                        current_assay_occurrence_intermediate_df['assay_name'] = "ERROR_NO_ASSAY_NAME"
-                    else:
-                        # Assign the definitive assay_name for this entire run
-                        current_assay_occurrence_intermediate_df['assay_name'] = final_assay_name
-                        
-                        # Use the pre-built lookup map to find the correct eventID
-                        def get_event_id(row):
-                            return event_id_lookup.get((row['samp_name'], final_assay_name), f"EVENT_ID_NOT_FOUND_FOR_{row['samp_name']}_{final_assay_name}")
-
-                        if event_id_lookup:
-                             current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df.apply(get_event_id, axis=1)
-                        else:
-                            # Fallback if the map couldn't be built
-                            current_assay_occurrence_intermediate_df['eventID'] = f"NO_ERM_LOOKUP_FOR_{final_assay_name}"
-
-                    
-                    # --- STEP 6b: Merge `experimentRunMetadata` and map terms ---
                     if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
                         erm_df_to_merge = data['experimentRunMetadata'].copy()
                         if 'lib_id' in erm_df_to_merge.columns:
+                            # Normalize lib_id on both sides for safe merge
+                            current_assay_occurrence_intermediate_df['lib_id'] = current_assay_occurrence_intermediate_df['lib_id'].astype(str).str.strip()
                             erm_df_to_merge['lib_id'] = erm_df_to_merge['lib_id'].astype(str).str.strip()
-                            current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['eventID'].astype(str).str.strip()
+                            
+                            # Drop columns from left side that exist in ERM (except lib_id) to prevent shadowing
+                            erm_cols = set(erm_df_to_merge.columns)
+                            left_cols_to_drop = [col for col in current_assay_occurrence_intermediate_df.columns 
+                                                 if col in erm_cols and col != 'lib_id']
+                            if left_cols_to_drop:
+                                current_assay_occurrence_intermediate_df = current_assay_occurrence_intermediate_df.drop(columns=left_cols_to_drop)
+                            
+                            # Merge with ERM
                             current_assay_occurrence_intermediate_df = pd.merge(
                                 current_assay_occurrence_intermediate_df,
                                 erm_df_to_merge,
-                                left_on='eventID',
-                                right_on='lib_id',
-                                how='left',
-                                suffixes=('', '_erm')
+                                on='lib_id',
+                                how='left'
                             )
+                            
+                            # Filter to rows for this assay only
+                            if final_assay_name and 'assay_name' in current_assay_occurrence_intermediate_df.columns:
+                                assay_mask = current_assay_occurrence_intermediate_df['assay_name'].astype(str).str.strip() == str(final_assay_name).strip()
+                                if not assay_mask.all():
+                                    current_assay_occurrence_intermediate_df = current_assay_occurrence_intermediate_df.loc[assay_mask].copy()
                             # Populate DwC columns from experimentRunMetadata based on the mapper
                             for dwc_col_target, mapping_info in occurrence_map_config.items():
                                 if isinstance(mapping_info, dict) and mapping_info.get('source') == 'experimentRunMetadata':
@@ -434,7 +381,101 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                                     if source_col_in_df:
                                         current_assay_occurrence_intermediate_df[dwc_col_target] = current_assay_occurrence_intermediate_df[source_col_in_df]
                         else:
-                            reporter.add_warning("experimentRunMetadata missing 'lib_id'; cannot map experiment-level fields like 'associatedSequences'.")
+                            reporter.add_warning("experimentRunMetadata missing 'lib_id'; cannot map experiment-level fields.")
+                    else:
+                        reporter.add_warning(f"  Warning: 'experimentRunMetadata' is empty or not found. Cannot merge for ERM fields for run {analysis_run_name}.")
+
+                    # --- STEP 5b: Merge `sampleMetadata` (on samp_name from ERM) and map FAIRe terms to DwC terms ---
+                    if 'sampleMetadata' in data and not data['sampleMetadata'].empty:
+                        sm_df_to_merge = data['sampleMetadata'].copy()
+                        sm_df_to_merge['samp_name'] = sm_df_to_merge['samp_name'].astype(str).str.strip()
+                        # Use samp_name from ERM merge (column is 'samp_name' from right; if conflict use 'samp_name_erm')
+                        samp_key = 'samp_name_erm' if 'samp_name_erm' in current_assay_occurrence_intermediate_df.columns else 'samp_name'
+                        if samp_key in current_assay_occurrence_intermediate_df.columns:
+                            current_assay_occurrence_intermediate_df[samp_key] = current_assay_occurrence_intermediate_df[samp_key].astype(str).str.strip()
+                            current_assay_occurrence_intermediate_df = pd.merge(
+                                current_assay_occurrence_intermediate_df,
+                                sm_df_to_merge,
+                                left_on=samp_key,
+                                right_on='samp_name',
+                                how='left',
+                                suffixes=('', '_sm')
+                            )
+                            # parentEventID = samp_name (event hierarchy; 'samp_name' is from right after merge)
+                            if 'samp_name' in current_assay_occurrence_intermediate_df.columns:
+                                current_assay_occurrence_intermediate_df['parentEventID'] = current_assay_occurrence_intermediate_df['samp_name']
+                            elif samp_key in current_assay_occurrence_intermediate_df.columns:
+                                current_assay_occurrence_intermediate_df['parentEventID'] = current_assay_occurrence_intermediate_df[samp_key]
+                            # Populate DwC columns from sampleMetadata based on the mapper
+                            for dwc_col_target, mapping_info in occurrence_map_config.items():
+                                if isinstance(mapping_info, dict) and mapping_info.get('source') == 'sampleMetadata':
+                                    faire_col_source_original = str(mapping_info.get('faire_term')).strip()
+                                    source_col_in_df = None
+                                    if faire_col_source_original + '_sm' in current_assay_occurrence_intermediate_df.columns:
+                                        source_col_in_df = faire_col_source_original + '_sm'
+                                    if source_col_in_df is None and faire_col_source_original in current_assay_occurrence_intermediate_df.columns:
+                                        source_col_in_df = faire_col_source_original
+                                    if source_col_in_df is not None:
+                                        current_assay_occurrence_intermediate_df[dwc_col_target] = current_assay_occurrence_intermediate_df[source_col_in_df]
+                                    elif dwc_col_target in ['locality', 'decimalLatitude', 'decimalLongitude', 'geodeticDatum', 'eventDate']:
+                                        reporter.add_text(f"  DIAGNOSTIC: For DwC term '{dwc_col_target}', its mapped FAIRe term '{faire_col_source_original}' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.")
+                        else:
+                            reporter.add_warning(f"  Warning: 'samp_name' not found after ERM merge. Cannot merge sampleMetadata for run {analysis_run_name}.")
+                    else:
+                        reporter.add_text(f"  Warning: 'sampleMetadata' is empty or not found. Cannot merge for DwC term population for run {analysis_run_name}.")
+
+                    # --- Construct 'locationID' with new flexible logic ---
+                    
+                    # Priority 1: Use existing 'locationID' column if it's already in the data
+                    if 'locationID' in current_assay_occurrence_intermediate_df.columns and not current_assay_occurrence_intermediate_df['locationID'].isna().all():
+                        reporter.add_text("Found existing 'locationID' column in source data. Using it directly.")
+                    
+                    else:
+                        # Priority 2: Use components from config.yaml (check both col and col_sm from merge)
+                        id_components = params.get('locationID_components', [])
+                        def _resolve_col(name):
+                            if name in current_assay_occurrence_intermediate_df.columns:
+                                return name
+                            if name + '_sm' in current_assay_occurrence_intermediate_df.columns:
+                                return name + '_sm'
+                            return None
+                        resolved = [(c, _resolve_col(c)) for c in id_components]
+                        missing_components = [c for c, r in resolved if r is None]
+                        component_cols = [r for _, r in resolved if r is not None]
+                        
+                        if id_components and len(component_cols) == len(id_components):
+                            reporter.add_text(f"Constructing 'locationID' from config components: {', '.join(id_components)}")
+                            component_series = [current_assay_occurrence_intermediate_df[col].astype(str).fillna(f"No_{col}") for col in component_cols]
+                            current_assay_occurrence_intermediate_df['locationID'] = pd.Series('_'.join(map(str, t)) for t in zip(*component_series))
+                        
+                        else:
+                            # Priority 3: Fallback to default (and warn if component columns were specified but not found)
+                            if missing_components:
+                                reporter.add_warning(f"Could not construct 'locationID' from config. The following columns were not found: {', '.join(missing_components)}. Falling back to default.")
+                            default_components = ['line_id', 'station_id']
+                            default_resolved = [_resolve_col(c) for c in default_components]
+                            if all(r is not None for r in default_resolved):
+                                line_ids = current_assay_occurrence_intermediate_df[default_resolved[0]].astype(str).fillna('NoLineID')
+                                station_ids = current_assay_occurrence_intermediate_df[default_resolved[1]].astype(str).fillna('NoStationID')
+                                current_assay_occurrence_intermediate_df['locationID'] = line_ids + "_" + station_ids
+                            else:
+                                # If even the default components can't be found, set to NA
+                                 if 'locationID' not in current_assay_occurrence_intermediate_df.columns:
+                                      current_assay_occurrence_intermediate_df['locationID'] = pd.NA
+
+
+                    # --- STEP 6: Define `eventID` and `assay_name` ---
+                    # Get assay_name directly from config - it's hardcoded there!
+                    if not final_assay_name:
+                        reporter.add_error(f"Could not determine assay_name for run '{analysis_run_name}' from config.yaml. Cannot assign eventID.")
+                        current_assay_occurrence_intermediate_df['eventID'] = "ERROR_NO_ASSAY_NAME"
+                        current_assay_occurrence_intermediate_df['assay_name'] = "ERROR_NO_ASSAY_NAME"
+                    else:
+                        # Assign the definitive assay_name for this entire run
+                        current_assay_occurrence_intermediate_df['assay_name'] = final_assay_name
+                        
+                        # Set eventID = lib_id (abundance table columns are lib_id)
+                        current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['lib_id']
 
                     # --- STEP 7: Construct `occurrenceID` ---
                     current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['eventID'].astype(str)
@@ -481,7 +522,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     
                     all_processed_occurrence_dfs.append(current_assay_occurrence_final_df)
                     successful_runs += 1
-                    reporter.add_text(f"  Successfully processed {analysis_run_name}: Generated {len(current_assay_occurrence_final_df)} records.")
+                    reporter.add_text(f"  ✓ Processed {analysis_run_name}: {len(current_assay_occurrence_final_df)} records.")
 
                 except Exception as e:
                     import traceback

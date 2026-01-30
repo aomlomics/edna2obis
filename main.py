@@ -860,22 +860,35 @@ def remove_control_samples(data, raw_data_tables, params, reporter):
         reporter.add_text(f"Check the {control_column} values left in your sampleMetadata.")
         reporter.add_text(f"Remaining {control_column} values: {', '.join(map(str, remaining_categories))}")
         
+        # Get lib_ids to drop from experimentRunMetadata BEFORE removing from ERM
+        # (abundance table columns are now lib_id, not samp_name)
+        lib_ids_to_drop = set()
+        if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
+            if 'lib_id' in data['experimentRunMetadata'].columns:
+                # Get lib_ids for control samples
+                control_erm_rows = data['experimentRunMetadata']['samp_name'].isin(samples_to_drop)
+                lib_ids_to_drop = set(data['experimentRunMetadata'].loc[control_erm_rows, 'lib_id'].astype(str).str.strip().unique())
+                if lib_ids_to_drop:
+                    reporter.add_text(f"Found {len(lib_ids_to_drop)} lib_id(s) corresponding to control samples to remove from abundance tables")
+                    reporter.add_text(f"Control lib_ids to remove: {list(lib_ids_to_drop)[:10]}{'...' if len(lib_ids_to_drop) > 10 else ''}")
+        
         # Remove from experimentRunMetadata
         prep_samps_to_remove = data['experimentRunMetadata']['samp_name'].isin(samples_to_drop)
         data['experimentRunMetadata'] = data['experimentRunMetadata'][~prep_samps_to_remove]
         reporter.add_text(f"Experiment run metadata shape after removal: {data['experimentRunMetadata'].shape}")
         
-        # Remove from ASV abundance tables
+        # Remove from ASV abundance tables (columns are now lib_id, not samp_name)
         for analysis_run_name, tables_dict in raw_data_tables.items():
             if 'occurrence' in tables_dict:
                 abundance_df = tables_dict['occurrence']
                 original_cols = len(abundance_df.columns)
                 
-                cols_to_remove = [col for col in samples_to_drop if col in abundance_df.columns]
+                # Drop columns where column name (lib_id) is in lib_ids_to_drop
+                cols_to_remove = [col for col in lib_ids_to_drop if str(col).strip() in abundance_df.columns]
                 if cols_to_remove:
                     raw_data_tables[analysis_run_name]['occurrence'] = abundance_df.drop(columns=cols_to_remove)
                     new_cols = len(raw_data_tables[analysis_run_name]['occurrence'].columns)
-                    reporter.add_text(f"Analysis '{analysis_run_name}': removed {len(cols_to_remove)} columns ({original_cols} → {new_cols})")
+                    reporter.add_text(f"Analysis '{analysis_run_name}': removed {len(cols_to_remove)} control columns ({original_cols} → {new_cols})")
         
         reporter.add_success("Successfully removed control samples from all datasets")
         return data, raw_data_tables
