@@ -13,21 +13,21 @@ metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysi
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
-# STEP 2: Metadata source — true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
+# STEP 2: Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
 # false = You have separate TSV files, one for each metadata sheet.
-# Set to true or false; you can keep both sets of paths below. Only the chosen one is read.
+# Set to true or false; you can keep both sets of paths below, only the selected one is read (based on combined_metadata_file: true or false)
 combined_metadata_file: false
 
-# When combined_metadata_file: true — single Excel file and sheet names
+# When combined_metadata_file: true = single Excel file and sheet names
 sampleMetadata: "sampleMetadata"
 experimentRunMetadata: "experimentRunMetadata"
 projectMetadata: "projectMetadata"
 excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
 
-# When combined_metadata_file: false — separate TSV files (one path per sheet)
-sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
-experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
-projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
+# When combined_metadata_file: false = separate TSV files (one path per sheet)
+sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
+experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
+projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
 # STEP 3
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
@@ -36,14 +36,14 @@ projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/FAIRe_
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001: #analysis_run_name
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001: #analysis_run_name
     assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_lib_id_abundance/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:

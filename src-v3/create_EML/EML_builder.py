@@ -635,7 +635,7 @@ def _validate_recommended_fields(eml_config: Dict, reporter) -> None:
         reporter.add_warning("EML Recommendations - Consider adding these fields for better metadata quality:")
         for rec in missing_recommendations:
             reporter.add_warning(f"• {rec['message']}")
-            reporter.add_text(f"  💡 {rec['guidance']}")
+            reporter.add_text(f"  Guidance: {rec['guidance']}")
     else:
         reporter.add_success("EML metadata appears comprehensive - all recommended fields are present!")
     
@@ -899,24 +899,24 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         file_size_kb = os.path.getsize(eml_path) / 1024
         
         reporter.add_success(f"EML file successfully created: {eml_path}")
-        reporter.add_text(f"📦 Package ID: {package_id}")
-        reporter.add_text(f"📏 File size: {file_size_kb:.1f} KB")
+        reporter.add_text(f"Package ID: {package_id}")
+        reporter.add_text(f"File size: {file_size_kb:.1f} KB")
         
         # Count XML elements for reporting
         try:
             tree = ET.parse(eml_path)
             root = tree.getroot()
             element_count = len(list(root.iter()))
-            reporter.add_text(f"🏗️ XML structure: {element_count} total elements")
+            reporter.add_text(f"XML structure: {element_count} total elements")
         except:
             pass
         
         # Validate the XML structure
         try:
             ET.parse(eml_path)
-            reporter.add_success("✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission")
+            reporter.add_success("EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission")
         except ET.ParseError as e:
-            reporter.add_warning(f"❌ EML XML validation warning: {e}")
+            reporter.add_warning(f"EML XML validation warning: {e}")
         
         # Provide next steps guidance
         reporter.add_text("<h4>Next Steps for OBIS/GBIF Submission:</h4>")

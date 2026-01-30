@@ -71,13 +71,13 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 if len(cols_to_merge) > 1:  # More than just occurrenceID
                     occ_subset = occurrence_core[cols_to_merge].copy()
                     dna_derived_df_final = dna_derived_df_final.merge(occ_subset, on='occurrenceID', how='left')
-                    reporter.add_text(f"✓ Brought forward {len(available_passthrough)} pass-through field(s) from occurrence core.")
+                    reporter.add_text(f"Brought forward {len(available_passthrough)} pass-through field(s) from occurrence core.")
                 else:
-                    reporter.add_text("✓ No additional pass-through fields needed from occurrence core.")
+                    reporter.add_text("No additional pass-through fields needed from occurrence core.")
             else:
-                reporter.add_text("⚠️ No pass-through fields found in occurrence core.")
+                reporter.add_text("No pass-through fields found in occurrence core.")
         except Exception as _e:
-            reporter.add_text(f"⚠️ Could not merge pass-through fields from occurrence core: {_e}")
+            reporter.add_text(f"Could not merge pass-through fields from occurrence core: {_e}")
 
         # Now merge DNA sequences from taxonomy files
         # Build a lookup table of (featureID, assay_name) -> DNA_sequence
@@ -263,7 +263,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             except Exception:
                 pass
 
-            reporter.add_text("✓ Merged with experimentRunMetadata and sampleMetadata.")
+            reporter.add_text("Merged with experimentRunMetadata and sampleMetadata.")
 
             # 5. Assign the fully merged dataframe back
             dna_derived_df_final = final_merged_df.copy()
@@ -345,35 +345,35 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         # 1) concentrationUnit: Stays as a separate column.
         if 'concentration_unit' in dna_derived_df_final.columns:
             dna_derived_df_final['concentrationUnit'] = dna_derived_df_final['concentration_unit'].fillna('ng/µl')
-            reporter.add_text("✓ Populated 'concentrationUnit' from source 'concentration_unit' column.")
+            reporter.add_text("Populated 'concentrationUnit' from source 'concentration_unit' column.")
         else:
             dna_derived_df_final['concentrationUnit'] = 'ng/µl'
-            reporter.add_text("✓ Set 'concentrationUnit' to default 'ng/µl'.")
+            reporter.add_text("Set 'concentrationUnit' to default 'ng/µl'.")
         
         # 2) size_fracUnit: To be combined. Check for 'size_frac_unit' first.
         if 'size_frac_unit' in dna_derived_df_final.columns:
             dna_derived_df_final['size_fracUnit'] = dna_derived_df_final['size_frac_unit'].fillna('micrometer')
-            reporter.add_text("✓ Populated 'size_fracUnit' from source 'size_frac_unit' column.")
+            reporter.add_text("Populated 'size_fracUnit' from source 'size_frac_unit' column.")
         else:
             dna_derived_df_final['size_fracUnit'] = 'micrometer'
-            reporter.add_text("✓ Set 'size_fracUnit' to default 'micrometer' (source column not found).")
+            reporter.add_text("Set 'size_fracUnit' to default 'micrometer' (source column not found).")
         
         # 3) samp_vol_we_dna_extUnit: To be combined. Check for 'samp_vol_we_dna_ext_unit' first.
         if 'samp_vol_we_dna_ext_unit' in dna_derived_df_final.columns:
             # Use source data, filling any blanks with the default 'mL'.
             dna_derived_df_final['samp_vol_we_dna_extUnit'] = dna_derived_df_final['samp_vol_we_dna_ext_unit'].fillna('mL').astype(str).str.replace('ml', 'mL', case=False)
-            reporter.add_text("✓ Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.")
+            reporter.add_text("Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.")
         else:
             dna_derived_df_final['samp_vol_we_dna_extUnit'] = 'mL'
-            reporter.add_text("✓ Set 'samp_vol_we_dna_extUnit' to default 'mL' (source column not found).")
+            reporter.add_text("Set 'samp_vol_we_dna_extUnit' to default 'mL' (source column not found).")
         
         # 4) samp_size_unit: To be combined. Check for 'samp_size_unit' first. No default.
         if 'samp_size_unit' in dna_derived_df_final.columns:
             dna_derived_df_final['samp_size_unit'] = dna_derived_df_final['samp_size_unit'].fillna('').astype(str).replace({'nan': '', 'None': ''})
-            reporter.add_text("✓ Populated 'samp_size_unit' from source 'samp_size_unit' column.")
+            reporter.add_text("Populated 'samp_size_unit' from source 'samp_size_unit' column.")
         else:
             dna_derived_df_final['samp_size_unit'] = ''
-            reporter.add_warning("⚠️ 'samp_size_unit' column not found in metadata. Units for 'samp_size' will be empty.")
+            reporter.add_warning("'samp_size_unit' column not found in metadata. Units for 'samp_size' will be empty.")
             
         # --- Combine value and unit columns ---
         reporter.add_text("Combining specified value and unit fields...")
@@ -489,9 +489,9 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 if dwc_term not in dna_derived_df_final.columns or dna_derived_df_final[dwc_term].isna().all():
                     values = get_meta_value_series(faire_term, data['projectMetadata'], dna_derived_df_final['assay_name'])
                     dna_derived_df_final[dwc_term] = values
-                    reporter.add_text(f"✓ Populated '{dwc_term}' from projectMetadata (faire_term: '{faire_term}')")
+                    reporter.add_text(f"Populated '{dwc_term}' from projectMetadata (faire_term: '{faire_term}')")
                 else:
-                    reporter.add_text(f"✓ Field '{dwc_term}' already populated from pass-through data")
+                    reporter.add_text(f"Field '{dwc_term}' already populated from pass-through data")
             
             elif source == 'analysisMetadata':
                 values_to_apply = pd.Series([None] * len(dna_derived_df_final), index=dna_derived_df_final.index)
@@ -528,7 +528,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                             except Exception:
                                 reporter.add_warning(f"analysisMetadata term not found for assay '{assay_name}': '{faire_term}' (or '{dwc_term}')")
                 dna_derived_df_final[dwc_term] = values_to_apply
-                reporter.add_text(f"✓ Populated '{dwc_term}' from analysisMetadata (faire_term: '{faire_term}')")
+                reporter.add_text(f"Populated '{dwc_term}' from analysisMetadata (faire_term: '{faire_term}')")
         
         # --- SPECIAL LOGIC: Construct pcr_primer_reference ---
         reporter.add_text("Constructing 'pcr_primer_reference' field...")

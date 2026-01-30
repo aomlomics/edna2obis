@@ -270,14 +270,14 @@ def split_output_files_by_short_name(params, data, reporter):
                 source_path = os.path.join(output_dir, filename)
                 
                 if not os.path.exists(source_path):
-                    reporter.add_text(f"  ⚠️ Skipping {filename}: file not found")
+                    reporter.add_text(f"  Skipping {filename}: file not found")
                     continue
                 
                 try:
                     df = pd.read_csv(source_path, low_memory=False)
                     
                     if filter_column not in df.columns:
-                        reporter.add_warning(f"  ⚠️ Skipping {filename}: column '{filter_column}' not found")
+                        reporter.add_warning(f"  Skipping {filename}: column '{filter_column}' not found")
                         continue
                     
                     # Filter rows where eventID belongs to this short_name
@@ -292,10 +292,10 @@ def split_output_files_by_short_name(params, data, reporter):
                     # Save filtered file
                     filtered_df.to_csv(output_path, index=False, encoding='utf-8-sig')
                     
-                    reporter.add_text(f"  ✓ {output_filename}: {len(filtered_df):,} rows (from {len(df):,} total)")
+                    reporter.add_text(f"  {output_filename}: {len(filtered_df):,} rows (from {len(df):,} total)")
                     
                 except Exception as e:
-                    reporter.add_warning(f"  ❌ Error processing {filename}: {str(e)}")
+                    reporter.add_warning(f"  Error processing {filename}: {str(e)}")
         
         reporter.add_success(f"Successfully split output files into {len(unique_short_names)} subfolder(s).")
         
@@ -834,7 +834,7 @@ def remove_control_samples(data, raw_data_tables, params, reporter):
         
         # Check if the specified column exists
         if control_column not in data['sampleMetadata'].columns:
-            reporter.add_text(f"⚠️ Warning: Control detection column '{control_column}' not found in sampleMetadata. Available columns: {list(data['sampleMetadata'].columns)}")
+            reporter.add_text(f"Warning: Control detection column '{control_column}' not found in sampleMetadata. Available columns: {list(data['sampleMetadata'].columns)}")
             reporter.add_text("Skipping control sample removal")
             return data, raw_data_tables
         
@@ -1374,18 +1374,18 @@ def main():
                 if 'match_type_debug' in final_df.columns:
                     final_df = final_df.drop(columns=['match_type_debug'])
                     final_df.to_csv(final_occurrence_path, index=False, na_rep='')
-                    reporter.add_text(f"🔧 Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)")
+                    reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)")
         except Exception as e:
-            reporter.add_text(f"⚠️ Warning: Could not remove match_type_debug from final file: {e}")
+            reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
         
         # Delete intermediate occurrence.csv file
         intermediate_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), 'occurrence.csv')
         try:
             if os.path.exists(intermediate_occurrence_path):
                 os.remove(intermediate_occurrence_path)
-                reporter.add_text(f"🗑️ Deleted intermediate file: {intermediate_occurrence_path}")
+                reporter.add_text(f"Deleted intermediate file: {intermediate_occurrence_path}")
         except Exception as e:
-            reporter.add_text(f"⚠️ Warning: Could not delete intermediate occurrence.csv: {e}")
+            reporter.add_text(f"Warning: Could not delete intermediate occurrence.csv: {e}")
         
         # Create DNA derived extension
         console.print("Creating DNA derived extension...")
@@ -1402,7 +1402,7 @@ def main():
             except Exception as e:
                 reporter.add_warning(f"eMoF creation failed: {e}")
         else:
-            reporter.add_text("⏭️ Skipping eMoF creation per config (emof_enabled=false)")
+            reporter.add_text("Skipping eMoF creation per config (emof_enabled=false)")
         
         # Create EML file (optional)
         if params.get('eml_enabled', False):
@@ -1415,7 +1415,7 @@ def main():
             except Exception as e:
                 reporter.add_warning(f"EML creation failed: {e}")
         else:
-            reporter.add_text("⏭️ Skipping EML creation per config (eml_enabled=false)")
+            reporter.add_text("Skipping EML creation per config (eml_enabled=false)")
         
         # --- Final File Validation ---
         reporter.add_section("Final File Validation", level=3)
@@ -1487,7 +1487,7 @@ def main():
                 raise
         else:
             console.print("Skipping output file splitting (split_output_by_short_name=false)")
-            reporter.add_text("⏭️ Skipping output file splitting (split_output_by_short_name=false)")
+            reporter.add_text("Skipping output file splitting (split_output_by_short_name=false)")
 
         # --- Final Status Check ---
         # If any warnings were logged during the run, set the final status to WARNING
@@ -1530,7 +1530,7 @@ def main():
             filepath = os.path.join(output_dir, filename)
             if os.path.exists(filepath):
                 size_mb = os.path.getsize(filepath) / (1024*1024)
-                reporter.add_text(f"✓ {filename} ({size_mb:.2f} MB)")
+                reporter.add_text(f"{filename} ({size_mb:.2f} MB)")
                 # Clean CLI success messages for final outputs
                 if filename.startswith("occurrence_core_"):
                     console.print(f"[green]Created Occurrence Core:[/] {filepath}")
@@ -1543,7 +1543,7 @@ def main():
                 elif filename.endswith(".xml"):
                     console.print(f"[green]EML generated:[/] {filepath}")
             else:
-                reporter.add_text(f"✗ {filename} (not found)")
+                reporter.add_text(f"{filename} (not found)")
         
     except Exception as e:
         console.print(f"\n[bold red]Error during processing:[/] {str(e)}")

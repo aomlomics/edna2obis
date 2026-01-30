@@ -29,7 +29,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
         # --- MAIN DATA PROCESSING LOOP --- Loop through each analysis run defined in params['datafiles']
         warnings.simplefilter(action='ignore', category=FutureWarning)
 
-        reporter.add_text(f"🚀 Starting data processing for {len(params['datafiles'])} analysis run(s) to generate occurrence records.")
+        reporter.add_text(f"Starting data processing for {len(params['datafiles'])} analysis run(s) to generate occurrence records.")
 
         # --- NEW: Load mappings and determine desired columns from the mapper ---
         import yaml
@@ -139,7 +139,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
             project_license = get_project_meta_value(project_meta_df, 'license', pd.NA)
             project_institution_id = get_project_meta_value(project_meta_df, 'institutionID', pd.NA)
         else:
-            reporter.add_text("  ⚠️ Warning: projectMetadata is empty or not found. 'recordedBy' and 'datasetID' will use default placeholder values.")
+            reporter.add_text("  Warning: projectMetadata is empty or not found. 'recordedBy' and 'datasetID' will use default placeholder values.")
             project_bibliographic_citation = pd.NA
             project_license = pd.NA
             project_institution_id = pd.NA
@@ -522,16 +522,16 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     
                     all_processed_occurrence_dfs.append(current_assay_occurrence_final_df)
                     successful_runs += 1
-                    reporter.add_text(f"  ✓ Processed {analysis_run_name}: {len(current_assay_occurrence_final_df)} records.")
+                    reporter.add_text(f"  Processed {analysis_run_name}: {len(current_assay_occurrence_final_df)} records.")
 
                 except Exception as e:
                     import traceback
-                    reporter.add_text(f"  ❌ Error processing {analysis_run_name}: {str(e)}")
+                    reporter.add_text(f"  Error processing {analysis_run_name}: {str(e)}")
                     reporter.add_text(f"  Traceback for {analysis_run_name}: {traceback.format_exc()}")
                     failed_runs += 1
 
         # --- POST-LOOP CONCATENATION & FINALIZATION ---
-        reporter.add_text(f"🏁 LOOP COMPLETED: Successful runs: {successful_runs}, Failed runs: {failed_runs}, Total DataFrames to combine: {len(all_processed_occurrence_dfs)}")
+        reporter.add_text(f"Loop completed: Successful runs: {successful_runs}, Failed runs: {failed_runs}, Total DataFrames to combine: {len(all_processed_occurrence_dfs)}")
 
         if all_processed_occurrence_dfs:
             occ_all_final_combined = pd.concat(all_processed_occurrence_dfs, ignore_index=True, sort=False)
@@ -586,16 +586,16 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                 num_duplicates = occ_all_final_output.duplicated(subset=['occurrenceID']).sum()
                 if num_duplicates > 0:
                     occ_all_final_output.drop_duplicates(subset=['occurrenceID'], keep='first', inplace=True)
-                    reporter.add_text(f"🔄 Dropped {num_duplicates} duplicate occurrenceID records. Final rows: {len(occ_all_final_output)}.")
+                    reporter.add_text(f"Dropped {num_duplicates} duplicate occurrenceID records. Final rows: {len(occ_all_final_output)}.")
                 else:
-                    reporter.add_text("🔄 No duplicate occurrenceID records found to drop.")
+                    reporter.add_text("No duplicate occurrenceID records found to drop.")
             else:
-                reporter.add_text("  ⚠️ WARNING: 'occurrenceID' column not found or is all NA. Cannot effectively drop duplicates based on it.")
+                reporter.add_text("  WARNING: 'occurrenceID' column not found or is all NA. Cannot effectively drop duplicates based on it.")
 
             try:
                 occ_all_final_output.to_csv(output_path, index=False, na_rep='') 
-                reporter.add_text(f"💾 Combined occurrence file '{output_filename}' saved to '{output_path}' with {len(occ_all_final_output)} records.")
-                reporter.add_text(f"👀 Preview of final combined occurrence data (first 5 rows, selected columns):")
+                reporter.add_text(f"Combined occurrence file '{output_filename}' saved to '{output_path}' with {len(occ_all_final_output)} records.")
+                reporter.add_text("Preview of final combined occurrence data (first 5 rows, selected columns):")
                 preview_cols_subset = ['eventID', 'occurrenceID', 'assay_name', 'parentEventID', 'datasetID', 'recordedBy', 
                                        'locality', 'decimalLatitude', 'decimalLongitude', 'geodeticDatum', 
                                        'identificationRemarks', 'locationID']
@@ -603,7 +603,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                 reporter.add_dataframe(occ_all_final_output[preview_cols_to_show], "Occurrence Core Preview", max_rows=5)
                 
                 # Add important note about assay_name column
-                reporter.add_text("<h4>📝 NOTE:</h4>")
+                reporter.add_text("<h4>NOTE:</h4>")
                 reporter.add_text("The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.")
                 
                 reporter.add_success(f"Successfully created occurrence core with {len(occ_all_final_output)} records")
@@ -612,11 +612,11 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                 return occ_all_final_output, all_processed_occurrence_dfs
                 
             except Exception as e:
-                error_msg = f"❌ Error saving combined occurrence file: {str(e)}"
+                error_msg = f"Error saving combined occurrence file: {str(e)}"
                 reporter.add_error(error_msg)
                 raise Exception(error_msg)
         else:
-            error_msg = f"❌ No data to combine - all analysis runs may have failed or yielded no occurrence records."
+            error_msg = "No data to combine - all analysis runs may have failed or yielded no occurrence records."
             reporter.add_error(error_msg)
             raise Exception(error_msg)
             

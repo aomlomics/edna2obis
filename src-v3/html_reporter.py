@@ -75,7 +75,7 @@ class HTMLReporter:
             content += f"<p><em>Showing first {max_rows} rows of {len(df):,} total rows</em></p>"
         
         # Wrap table in scrollable container with scroll hint
-        scroll_hint = '<p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
+        scroll_hint = '<p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
         content += f'<div class="table-container">{table_html}</div>{scroll_hint}'
         
         self.sections.append({
@@ -150,7 +150,7 @@ class HTMLReporter:
                     else:
                         table_html = df.to_html(classes="table table-striped", escape=False)
                     
-                    scroll_hint = '<p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
+                    scroll_hint = '<p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
                     new_content += f'<div class="table-container">{table_html}</div>{scroll_hint}'
                     
                     # Update the section's content in place

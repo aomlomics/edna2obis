@@ -697,7 +697,7 @@
       <td>1027.13</td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p><h4>experimentRunMetadata preview:</h4></p>
 <p>Contextual data about how the samples were prepared for sequencing. Includes how they were extracted, what amplicon was targeted, how they were sequenced. Each row is a separate sequencing library preparation, distinguished by a unique lib_id.</p>
 <h4>experimentRunMetadata (first 2 rows)</h4><p><strong>Shape:</strong> 58 rows × 17 columns</p><p><em>Showing first 2 rows of 58 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
@@ -765,7 +765,7 @@
       <td>77</td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <h2>Loading ASV Data</h2>
 <p>Processing analysis run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
 <div class="alert alert-success">Loaded taxonomy file: raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_addJ-mifish_sefsc-gu1901.tsv (shape: (243, 12))</div>
@@ -918,7 +918,7 @@
       <td>0</td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <div class="alert alert-success">Successfully loaded ASV data for 2 analysis runs</div>
 <h2>Removing Control Samples</h2>
 <p>Using column 'samp_category' to detect control samples</p>
@@ -1403,8 +1403,8 @@
 </table></div>
 <div class="alert alert-success">Loaded Darwin Core mappings</div>
 <h2>Building Combined Occurrence Core</h2>
-<p>🚀 Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
-<p>✓ Built eventID lookup map from experimentRunMetadata with 42 entries.</p>
+<p>Starting data processing for 2 analysis run(s) to generate occurrence records.</p>
+<p>Built eventID lookup map from experimentRunMetadata with 42 entries.</p>
 <p>Processing Analysis Run: rosel-ctd-mifish-addMFtrawlJfish-241001</p>
 <p>  Join diagnostic: taxonomy fields present for 491/491 rows after merge.</p>
 <p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
@@ -1415,14 +1415,14 @@
 <p>  DIAGNOSTIC: For DwC term 'geodeticDatum', its mapped FAIRe term 'verbatimSRS' (from mapper) was NOT found as a column in the merged sample data. The column will be empty if not populated by other means.</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Could not construct 'locationID' from config. The following columns were not found: line_id, station_id. Falling back to default.</div>
 <p>  Successfully processed rosel-ctd-riaz-addMFtrawlJfish-241001: Generated 421 records.</p>
-<p>🏁 LOOP COMPLETED: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
+<p>Loop completed: Successful runs: 2, Failed runs: 0, Total DataFrames to combine: 2</p>
 <h3>Data Quality Checks</h3>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'geodeticDatum' column was empty or missing. It has been filled with the default value 'WGS84'. Please verify this is appropriate for your data.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'locationID' column is empty. This is likely because the 'line_id' and/or 'station_id' columns were not found in the source sampleMetadata. The pipeline cannot generate a default for this field.</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> The 'eventDate' column contains dates without a specific time. If a more precise time is available in your source data, please include it.</div>
-<p>🔄 No duplicate occurrenceID records found to drop.</p>
-<p>💾 Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 912 records.</p>
-<p>👀 Preview of final combined occurrence data (first 5 rows, selected columns):</p>
+<p>No duplicate occurrenceID records found to drop.</p>
+<p>Combined occurrence file 'occurrence.csv' saved to 'processed-v3/occurrence.csv' with 912 records.</p>
+<p>Preview of final combined occurrence data (first 5 rows, selected columns):</p>
 <h4>Occurrence Core Preview</h4><p><strong>Shape:</strong> 912 rows × 12 columns</p><p><em>Showing first 5 rows of 912 total rows</em></p><div class="table-container"><table border="1" class="dataframe table table-striped">
   <thead>
     <tr style="text-align: right;">
@@ -1518,8 +1518,8 @@
       <td><NA></td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
-<p><h4>📝 NOTE:</h4></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
+<p><h4>NOTE:</h4></p>
 <p>The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.</p>
 <div class="alert alert-success">Successfully created occurrence core with 912 records</div>
 <h2>Taxonomic Assignment</h2>
@@ -1926,16 +1926,16 @@
       <td>GBIF</td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Deduplicated taxa_assignment_INFO_GBIF.csv: removed 224 duplicate rows.</p>
 <p>Found 151 unique selected pairs in the occurrence file.</p>
 <p>Marked 151 selected matches in taxa_assignment_INFO_GBIF.csv.</p>
-<p>🗑️ Deleted intermediate file: processed-v3/occurrence.csv</p>
+<p>Deleted intermediate file: processed-v3/occurrence.csv</p>
 <h2>Creating DNA Derived Extension</h2>
 <p>Building DNA derived extension from occurrence core (one row per occurrence)...</p>
 <p>Using 'taxonID' field (GBIF workflow)</p>
 <p>Starting with 912 occurrence records.</p>
-<p>✓ Brought forward 25 pass-through field(s) from occurrence core.</p>
+<p>Brought forward 25 pass-through field(s) from occurrence core.</p>
 <p>Shape after all merges: (912, 31)</p>
 <h3>Merging Sample and Experiment Metadata</h3>
 <p>eventID/lib_id diagnostics: DNA rows=912, unique eventID=42, unique lib_id=42, overlaps=42</p>
@@ -1943,33 +1943,33 @@
 <p>samp_name diagnostics: unique samp_name(after ERM)=21, unique samp_name(sampleMetadata)=21, overlaps=21</p>
 <p>SampleMetadata merge: used column 'samp_name_from_erm', matched rows (by key)=912 / 912</p>
 <h4>Post-merge coverage for key sampleMetadata fields:</h4><ul><li>materialSampleID: 100.0% filled</li><li>depth_category: 100.0% filled</li><li>decimalLatitude: 100.0% filled</li><li>decimalLongitude: 100.0% filled</li><li>temp: 100.0% filled</li><li>salinity: 100.0% filled</li><li>samp_vol_we_dna_ext: 0.0% filled</li><li>concentration: 0.0% filled</li><li>concentration_unit: 0.0% filled</li></ul>
-<p>✓ Merged with experimentRunMetadata and sampleMetadata.</p>
+<p>Merged with experimentRunMetadata and sampleMetadata.</p>
 <p>Aliased fields: sampleMetadata=12, experimentRunMetadata=1</p>
 <p>Applying specific unit logic...</p>
-<p>✓ Populated 'concentrationUnit' from source 'concentration_unit' column.</p>
-<p>✓ Populated 'size_fracUnit' from source 'size_frac_unit' column.</p>
-<p>✓ Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.</p>
-<p>✓ Populated 'samp_size_unit' from source 'samp_size_unit' column.</p>
+<p>Populated 'concentrationUnit' from source 'concentration_unit' column.</p>
+<p>Populated 'size_fracUnit' from source 'size_frac_unit' column.</p>
+<p>Populated 'samp_vol_we_dna_extUnit' from source 'samp_vol_we_dna_ext_unit' column.</p>
+<p>Populated 'samp_size_unit' from source 'samp_size_unit' column.</p>
 <p>Combining specified value and unit fields...</p>
 <div class="alert alert-success">Combined 'size_frac' and 'size_fracUnit'.</div>
 <div class="alert alert-success">Combined 'samp_vol_we_dna_ext' and 'samp_vol_we_dna_extUnit'.</div>
 <div class="alert alert-success">Combined 'samp_size' and 'samp_size_unit'.</div>
 <p>Dropped combined unit columns: ['size_fracUnit', 'samp_vol_we_dna_extUnit', 'samp_size_unit']</p>
 <p>Processing project and analysis metadata fields...</p>
-<p>✓ Populated 'target_gene' from projectMetadata (faire_term: 'target_gene')</p>
-<p>✓ Populated 'target_subfragment' from projectMetadata (faire_term: 'target_subfragment')</p>
-<p>✓ Populated 'ampliconSize' from projectMetadata (faire_term: 'ampliconSize')</p>
-<p>✓ Populated 'pcr_primer_forward' from projectMetadata (faire_term: 'pcr_primer_forward')</p>
-<p>✓ Populated 'pcr_primer_reverse' from projectMetadata (faire_term: 'pcr_primer_reverse')</p>
-<p>✓ Populated 'pcr_primer_name_forward' from projectMetadata (faire_term: 'pcr_primer_name_forward')</p>
-<p>✓ Populated 'pcr_primer_name_reverse' from projectMetadata (faire_term: 'pcr_primer_name_reverse')</p>
-<p>✓ Populated 'nucl_acid_amp' from projectMetadata (faire_term: 'nucl_acid_amp')</p>
-<p>✓ Populated 'pcr_cond' from projectMetadata (faire_term: 'pcr_cond')</p>
-<p>✓ Populated 'seq_meth' from projectMetadata (faire_term: 'instrument')</p>
-<p>✓ Populated 'lib_layout' from projectMetadata (faire_term: 'lib_layout')</p>
-<p>✓ Populated 'otu_class_appr' from analysisMetadata (faire_term: 'otu_clust_tool')</p>
-<p>✓ Populated 'otu_db' from analysisMetadata (faire_term: 'otu_db')</p>
-<p>✓ Populated 'otu_seq_comp_appr' from analysisMetadata (faire_term: 'otu_seq_comp_appr')</p>
+<p>Populated 'target_gene' from projectMetadata (faire_term: 'target_gene')</p>
+<p>Populated 'target_subfragment' from projectMetadata (faire_term: 'target_subfragment')</p>
+<p>Populated 'ampliconSize' from projectMetadata (faire_term: 'ampliconSize')</p>
+<p>Populated 'pcr_primer_forward' from projectMetadata (faire_term: 'pcr_primer_forward')</p>
+<p>Populated 'pcr_primer_reverse' from projectMetadata (faire_term: 'pcr_primer_reverse')</p>
+<p>Populated 'pcr_primer_name_forward' from projectMetadata (faire_term: 'pcr_primer_name_forward')</p>
+<p>Populated 'pcr_primer_name_reverse' from projectMetadata (faire_term: 'pcr_primer_name_reverse')</p>
+<p>Populated 'nucl_acid_amp' from projectMetadata (faire_term: 'nucl_acid_amp')</p>
+<p>Populated 'pcr_cond' from projectMetadata (faire_term: 'pcr_cond')</p>
+<p>Populated 'seq_meth' from projectMetadata (faire_term: 'instrument')</p>
+<p>Populated 'lib_layout' from projectMetadata (faire_term: 'lib_layout')</p>
+<p>Populated 'otu_class_appr' from analysisMetadata (faire_term: 'otu_clust_tool')</p>
+<p>Populated 'otu_db' from analysisMetadata (faire_term: 'otu_db')</p>
+<p>Populated 'otu_seq_comp_appr' from analysisMetadata (faire_term: 'otu_seq_comp_appr')</p>
 <p>Constructing 'pcr_primer_reference' field...</p>
 <p>Constructing 'otu_db' field from 'otu_db' and 'otu_db_custom'...</p>
 <div class="alert alert-success">Successfully combined 'otu_db' and 'otu_db_custom' fields.</div>
@@ -2367,7 +2367,7 @@
       <td>ACACTGACGACATGGTTCTACA;TACGGTAGCAGAGACTTGGTCT</td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>Saving DNA derived extension to CSV...</p>
 <div class="alert alert-success">DNA derived extension created successfully</div>
 <p>Saved DNA derived extension: 912 records</p>
@@ -2527,13 +2527,13 @@
       <td></td>
     </tr>
   </tbody>
-</table></div><p><small><em>💡 Tip: Scroll horizontally if table extends beyond view</em></small></p>
+</table></div><p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>
 <p>eMoF saved to: processed-v3/eMoF.csv</p>
 <h2>Creating EML (Ecological Metadata Language) File</h2>
 <p>Loading EML configuration from: EML_config.yaml</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> EML Recommendations - Consider adding these fields for better metadata quality:</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> • Temporal coverage helps users understand when data was collected</div>
-<p>  💡 Add temporal_coverage -> begin_date and end_date (YYYY-MM-DD format)</p>
+<p>  Guidance: Add temporal_coverage -> begin_date and end_date (YYYY-MM-DD format)</p>
 <div class="alert alert-warning"><strong>WARNING:</strong> Template placeholders detected - please customize:</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> • Title contains placeholder text [LOCATION] or [TIMEFRAME] - please update with specific information</div>
 <div class="alert alert-warning"><strong>WARNING:</strong> • Abstract appears to contain template text - please customize with your specific dataset description</div>
@@ -2554,10 +2554,10 @@
 <p>EML sections to be included:</p>
 <ul><li>Creator information</li><li>Contact information</li><li>Geographic coverage</li><li>Temporal coverage</li><li>Taxonomic coverage</li><li>Keywords (4 terms)</li><li>Methods and sampling</li><li>Project information</li></ul>
 <div class="alert alert-success">EML file successfully created: processed-v3/eml.xml</div>
-<p>📦 Package ID: 866ee18d-0283-4613-8ba4-11a7fcd0684a/eml-1.xml</p>
-<p>📏 File size: 7.1 KB</p>
-<p>🏗️ XML structure: 110 total elements</p>
-<div class="alert alert-success">✅ EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
+<p>Package ID: 866ee18d-0283-4613-8ba4-11a7fcd0684a/eml-1.xml</p>
+<p>File size: 7.1 KB</p>
+<p>XML structure: 110 total elements</p>
+<div class="alert alert-success">EML XML validation passed - file is well-formed and ready for OBIS/GBIF submission</div>
 <p><h4>Next Steps for OBIS/GBIF Submission:</h4></p>
 <ul><li>Review the generated EML file to ensure all information is accurate</li><li>Upload the EML file along with your Darwin Core data files to IPT</li><li>Or submit directly to your OBIS node manager for review</li><li>The EML file conforms to GBIF Metadata Profile v1.1 standards</li></ul>
 <p>EML saved to: processed-v3/eml.xml</p>
@@ -2574,39 +2574,39 @@
 <p><h4>Processing short_name: 'okeonos_exp_D23'</h4></p>
 <p>Created subfolder: processed-v3/okeonos_exp_D23</p>
 <p>Found 16 eventID(s) for this short_name.</p>
-<p>  ✓ occurrence_core_gbif_okeonos_exp_D23.csv: 342 rows (from 912 total)</p>
-<p>  ✓ dna_derived_extension_okeonos_exp_D23.csv: 342 rows (from 912 total)</p>
-<p>  ✓ eMoF_okeonos_exp_D23.csv: 10,602 rows (from 28,272 total)</p>
+<p>  occurrence_core_gbif_okeonos_exp_D23.csv: 342 rows (from 912 total)</p>
+<p>  dna_derived_extension_okeonos_exp_D23.csv: 342 rows (from 912 total)</p>
+<p>  eMoF_okeonos_exp_D23.csv: 10,602 rows (from 28,272 total)</p>
 <p><h4>Processing short_name: 'okeonos_exp_C682'</h4></p>
 <p>Created subfolder: processed-v3/okeonos_exp_C682</p>
 <p>Found 10 eventID(s) for this short_name.</p>
-<p>  ✓ occurrence_core_gbif_okeonos_exp_C682.csv: 234 rows (from 912 total)</p>
-<p>  ✓ dna_derived_extension_okeonos_exp_C682.csv: 234 rows (from 912 total)</p>
-<p>  ✓ eMoF_okeonos_exp_C682.csv: 7,254 rows (from 28,272 total)</p>
+<p>  occurrence_core_gbif_okeonos_exp_C682.csv: 234 rows (from 912 total)</p>
+<p>  dna_derived_extension_okeonos_exp_C682.csv: 234 rows (from 912 total)</p>
+<p>  eMoF_okeonos_exp_C682.csv: 7,254 rows (from 28,272 total)</p>
 <p><h4>Processing short_name: 'okeonos_exp_B029'</h4></p>
 <p>Created subfolder: processed-v3/okeonos_exp_B029</p>
 <p>Found 14 eventID(s) for this short_name.</p>
-<p>  ✓ occurrence_core_gbif_okeonos_exp_B029.csv: 311 rows (from 912 total)</p>
-<p>  ✓ dna_derived_extension_okeonos_exp_B029.csv: 311 rows (from 912 total)</p>
-<p>  ✓ eMoF_okeonos_exp_B029.csv: 9,641 rows (from 28,272 total)</p>
+<p>  occurrence_core_gbif_okeonos_exp_B029.csv: 311 rows (from 912 total)</p>
+<p>  dna_derived_extension_okeonos_exp_B029.csv: 311 rows (from 912 total)</p>
+<p>  eMoF_okeonos_exp_B029.csv: 9,641 rows (from 28,272 total)</p>
 <p><h4>Processing short_name: 'okeonos_exp_K402'</h4></p>
 <p>Created subfolder: processed-v3/okeonos_exp_K402</p>
 <p>Found 2 eventID(s) for this short_name.</p>
-<p>  ✓ occurrence_core_gbif_okeonos_exp_K402.csv: 25 rows (from 912 total)</p>
-<p>  ✓ dna_derived_extension_okeonos_exp_K402.csv: 25 rows (from 912 total)</p>
-<p>  ✓ eMoF_okeonos_exp_K402.csv: 775 rows (from 28,272 total)</p>
+<p>  occurrence_core_gbif_okeonos_exp_K402.csv: 25 rows (from 912 total)</p>
+<p>  dna_derived_extension_okeonos_exp_K402.csv: 25 rows (from 912 total)</p>
+<p>  eMoF_okeonos_exp_K402.csv: 775 rows (from 28,272 total)</p>
 <div class="alert alert-success">Successfully split output files into 4 subfolder(s).</div>
 <h4>Output folders created:</h4><ul><li><strong>okeonos_exp_D23/</strong>: 3 file(s)</li><li><strong>okeonos_exp_C682/</strong>: 3 file(s)</li><li><strong>okeonos_exp_B029/</strong>: 3 file(s)</li><li><strong>okeonos_exp_K402/</strong>: 3 file(s)</li></ul>
 <h2>Process Completion</h2>
 <div class="alert alert-success">All steps completed successfully!</div>
 <p>Files generated:</p>
-<p>✓ occurrence_core_gbif.csv (0.79 MB)</p>
-<p>✓ taxa_assignment_INFO_GBIF.csv (0.06 MB)</p>
-<p>✓ dna_derived_extension.csv (1.16 MB)</p>
-<p>✓ eMoF.csv (6.60 MB)</p>
-<p>✓ eml.xml (0.01 MB)</p>
-<p>✓ config_Whale_Prey_Taxa_Testing_20251015.yaml (0.01 MB)</p>
-<p>✓ edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html (0.10 MB)</p>
+<p>occurrence_core_gbif.csv (0.79 MB)</p>
+<p>taxa_assignment_INFO_GBIF.csv (0.06 MB)</p>
+<p>dna_derived_extension.csv (1.16 MB)</p>
+<p>eMoF.csv (6.60 MB)</p>
+<p>eml.xml (0.01 MB)</p>
+<p>config_Whale_Prey_Taxa_Testing_20251015.yaml (0.01 MB)</p>
+<p>edna2obis_report_GBIF_Whale_Prey_Taxa_Testing_20251015.html (0.10 MB)</p>
 
     </div>
 </body>

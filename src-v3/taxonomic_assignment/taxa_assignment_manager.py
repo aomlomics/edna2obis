@@ -53,7 +53,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             local_db_path = params.get('local_reference_database_path')
             if local_db_path and os.path.exists(local_db_path):
                 try:
-                    reporter.add_text(f"🧬 Loading local reference database from: {local_db_path}")
+                    reporter.add_text(f"Loading local reference database from: {local_db_path}")
                     
                     local_df = pd.read_excel(local_db_path, index_col=None, na_values=[""])
                     
