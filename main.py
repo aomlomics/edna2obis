@@ -24,9 +24,47 @@ from cli_output.cli_ui import (
 # Import required libraries
 import numpy as np
 import pandas as pd
+import io
 
 # Import custom modules from src-v3
 from html_reporter import HTMLReporter
+
+
+def read_text_file_cross_platform(filepath, sep='\t', **kwargs):
+    """
+    Read a text file (TSV/CSV) with cross-platform line ending normalization.
+    
+    This function handles the Mac vs Windows line ending issue by:
+    1. Reading the file in binary mode
+    2. Normalizing ALL line endings to \n (LF)
+    3. Feeding the normalized content to pandas
+    
+    This ensures identical behavior on Windows, Mac, and Linux regardless of
+    how the file was created or what line endings it contains.
+    
+    Args:
+        filepath: Path to the text file
+        sep: Delimiter (default '\t' for TSV)
+        **kwargs: Additional arguments passed to pd.read_csv
+        
+    Returns:
+        pandas DataFrame
+    """
+    # Read file in binary mode to get raw bytes
+    with open(filepath, 'rb') as f:
+        content = f.read()
+    
+    # Normalize line endings: CRLF -> LF, lone CR -> LF
+    content = content.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+    
+    # Decode to string (try utf-8 first, fall back to latin-1)
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        text = content.decode('latin-1')
+    
+    # Feed to pandas via StringIO
+    return pd.read_csv(io.StringIO(text), sep=sep, **kwargs)
 
 # Import modules from subdirectories
 from create_occurrence_core.occurrence_builder import create_occurrence_core
@@ -643,26 +681,28 @@ def load_asv_data(params, reporter):
                     
                     else:
                         # Logic for text-based files (.txt, .tsv, .csv)
+                        # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
                         
                         # Determine how many commented lines to skip by reading the start of the file
                         skiprows = 0
-                        with open(tax_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        with open(tax_path, 'rb') as f:
                             for line in f:
-                                if line.startswith('#'):
+                                # Normalize line ending and decode
+                                line_clean = line.replace(b'\r', b'').decode('utf-8', errors='ignore')
+                                if line_clean.startswith('#'):
                                     skiprows += 1
                                 else:
                                     break
                         
-                        # Load the data, skipping any initial comment lines
-                        try:
-                            tax_df = pd.read_csv(tax_path, sep=separator, skiprows=skiprows, low_memory=False, encoding='utf-8')
-                        except UnicodeDecodeError:
-                            try:
-                                tax_df = pd.read_csv(tax_path, sep=separator, skiprows=skiprows, low_memory=False, encoding='latin-1')
-                            except Exception:
-                                # Final fallback: sniff delimiter, use python engine, ignore commented lines and bad lines
-                                tax_df = pd.read_csv(tax_path, sep=None, engine='python', comment='#', on_bad_lines='skip', encoding='latin-1')
+                        # Load the data using cross-platform reader (handles CRLF/LF issues)
+                        tax_df = read_text_file_cross_platform(
+                            tax_path,
+                            sep=separator,
+                            skiprows=skiprows,
+                            low_memory=False,
+                            skip_blank_lines=True
+                        )
 
                     # --- Perform essential input normalization ---
                     
@@ -707,8 +747,24 @@ def load_asv_data(params, reporter):
                             tax_df.rename(columns={cols_lower_exact['species']: 'scientificName'}, inplace=True)
 
                     # 5. Normalize featureid values for safe joins
+                    # CRITICAL: Also remove \r characters from CRLF line endings
+                    # that may not be properly handled on cross-platform file transfers (Mac <-> Windows)
                     if 'featureid' in tax_df.columns:
-                        tax_df['featureid'] = tax_df['featureid'].astype(str).str.strip()
+                        tax_df['featureid'] = tax_df['featureid'].astype(str).str.replace('\r', '', regex=False).str.strip()
+                        
+                        # --- CROSS-PLATFORM FIX: Drop rows with empty/NaN featureids ---
+                        # This handles "ghost" rows caused by line ending mismatches (CRLF vs LF)
+                        # when files created on Mac are opened on Windows, or vice versa.
+                        rows_before = len(tax_df)
+                        tax_df = tax_df[
+                            (tax_df['featureid'].notna()) & 
+                            (tax_df['featureid'] != '') & 
+                            (tax_df['featureid'].str.lower() != 'nan') &
+                            (~tax_df['featureid'].str.match(r'^\s*$', na=False))  # Also catch whitespace-only strings
+                        ]
+                        rows_dropped = rows_before - len(tax_df)
+                        if rows_dropped > 0:
+                            reporter.add_text(f"  Note: Dropped {rows_dropped} empty/invalid rows from taxonomy table (likely due to cross-platform line endings).")
 
                     raw_data_tables[analysis_run_name]['taxonomy'] = tax_df
                     tax_shape = tax_df.shape
@@ -742,39 +798,25 @@ def load_asv_data(params, reporter):
                         reporter.add_text(f"Note: Reading '{abundance_path}' as an Excel file. Assumes header is on the first row.")
                     else:
                         # Logic for text-based files (.txt, .tsv, .csv)
+                        # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
 
                         # 1. Check the first line to see if we need to skip it.
-                        with open(abundance_path, 'r', encoding='utf-8', errors='ignore') as f:
-                            first_line = f.readline()
+                        with open(abundance_path, 'rb') as f:
+                            first_line = f.readline().replace(b'\r', b'').decode('utf-8', errors='ignore')
                         
                         # The old format has a comment line, the new one starts with the header.
                         rows_to_skip = 1 if '# Constructed from biom file' in first_line else 0
 
-                        # 2. Load the table, skipping the comment line only if it exists.
-                        try:
-                            df_abundance = pd.read_csv(abundance_path,
-                                                       sep=separator,
-                                                       skiprows=rows_to_skip,
-                                                       header=0,
-                                                       low_memory=False,
-                                                       encoding='utf-8')
-                        except UnicodeDecodeError:
-                            try:
-                                df_abundance = pd.read_csv(abundance_path,
-                                                           sep=separator,
-                                                           skiprows=rows_to_skip,
-                                                           header=0,
-                                                           low_memory=False,
-                                                           encoding='latin-1')
-                            except Exception:
-                                df_abundance = pd.read_csv(abundance_path,
-                                                           sep=None,
-                                                           engine='python',
-                                                           comment='#',
-                                                           on_bad_lines='skip',
-                                                           header=0,
-                                                           encoding='latin-1')
+                        # 2. Load the table using cross-platform reader (handles CRLF/LF issues)
+                        df_abundance = read_text_file_cross_platform(
+                            abundance_path,
+                            sep=separator,
+                            skiprows=rows_to_skip,
+                            header=0,
+                            low_memory=False,
+                            skip_blank_lines=True
+                        )
                     
                     # 3. Standardize the first column name to 'featureid'.
                     if len(df_abundance.columns) > 0:
@@ -786,8 +828,23 @@ def load_asv_data(params, reporter):
                             first_col_name = clean_col_name
                         # Unconditionally standardize the first column to 'featureid' (generic abundance uses seq_id as first column)
                         df_abundance.rename(columns={first_col_name: 'featureid'}, inplace=True)
-                        # Normalize keys
-                        df_abundance['featureid'] = df_abundance['featureid'].astype(str).str.strip()
+                        # Normalize keys - CRITICAL: Also remove \r characters from CRLF line endings
+                        # that may not be properly handled on cross-platform file transfers (Mac <-> Windows)
+                        df_abundance['featureid'] = df_abundance['featureid'].astype(str).str.replace('\r', '', regex=False).str.strip()
+
+                        # --- CROSS-PLATFORM FIX: Drop rows with empty/NaN featureids ---
+                        # This handles "ghost" rows caused by line ending mismatches (CRLF vs LF)
+                        # when files created on Mac are opened on Windows, or vice versa.
+                        rows_before = len(df_abundance)
+                        df_abundance = df_abundance[
+                            (df_abundance['featureid'].notna()) & 
+                            (df_abundance['featureid'] != '') & 
+                            (df_abundance['featureid'].str.lower() != 'nan') &
+                            (~df_abundance['featureid'].str.match(r'^\s*$', na=False))  # Also catch whitespace-only strings
+                        ]
+                        rows_dropped = rows_before - len(df_abundance)
+                        if rows_dropped > 0:
+                            reporter.add_text(f"  Note: Dropped {rows_dropped} empty/invalid rows from abundance table (likely due to cross-platform line endings).")
 
                         # --- NEW CRITICAL FIX: Clean and normalize ALL sample name headers ---
                         # This prevents join failures caused by whitespace or type issues from different file formats (.xlsx, .txt)
