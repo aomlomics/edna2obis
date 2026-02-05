@@ -41,6 +41,12 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             return
             
         df_to_match = pd.read_csv(occurrence_path)
+        # Coerce key columns to plain strings (avoids Mac/pandas dtype 'str' error downstream)
+        for col in ['verbatimIdentification', 'assay_name']:
+            if col in df_to_match.columns:
+                df_to_match[col] = df_to_match[col].apply(
+                    lambda x: '' if pd.isna(x) else str(x).strip()
+                )
         reporter.add_text(f"Loaded occurrence data: {len(df_to_match):,} records")
         
         api_source = params.get('taxonomic_api_source', 'WoRMS')

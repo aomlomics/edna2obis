@@ -172,8 +172,12 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     logging.info(f"Using {n_proc} processes for WoRMS matching (max 3 recommended)")
 
     df_to_process = occurrence_df.copy()
+    # Safe string conversion (avoids Mac/pandas dtype 'str' error)
+    df_to_process['verbatimIdentification'] = df_to_process['verbatimIdentification'].apply(
+        lambda x: '' if pd.isna(x) else str(x).strip()
+    )
 
-    empty_verbatim_mask = (df_to_process['verbatimIdentification'].isna()) | \
+    empty_verbatim_mask = (df_to_process['verbatimIdentification'].str.strip() == '') | \
                           (df_to_process['verbatimIdentification'].str.strip() == '') | \
                           (df_to_process['verbatimIdentification'].str.strip().str.lower() == 'unassigned')
     

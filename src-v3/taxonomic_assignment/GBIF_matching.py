@@ -157,6 +157,10 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     if assays_to_skip_species is None:
         assays_to_skip_species = []
 
+    # Safe string conversion (avoids Mac/pandas dtype 'str' error)
+    occurrence_df['verbatimIdentification'] = occurrence_df['verbatimIdentification'].apply(
+        lambda x: '' if pd.isna(x) else str(x).strip()
+    )
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
     occurrence_df['gbif_limit'] = gbif_limit # Add the limit to the dataframe for the worker
     unique_lookups = [tuple(row) for row in occurrence_df[['verbatimIdentification', 'skip_species_flag', 'gbif_limit']].drop_duplicates().to_numpy()]
