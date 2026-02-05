@@ -5,12 +5,30 @@ import time
 from functools import partial
 import logging
 import re
+import sys
 
 # Set up logging to provide clear progress updates
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Standard Darwin Core ranks used for structuring the output
 DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+
+def _get_mp_context():
+    """
+    On macOS, forking can crash with Objective-C runtime errors like:
+    'may have been in progress in another thread when fork() was called'.
+    Using 'spawn' avoids fork() and is the safest cross-platform default.
+    """
+    if sys.platform == 'darwin':
+        return mp.get_context('spawn')
+    return mp.get_context()
+
+def _safe_str_or_na(x):
+    """Coerce to Python str or pd.NA. Avoids Mac/Linux pandas dtype 'str' error from numpy scalars/bytes."""
+    if pd.isna(x) or x is None:
+        return pd.NA
+    return str(x).strip() if isinstance(x, str) else str(x)
+
 
 def parse_semicolon_taxonomy(tax_string):
     """
@@ -176,12 +194,19 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     df_to_process['verbatimIdentification'] = df_to_process['verbatimIdentification'].apply(
         lambda x: '' if pd.isna(x) else str(x).strip()
     )
+    if 'assay_name' in df_to_process.columns:
+        df_to_process['assay_name'] = df_to_process['assay_name'].apply(
+            lambda x: '' if pd.isna(x) else str(x).strip()
+        )
 
     empty_verbatim_mask = (df_to_process['verbatimIdentification'].str.strip() == '') | \
                           (df_to_process['verbatimIdentification'].str.strip() == '') | \
                           (df_to_process['verbatimIdentification'].str.strip().str.lower() == 'unassigned')
     
-    df_to_process['_map_key'] = ''
+    # IMPORTANT: This column must be able to hold tuples (verbatimIdentification, assay_name).
+    # On some Mac/Linux pandas installs, assigning '' can create a strict string dtype ('str'),
+    # which then rejects tuples with: "Invalid value for dtype 'str'".
+    df_to_process['_map_key'] = pd.Series([None] * len(df_to_process), index=df_to_process.index, dtype='object')
     df_to_process.loc[empty_verbatim_mask, '_map_key'] = 'IS_TRULY_EMPTY'
     
     non_empty_mask = ~empty_verbatim_mask
@@ -255,7 +280,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         
         unique_aphia_ids_to_fetch = list(aphia_id_map.keys())
         if unique_aphia_ids_to_fetch:
-            with mp.Pool(processes=n_proc) as pool:
+            ctx = _get_mp_context()
+            with ctx.Pool(processes=n_proc) as pool:
                 worker_func = partial(get_worms_classification_by_id_worker, api_source_for_record=api_source)
                 parallel_results = pool.map(worker_func, unique_aphia_ids_to_fetch)
 
@@ -291,7 +317,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             logging.info(f"Processing {total_batches} batches with {n_proc} processes...")
             
             processed_batches = 0
-            with mp.Pool(processes=n_proc) as pool:
+            ctx = _get_mp_context()
+            with ctx.Pool(processes=n_proc) as pool:
                 # Use imap_unordered to get results as they complete, allowing for progress reporting
                 for batch_num, batch_result in pool.imap_unordered(get_worms_batch_worker, batch_data):
                     batch_lookup.update(batch_result)
@@ -387,12 +414,16 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         mapped_results = df_to_process['_map_key'].map(results_cache)
         results_df = pd.DataFrame(mapped_results.to_list(), index=df_to_process.index)
         for col in results_df.columns:
+            results_df[col] = results_df[col].apply(_safe_str_or_na)
+        for col in results_df.columns:
             df_to_process[col] = results_df[col]
 
     df_to_process.drop(columns=['_map_key'], inplace=True, errors='ignore')
     
     # --- Create the detailed info DataFrame ---
     info_df = pd.DataFrame(info_records)
+    for col in info_df.columns:
+        info_df[col] = info_df[col].apply(_safe_str_or_na)
 
     return {'main_df': df_to_process, 'info_df': info_df}
 

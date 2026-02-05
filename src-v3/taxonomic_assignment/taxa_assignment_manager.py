@@ -15,6 +15,7 @@ import io
 import sys
 import logging
 import importlib
+import traceback
 from contextlib import redirect_stdout, redirect_stderr
 
 # Import the API-specific matching scripts
@@ -250,7 +251,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     # Clear all other taxonomic columns for these records
                     for rank_col in ALL_TAX_RANKS:
                          if rank_col in matched_df.columns:
-                            matched_df.loc[nan_mask, rank_col] = np.nan
+                            # Use pd.NA for string-typed columns (pandas 'str' dtype is strict on Mac/Linux)
+                            matched_df.loc[nan_mask, rank_col] = pd.NA
             
             elif api_source == 'GBIF':
                 reporter.add_text("Applying manual taxonomic corrections for GBIF...")
@@ -295,7 +297,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     # Clear all other taxonomic columns for these records
                     for rank_col in ALL_TAX_RANKS_GBIF:
                          if rank_col in matched_df.columns:
-                            matched_df.loc[nan_mask, rank_col] = np.nan
+                            # Use pd.NA for string-typed columns (pandas 'str' dtype is strict on Mac/Linux)
+                            matched_df.loc[nan_mask, rank_col] = pd.NA
             
             # Post-matching processing and final save
             reporter.add_text("Starting post-matching processing.")
@@ -341,6 +344,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
     except Exception as e:
         reporter.add_error(f"Taxonomic assignment failed: {str(e)}")
+        # Include full traceback in the HTML report for cross-platform debugging
+        reporter.add_text(f"<pre>{traceback.format_exc()}</pre>")
 
 
 def create_taxa_assignment_info(params, reporter):
