@@ -684,13 +684,14 @@ def load_asv_data(params, reporter):
                         # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
                         
-                        # Determine how many commented lines to skip by reading the start of the file
+                        # Skip leading comment/blank lines (e.g. "# Constructed from biom file"); only skip if line looks like comment (no tab or contains "biom") so we don't skip a header like "#OTU ID\t...".
                         skiprows = 0
                         with open(tax_path, 'rb') as f:
                             for line in f:
-                                # Normalize line ending and decode
-                                line_clean = line.replace(b'\r', b'').decode('utf-8', errors='ignore')
-                                if line_clean.startswith('#'):
+                                line_clean = line.replace(b'\r', b'').decode('utf-8-sig', errors='ignore').strip()
+                                if not line_clean:
+                                    skiprows += 1
+                                elif line_clean.startswith('#') and ('\t' not in line_clean or 'biom' in line_clean.lower()):
                                     skiprows += 1
                                 else:
                                     break
@@ -801,14 +802,20 @@ def load_asv_data(params, reporter):
                         # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
 
-                        # 1. Check the first line to see if we need to skip it.
+                        # Skip leading comment lines (e.g. "# Constructed from biom file") without relying on exact text.
+                        # Only skip lines that look like comments (start with # and no tab, or contain "biom") so we don't skip a header like "#OTU ID\tSample1\t...".
+                        rows_to_skip = 0
                         with open(abundance_path, 'rb') as f:
-                            first_line = f.readline().replace(b'\r', b'').decode('utf-8', errors='ignore')
-                        
-                        # The old format has a comment line, the new one starts with the header.
-                        rows_to_skip = 1 if '# Constructed from biom file' in first_line else 0
+                            for line in f:
+                                line_clean = line.replace(b'\r', b'').decode('utf-8', errors='ignore').strip()
+                                if not line_clean.startswith('#'):
+                                    break
+                                if '\t' not in line_clean or 'biom' in line_clean.lower():
+                                    rows_to_skip += 1
+                                else:
+                                    break
 
-                        # 2. Load the table using cross-platform reader (handles CRLF/LF issues)
+                        # Load the table using cross-platform reader (handles CRLF/LF issues)
                         df_abundance = read_text_file_cross_platform(
                             abundance_path,
                             sep=separator,
@@ -818,15 +825,14 @@ def load_asv_data(params, reporter):
                             skip_blank_lines=True
                         )
                     
-                    # 3. Standardize the first column name to 'featureid'.
+                    # Standardize the first column to 'featureid' (accepts featureid or #OTU ID, etc.).
                     if len(df_abundance.columns) > 0:
                         first_col_name = df_abundance.columns[0]
-                        # Remove leading '#' if present
                         if isinstance(first_col_name, str) and first_col_name.startswith('#'):
-                            clean_col_name = first_col_name[1:]
+                            clean_col_name = first_col_name[1:].strip()
                             df_abundance.rename(columns={first_col_name: clean_col_name}, inplace=True)
                             first_col_name = clean_col_name
-                        # Unconditionally standardize the first column to 'featureid' (generic abundance uses seq_id as first column)
+                        # Unconditionally rename first column to 'featureid'
                         df_abundance.rename(columns={first_col_name: 'featureid'}, inplace=True)
                         # Normalize keys - CRITICAL: Also remove \r characters from CRLF line endings
                         # that may not be properly handled on cross-platform file transfers (Mac <-> Windows)
