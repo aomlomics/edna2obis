@@ -649,11 +649,27 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         # --- FINAL DE-DUPLICATION ---
         # Drop any fully duplicate rows that might have been created during merges
         initial_rows = len(dna_derived_extension)
-        # Avoid SettingWithCopyWarning by assigning the result rather than inplace on a potential slice
+        # Avoid silent data loss: only remove fully identical rows.
+        dna_derived_extension = dna_derived_extension.drop_duplicates(keep='first')
+        
+        # DNA derived extension is designed to be one row per occurrenceID.
+        # If duplicate occurrenceIDs exist here, the upstream occurrence core IDs are not unique
+        # (or a merge created duplicate rows). Fail loudly so the user can fix identifiers.
         if 'occurrenceID' in dna_derived_extension.columns and not dna_derived_extension['occurrenceID'].isna().all():
-            dna_derived_extension = dna_derived_extension.drop_duplicates(subset=['occurrenceID'], keep='first')
-        else:
-            dna_derived_extension = dna_derived_extension.drop_duplicates(keep='first')
+            dup_ct = int(dna_derived_extension.duplicated(subset=['occurrenceID']).sum())
+            if dup_ct > 0:
+                top_dups = (
+                    dna_derived_extension.loc[dna_derived_extension['occurrenceID'].duplicated(keep=False), 'occurrenceID']
+                    .astype(str)
+                    .value_counts()
+                    .head(10)
+                )
+                reporter.add_error(
+                    f"DNA derived extension contains {dup_ct} row(s) with duplicated occurrenceID values. "
+                    f"Top duplicates (up to 10 shown): {top_dups.to_dict()}. "
+                    f"This indicates non-unique occurrenceIDs upstream and will break GBIF/OBIS integrity."
+                )
+                raise ValueError("Duplicate occurrenceID values detected in DNA derived extension.")
         
         final_rows = len(dna_derived_extension)
         if initial_rows > final_rows:

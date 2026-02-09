@@ -262,8 +262,21 @@ def split_output_files_by_short_name(params, data, reporter):
             sm_df['samp_name'].astype(str).str.strip(),
             sm_df['short_name'].astype(str).str.strip()
         ))
+
+        # Also build: short_name -> set(samp_name) for robust filtering via parentEventID
+        short_to_samp_names = {}
+        try:
+            tmp = sm_df[['samp_name', 'short_name']].copy()
+            tmp['samp_name'] = tmp['samp_name'].astype(str).str.strip()
+            tmp['short_name'] = tmp['short_name'].astype(str).str.strip()
+            for sn, grp in tmp.groupby('short_name'):
+                short_to_samp_names[str(sn).strip()] = set(grp['samp_name'].dropna().astype(str).str.strip().tolist())
+        except Exception as _e:
+            short_to_samp_names = {sn: set() for sn in unique_short_names}
+            reporter.add_warning(f"Could not build short_name -> samp_name map for splitting: {_e}")
         
         # Build lookup: lib_id (eventID) -> short_name via experimentRunMetadata
+        # NOTE: This is a fallback strategy only. lib_id/eventID may not be globally unique across cruises.
         event_to_short_name = {}
         if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
             erm_df = data['experimentRunMetadata']
@@ -275,6 +288,41 @@ def split_output_files_by_short_name(params, data, reporter):
                         event_to_short_name[lib_id] = samp_to_short_name[samp_name]
         
         reporter.add_text(f"Built eventID -> short_name lookup with {len(event_to_short_name)} entries.")
+
+        # Load occurrence core to build a reliable occurrenceID -> short_name mapping.
+        # This avoids issues when lib_id/eventID values are duplicated across cruises.
+        occurrence_to_short_name = {}
+        try:
+            occ_path = os.path.join(output_dir, f'occurrence_core_{api_choice}.csv')
+            if os.path.exists(occ_path):
+                occ_df = pd.read_csv(occ_path, low_memory=False)
+                # Prefer parentEventID (samp_name) if present, since samp_name maps directly to short_name via sampleMetadata.
+                parent_key_col = 'parentEventID' if 'parentEventID' in occ_df.columns else ('samp_name' if 'samp_name' in occ_df.columns else None)
+                if parent_key_col and 'occurrenceID' in occ_df.columns:
+                    occ_df[parent_key_col] = occ_df[parent_key_col].astype(str).str.strip()
+                    occ_df['occurrenceID'] = occ_df['occurrenceID'].astype(str).str.strip()
+                    mapped = occ_df[parent_key_col].map(samp_to_short_name)
+                    occ_df['_short_name_split'] = mapped
+                    unmapped = int(occ_df['_short_name_split'].isna().sum())
+                    if unmapped > 0:
+                        reporter.add_warning(
+                            f"{unmapped} occurrence row(s) could not be mapped to a short_name via {parent_key_col} -> sampleMetadata.samp_name. "
+                            f"Those rows will not appear in any split subfolder."
+                        )
+                    occurrence_to_short_name = dict(zip(occ_df['occurrenceID'], occ_df['_short_name_split']))
+                    reporter.add_text(f"Built occurrenceID -> short_name lookup with {len(occurrence_to_short_name)} entries from occurrence core.")
+                else:
+                    reporter.add_warning(
+                        f"Could not build occurrenceID -> short_name mapping from '{occ_path}' (missing columns). "
+                        f"Will fall back to eventID-based splitting."
+                    )
+            else:
+                reporter.add_warning(
+                    f"Occurrence core file not found at '{occ_path}'. Will fall back to eventID-based splitting."
+                )
+        except Exception as _occ_e:
+            reporter.add_warning(f"Could not load occurrence core for splitting diagnostics: {_occ_e}. Will fall back to eventID-based splitting.")
+            occurrence_to_short_name = {}
         
         # Define files to split
         files_to_split = [
@@ -313,14 +361,23 @@ def split_output_files_by_short_name(params, data, reporter):
                 
                 try:
                     df = pd.read_csv(source_path, low_memory=False)
-                    
-                    if filter_column not in df.columns:
-                        reporter.add_warning(f"  Skipping {filename}: column '{filter_column}' not found")
-                        continue
-                    
-                    # Filter rows where eventID belongs to this short_name
-                    df[filter_column] = df[filter_column].astype(str).str.strip()
-                    filtered_df = df[df[filter_column].isin(event_ids_for_short_name)]
+
+                    # Prefer filtering by occurrenceID mapping when available (robust even if eventID/lib_id repeats across cruises)
+                    filtered_df = None
+                    if occurrence_to_short_name and 'occurrenceID' in df.columns:
+                        df['occurrenceID'] = df['occurrenceID'].astype(str).str.strip()
+                        filtered_df = df[df['occurrenceID'].map(occurrence_to_short_name).astype(str).str.strip() == str(short_name).strip()]
+                    # Next best: filter by parentEventID using short_name -> samp_name set (works for occurrence_core & dna_derived_extension)
+                    elif 'parentEventID' in df.columns and str(short_name).strip() in short_to_samp_names:
+                        df['parentEventID'] = df['parentEventID'].astype(str).str.strip()
+                        filtered_df = df[df['parentEventID'].isin(short_to_samp_names.get(str(short_name).strip(), set()))]
+                    # Fallback: filter by eventID (may be ambiguous if lib_id values are reused)
+                    else:
+                        if filter_column not in df.columns:
+                            reporter.add_warning(f"  Skipping {filename}: no usable split key found (expected '{filter_column}', 'parentEventID', or 'occurrenceID').")
+                            continue
+                        df[filter_column] = df[filter_column].astype(str).str.strip()
+                        filtered_df = df[df[filter_column].isin(event_ids_for_short_name)]
                     
                     # Generate output filename with short_name suffix
                     base_name, ext = os.path.splitext(filename)
@@ -488,6 +545,23 @@ def load_project_data(params, reporter):
             exp_run_meta_path = params['experimentRunMetadata_file']
             reporter.add_text(f"Loading experimentRunMetadata from: {exp_run_meta_path}")
             data['experimentRunMetadata'] = pd.read_csv(exp_run_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+
+            # Normalize key identifier columns to prevent join/splitting mismatches like 123 vs 123.0
+            # (common when numeric IDs are read as floats due to missing values)
+            try:
+                def _normalize_key_col(df, col_name):
+                    if col_name in df.columns:
+                        s = df[col_name].astype('string').str.strip()
+                        s = s.str.replace(r'^(\d+)\.0$', r'\1', regex=True)
+                        df[col_name] = s
+
+                _normalize_key_col(data['sampleMetadata'], 'samp_name')
+                _normalize_key_col(data['sampleMetadata'], 'short_name')
+                _normalize_key_col(data['experimentRunMetadata'], 'samp_name')
+                _normalize_key_col(data['experimentRunMetadata'], 'lib_id')
+                _normalize_key_col(data['experimentRunMetadata'], 'assay_name')
+            except Exception as _norm_e:
+                reporter.add_warning(f"Could not normalize identifier columns in TSV metadata: {_norm_e}")
             
             # Handle analysis metadata based on format
             if params['metadata_format'] == 'NOAA':

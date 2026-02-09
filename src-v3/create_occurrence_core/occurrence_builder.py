@@ -7,6 +7,7 @@ Build a combined Occurrence Core for all Analyses
 import pandas as pd
 import numpy as np
 import os
+import re
 import warnings
 import traceback
 import datetime
@@ -479,7 +480,23 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
 
                     # --- STEP 7: Construct `occurrenceID` ---
                     current_assay_occurrence_intermediate_df['eventID'] = current_assay_occurrence_intermediate_df['eventID'].astype(str)
-                    current_assay_occurrence_intermediate_df['occurrenceID'] = current_assay_occurrence_intermediate_df['eventID'] + '_occ_' + current_assay_occurrence_intermediate_df['featureid'].astype(str)
+                    # Namespace occurrenceID by analysis_run_name to prevent collisions when multiple analyses
+                    # can share the same lib_id/eventID and featureid pairs (common in internal pipelines/DB schemas).
+                    dataset_component = str(project_dataset_id).strip()
+                    dataset_component = re.sub(r"\s+", "_", dataset_component)
+                    dataset_component = re.sub(r"[^\w\.\-]+", "_", dataset_component)
+                    analysis_component = str(analysis_run_name).strip()
+                    analysis_component = re.sub(r"\s+", "_", analysis_component)
+                    analysis_component = re.sub(r"[^\w\.\-]+", "_", analysis_component)
+                    current_assay_occurrence_intermediate_df['occurrenceID'] = (
+                        dataset_component
+                        + ":"
+                        + analysis_component
+                        + ":"
+                        + current_assay_occurrence_intermediate_df['eventID']
+                        + '_occ_'
+                        + current_assay_occurrence_intermediate_df['featureid'].astype(str)
+                    )
 
                     # --- STEP 8: `identificationRemarks`, `sampleSizeValue`/`Unit`, `parentEventID` ---
                     otu_seq_comp_appr_str = "Unknown sequence comparison approach"
@@ -583,12 +600,35 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
             
             original_rows_before_dedup = len(occ_all_final_output)
             if 'occurrenceID' in occ_all_final_output.columns and not occ_all_final_output['occurrenceID'].isna().all():
-                num_duplicates = occ_all_final_output.duplicated(subset=['occurrenceID']).sum()
-                if num_duplicates > 0:
-                    occ_all_final_output.drop_duplicates(subset=['occurrenceID'], keep='first', inplace=True)
-                    reporter.add_text(f"Dropped {num_duplicates} duplicate occurrenceID records. Final rows: {len(occ_all_final_output)}.")
+                # Prefer removing fully duplicate rows (safe) over dropping by occurrenceID alone (can drop real data).
+                before_rows = len(occ_all_final_output)
+                occ_all_final_output = occ_all_final_output.drop_duplicates(keep='first')
+                removed_full_dups = before_rows - len(occ_all_final_output)
+                if removed_full_dups > 0:
+                    reporter.add_text(f"Removed {removed_full_dups} fully duplicated row(s) after combining occurrence data. Rows now: {len(occ_all_final_output)}.")
+                
+                # occurrenceID must be unique within a published dataset (GBIF requirement; OBIS expects globally unique).
+                # Do not drop rows based on occurrenceID (would cause silent data loss). Instead fail loudly with diagnostics.
+                num_duplicate_ids = int(occ_all_final_output.duplicated(subset=['occurrenceID']).sum())
+                if num_duplicate_ids > 0:
+                    dup_ids = (
+                        occ_all_final_output.loc[occ_all_final_output['occurrenceID'].duplicated(keep=False), 'occurrenceID']
+                        .astype(str)
+                        .value_counts()
+                        .head(10)
+                    )
+                    reporter.add_error(
+                        f"Found {num_duplicate_ids} row(s) with duplicated occurrenceID values after combining occurrence data. "
+                        f"This will cause problems for GBIF/OBIS publication and can lead to empty split outputs. "
+                        f"Top duplicated occurrenceID values (up to 10 shown): {dup_ids.to_dict()}"
+                    )
+                    reporter.add_text(
+                        "Fix: ensure the components used to build occurrenceID are unique per occurrence. "
+                        "Typically this means ensuring eventID/lib_id is unique across cruises/assays, and ensuring analysis_run_name is stable."
+                    )
+                    raise ValueError("Duplicate occurrenceID values detected in combined occurrence core.")
                 else:
-                    reporter.add_text("No duplicate occurrenceID records found to drop.")
+                    reporter.add_text("No duplicate occurrenceID values found after combining (and full-row de-duplication).")
             else:
                 reporter.add_text("  WARNING: 'occurrenceID' column not found or is all NA. Cannot effectively drop duplicates based on it.")
 
