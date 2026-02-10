@@ -163,16 +163,39 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     # raw_data_tables is always keyed by the name from config.yaml.
                     raw_data_key = analysis_run_name
                     if params.get('metadata_format') == 'NOAA':
-                        # For NOAA, we need to find which config key corresponds to this run.
-                        # This is brittle, assumes a 1-to-1 mapping and that the user has set it up correctly.
-                        # A better long-term solution might be to store the config key in the metadata.
-                        # For now, we find the config key that has the matching assay_name.
-                        # This assumes one run per assay in the config for NOAA mode.
-                        raw_data_key = next((key for key, values in params['datafiles'].items() if values.get('assay_name') == assay_name), None)
-                        if not raw_data_key:
-                            reporter.add_warning(f"Could not find a matching entry in the 'datafiles' section of config.yaml for assay '{assay_name}'. Skipping run '{analysis_run_name}'.")
-                            failed_runs += 1
-                            continue
+                        # NOAA (Excel/TSV) mode can have multiple analyses sharing the same assay_name.
+                        # Therefore, selecting raw tables by assay_name is unsafe and can mix cruises/analyses.
+                        # We require that analysis_run_name matches a key in config.yaml:datafiles (authoritative).
+                        if analysis_run_name in params.get('datafiles', {}):
+                            raw_data_key = analysis_run_name
+                        else:
+                            # Backward-compat fallback: only if there is exactly ONE config entry for this assay_name.
+                            matching_keys = [
+                                key for key, values in params.get('datafiles', {}).items()
+                                if str(values.get('assay_name', '')).strip() == str(assay_name).strip()
+                            ]
+                            if len(matching_keys) == 1:
+                                raw_data_key = matching_keys[0]
+                                reporter.add_warning(
+                                    f"NOAA mode fallback: analysis_run_name '{analysis_run_name}' was not found as a key under config.yaml:datafiles. "
+                                    f"Using the only datafiles entry with matching assay_name '{assay_name}': '{raw_data_key}'. "
+                                    f"Best practice: set the analysisMetadata run name (D4) to exactly match the datafiles key to avoid mixing runs."
+                                )
+                            elif len(matching_keys) > 1:
+                                reporter.add_error(
+                                    f"Ambiguous NOAA configuration: analysis_run_name '{analysis_run_name}' was not found under config.yaml:datafiles, "
+                                    f"and there are {len(matching_keys)} datafiles entries with assay_name '{assay_name}'. "
+                                    f"This would mix analyses/cruises. Fix by making the analysisMetadata run name (D4) match the intended datafiles key."
+                                )
+                                failed_runs += 1
+                                continue
+                            else:
+                                reporter.add_warning(
+                                    f"Could not find a matching entry in config.yaml:datafiles for analysis_run_name '{analysis_run_name}' "
+                                    f"(assay_name '{assay_name}'). Skipping this run."
+                                )
+                                failed_runs += 1
+                                continue
 
                     # --- STEP 1: Load and Prepare Raw Taxonomy and Abundance Data ---
                     if not (raw_data_key in raw_data_tables and
@@ -341,7 +364,10 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     current_assay_occurrence_intermediate_df['datasetID'] = project_dataset_id
 
                     # --- STEP 5: Merge `experimentRunMetadata` first (on lib_id) to get samp_name and ERM fields ---
-                    final_assay_name = params.get('datafiles', {}).get(analysis_run_name, {}).get('assay_name')
+                    # IMPORTANT: In NOAA mode, analysis_run_name (from analysisMetadata D4 / TSV) is NOT the config key,
+                    # so using it to look up params['datafiles'][analysis_run_name] is unreliable.
+                    # We are already iterating within a specific assay_name group, so treat that as authoritative here.
+                    final_assay_name = str(assay_name).strip() if assay_name is not None else None
                     
                     if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
                         erm_df_to_merge = data['experimentRunMetadata'].copy()
@@ -350,8 +376,37 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                             current_assay_occurrence_intermediate_df['lib_id'] = current_assay_occurrence_intermediate_df['lib_id'].astype(str).str.strip()
                             erm_df_to_merge['lib_id'] = erm_df_to_merge['lib_id'].astype(str).str.strip()
                             
+                            # Extra normalization: protect against numeric IDs becoming "123.0"
+                            erm_df_to_merge['lib_id'] = erm_df_to_merge['lib_id'].astype(str).str.replace(r'^(\d+)\.0$', r'\1', regex=True).str.strip()
+                            if 'samp_name' in erm_df_to_merge.columns:
+                                erm_df_to_merge['samp_name'] = erm_df_to_merge['samp_name'].astype(str).str.replace(r'^(\d+)\.0$', r'\1', regex=True).str.strip()
+                            if 'assay_name' in erm_df_to_merge.columns:
+                                erm_df_to_merge['assay_name'] = erm_df_to_merge['assay_name'].astype(str).str.strip()
+                            if 'analysis_run_name' in erm_df_to_merge.columns:
+                                erm_df_to_merge['analysis_run_name'] = erm_df_to_merge['analysis_run_name'].astype(str).str.strip()
+                            
+                            # Filter ERM rows to the current assay (and analysis run if that column exists).
+                            # This prevents incorrect samp_name/short_name assignment when multiple analyses share lib_id values.
+                            erm_filtered = erm_df_to_merge
+                            if final_assay_name and 'assay_name' in erm_filtered.columns:
+                                erm_filtered = erm_filtered[erm_filtered['assay_name'] == str(final_assay_name).strip()].copy()
+                            if 'analysis_run_name' in erm_filtered.columns:
+                                erm_filtered = erm_filtered[erm_filtered['analysis_run_name'] == str(analysis_run_name).strip()].copy()
+                            
+                            # lib_id must uniquely identify a sequencing library row in ERM after filtering.
+                            # If not, merges become ambiguous and can attach the wrong samp_name/short_name.
+                            if erm_filtered['lib_id'].duplicated().any():
+                                dup_libs = erm_filtered.loc[erm_filtered['lib_id'].duplicated(keep=False), 'lib_id'].astype(str).value_counts().head(10)
+                                reporter.add_error(
+                                    "experimentRunMetadata contains duplicate lib_id values after filtering "
+                                    f"(assay_name='{final_assay_name}', analysis_run_name='{analysis_run_name}' if present). "
+                                    f"This makes eventID->samp_name ambiguous and will mis-assign short_name. "
+                                    f"Top duplicated lib_id values (up to 10): {dup_libs.to_dict()}"
+                                )
+                                raise ValueError("Ambiguous experimentRunMetadata: duplicate lib_id values after filtering.")
+                            
                             # Drop columns from left side that exist in ERM (except lib_id) to prevent shadowing
-                            erm_cols = set(erm_df_to_merge.columns)
+                            erm_cols = set(erm_filtered.columns)
                             left_cols_to_drop = [col for col in current_assay_occurrence_intermediate_df.columns 
                                                  if col in erm_cols and col != 'lib_id']
                             if left_cols_to_drop:
@@ -360,16 +415,11 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                             # Merge with ERM
                             current_assay_occurrence_intermediate_df = pd.merge(
                                 current_assay_occurrence_intermediate_df,
-                                erm_df_to_merge,
+                                erm_filtered,
                                 on='lib_id',
                                 how='left'
                             )
-                            
-                            # Filter to rows for this assay only
-                            if final_assay_name and 'assay_name' in current_assay_occurrence_intermediate_df.columns:
-                                assay_mask = current_assay_occurrence_intermediate_df['assay_name'].astype(str).str.strip() == str(final_assay_name).strip()
-                                if not assay_mask.all():
-                                    current_assay_occurrence_intermediate_df = current_assay_occurrence_intermediate_df.loc[assay_mask].copy()
+
                             # Populate DwC columns from experimentRunMetadata based on the mapper
                             for dwc_col_target, mapping_info in occurrence_map_config.items():
                                 if isinstance(mapping_info, dict) and mapping_info.get('source') == 'experimentRunMetadata':
