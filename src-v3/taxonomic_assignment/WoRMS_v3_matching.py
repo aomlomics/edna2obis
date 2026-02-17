@@ -13,6 +13,83 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 # Standard Darwin Core ranks used for structuring the output
 DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
 
+def _normalize_taxon_token(s):
+    """
+    Normalize taxonomy tokens for loose equality checks.
+    Keep it conservative: we only want to match obvious identical terms.
+    """
+    if s is None or pd.isna(s):
+        return None
+    s = str(s).strip().lower()
+    if not s:
+        return None
+    # Normalize common separators; keep letters/spaces to avoid over-matching.
+    s = s.replace('_', ' ').replace('-', ' ').replace('/', ' ')
+    if '  ' in s:
+        s = re.sub(r'\s+', ' ', s)
+    return s.strip() or None
+
+
+def _compute_lineage_consistency(parsed_names, candidate_match):
+    """
+    Returns:
+      (score, matched_count, total_count)
+
+    Score in [0, 1]: fraction of verbatim tokens that appear somewhere in the
+    candidate's returned classification (including scientificName).
+
+    This is intentionally simple and rank-agnostic because verbatim strings
+    often include non-standard ranks (e.g., tribes) and "Eukaryota" as a superkingdom.
+    """
+    if not parsed_names or not isinstance(candidate_match, dict):
+        return 0.0, 0, 0
+
+    # Treat Eukaryota as an optional superkingdom token (WoRMS returns Animalia/Plantae/etc as 'kingdom').
+    ignore = {'eukaryota'}
+    verbatim_tokens = []
+    for t in parsed_names:
+        nt = _normalize_taxon_token(t)
+        if not nt or nt in ignore:
+            continue
+        verbatim_tokens.append(nt)
+    verbatim_set = set(verbatim_tokens)
+    if not verbatim_set:
+        return 0.0, 0, 0
+
+    candidate_vals = set()
+    sci = _normalize_taxon_token(candidate_match.get('scientificName'))
+    if sci:
+        candidate_vals.add(sci)
+    for rank in DWC_RANKS_STD:
+        v = _normalize_taxon_token(candidate_match.get(rank))
+        if v:
+            candidate_vals.add(v)
+
+    if not candidate_vals:
+        return 0.0, 0, len(verbatim_set)
+
+    matched = verbatim_set.intersection(candidate_vals)
+    total = len(verbatim_set)
+    matched_count = len(matched)
+    return matched_count / max(1, total), matched_count, total
+
+
+def _candidate_completeness(candidate_match):
+    """
+    Tie-breaker that prefers records with more populated classification fields.
+    This avoids biasing toward 'species' purely because it's a more specific rank.
+    """
+    if not isinstance(candidate_match, dict):
+        return 0
+    n = 0
+    if _normalize_taxon_token(candidate_match.get('scientificName')):
+        n += 1
+    for rank in DWC_RANKS_STD:
+        if _normalize_taxon_token(candidate_match.get(rank)):
+            n += 1
+    return n
+
+
 def _get_mp_context():
     """
     On macOS, forking can crash with Objective-C runtime errors like:
@@ -243,7 +320,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis',
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
-                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False
+                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False,
+                'consistency_score': pd.NA,
+                'consistency_matched_count': pd.NA,
+                'consistency_total_count': pd.NA
             }
             for col in DWC_RANKS_STD:
                 incertae_sedis_record[col] = None
@@ -291,7 +371,14 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         verbatim_str, _ = combo
                         parsed_names = parse_semicolon_taxonomy(verbatim_str)
                         cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
-                        result_with_cleaned = {**result, 'cleanedTaxonomy': cleaned_taxonomy}
+                        consistency_score, matched_count, total_count = _compute_lineage_consistency(parsed_names, result)
+                        result_with_cleaned = {
+                            **result,
+                            'cleanedTaxonomy': cleaned_taxonomy,
+                            'consistency_score': consistency_score,
+                            'consistency_matched_count': matched_count,
+                            'consistency_total_count': total_count
+                        }
                         
                         results_cache[combo] = result_with_cleaned
                         info_records.append({'verbatimIdentification': verbatim_str, **result_with_cleaned, 'ambiguous': False})
@@ -351,18 +438,43 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         all_matches = batch_lookup[term]
                         is_ambiguous = len(all_matches) > 1
                         
-                        # For main DF, always take the first match
+                        # Prefer exact scientificName match to the queried term when available,
+                        # then choose by lineage consistency score (tie-breaker: more complete classification).
+                        norm_term = _normalize_taxon_token(term)
+                        exact_candidates = []
+                        for m in all_matches:
+                            if _normalize_taxon_token(m.get('scientificName')) == norm_term:
+                                exact_candidates.append(m)
+                        candidates = exact_candidates if exact_candidates else all_matches
+
+                        scored_candidates = []
+                        for m in candidates:
+                            s, matched_count, total_count = _compute_lineage_consistency(parsed_names, m)
+                            scored_candidates.append((s, _candidate_completeness(m), matched_count, total_count, m))
+                        scored_candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
+                        best_score, _, best_matched_count, best_total_count, best_match = scored_candidates[0]
+
                         results_cache[(verbatim_str, assay_name)] = {
-                            **all_matches[0], 'nameAccordingTo': api_source,
-                            'match_type_debug': f'Success_Batch_{term}', 'cleanedTaxonomy': cleaned_taxonomy
+                            **best_match,
+                            'nameAccordingTo': api_source,
+                            'match_type_debug': f'Success_Batch_{term}',
+                            'cleanedTaxonomy': cleaned_taxonomy,
+                            'consistency_score': best_score,
+                            'consistency_matched_count': best_matched_count,
+                            'consistency_total_count': best_total_count
                         }
                         
                         # For info DF, add all matches
                         for match in all_matches:
+                            s, matched_count, total_count = _compute_lineage_consistency(parsed_names, match)
                             info_records.append({
                                 'verbatimIdentification': verbatim_str, **match,
                                 'nameAccordingTo': api_source, 'match_type_debug': f'Success_Batch_{term}',
-                                'cleanedTaxonomy': cleaned_taxonomy, 'ambiguous': is_ambiguous
+                                'cleanedTaxonomy': cleaned_taxonomy,
+                                'consistency_score': s,
+                                'consistency_matched_count': matched_count,
+                                'consistency_total_count': total_count,
+                                'ambiguous': is_ambiguous
                             })
                         
                         match_found = True
@@ -390,7 +502,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None, 'nameAccordingTo': api_source,
                 'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
-                'name_change': False
+                'name_change': False,
+                'consistency_score': pd.NA,
+                'consistency_matched_count': pd.NA,
+                'consistency_total_count': pd.NA
             }
             for col in DWC_RANKS_STD:
                 no_match_record[col] = None
@@ -403,7 +518,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
         'taxonRank': None, 'nameAccordingTo': api_source,
         'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
-        'name_change': False
+        'name_change': False,
+        'consistency_score': pd.NA,
+        'consistency_matched_count': pd.NA,
+        'consistency_total_count': pd.NA
     }
     for col in DWC_RANKS_STD:
         empty_fallback_record[col] = None

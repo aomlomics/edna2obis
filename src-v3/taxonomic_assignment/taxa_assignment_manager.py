@@ -397,7 +397,8 @@ def create_taxa_assignment_info(params, reporter):
         if api_source == 'worms':
             final_column_order = [
                 'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change', 'selected_match',
-                'scientificName', 'taxonRank', 'scientificNameID', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
+                'scientificName', 'taxonRank', 'consistency_matched_count', 'consistency_total_count', 'consistency_score', 'scientificNameID',
+                'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
             ]
         else: # GBIF, includes confidence, does not include ambiguous
