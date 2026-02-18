@@ -36,6 +36,10 @@ def mark_selected_worms_matches(params, reporter=None):
         occurrence_df['verbatimIdentification'] = occurrence_df['verbatimIdentification'].astype(str)
         occurrence_df['scientificNameID'] = occurrence_df['scientificNameID'].astype(str)
 
+        # Preserve the original row index so we can mark the correct rows after merge.
+        # (Pandas merge creates a new RangeIndex, which is not the same as info_df's index.)
+        info_df['_info_row_idx'] = info_df.index
+
         # Mark all as False initially
         info_df['selected_match'] = False
 
@@ -55,10 +59,13 @@ def mark_selected_worms_matches(params, reporter=None):
 
         if not merged_df.empty:
             # Drop duplicates to get the unique indices of matching rows in the original info_df
-            best_candidates = merged_df.drop_duplicates(subset=['verbatimIdentification', 'scientificNameID'], keep='first')
+            best_candidates = merged_df.drop_duplicates(
+                subset=['verbatimIdentification', 'scientificNameID'],
+                keep='first'
+            )
             
-            # Mark the 'selected_match' column as True for the indices of the candidates.
-            info_df.loc[best_candidates.index, 'selected_match'] = True
+            # Mark the 'selected_match' column as True for the corresponding rows in info_df.
+            info_df.loc[best_candidates['_info_row_idx'], 'selected_match'] = True
 
         # Move 'selected_match' column to be after 'ambiguous' for consistency
         if 'ambiguous' in info_df.columns:
@@ -70,6 +77,10 @@ def mark_selected_worms_matches(params, reporter=None):
             ambiguous_idx = cols.index('ambiguous')
             cols.insert(ambiguous_idx + 1, 'selected_match')
             info_df = info_df[cols]
+
+        # Drop helper column before writing the final CSV.
+        if '_info_row_idx' in info_df.columns:
+            info_df = info_df.drop(columns=['_info_row_idx'])
 
         # Save the updated dataframe back to the info file
         info_df.to_csv(info_filepath, index=False, na_rep='')

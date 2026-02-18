@@ -37,6 +37,10 @@ def mark_selected_gbif_matches(params, reporter=None):
         occurrence_df['verbatimIdentification'] = occurrence_df['verbatimIdentification'].astype(str)
         occurrence_df['taxonID'] = occurrence_df['taxonID'].astype(str)
 
+        # Preserve the original row index so we can mark the correct rows after merge.
+        # (Pandas merge creates a new RangeIndex, which is not the same as info_df's index.)
+        info_df['_info_row_idx'] = info_df.index
+
         # Mark all as False initially
         info_df['selected_match'] = False
 
@@ -63,8 +67,12 @@ def mark_selected_gbif_matches(params, reporter=None):
                 keep='first'
             )
 
-            # Mark the 'selected_match' column as True only for the indices of the best candidates.
-            info_df.loc[best_candidates.index, 'selected_match'] = True
+            # Mark the 'selected_match' column as True only for the corresponding rows in info_df.
+            info_df.loc[best_candidates['_info_row_idx'], 'selected_match'] = True
+
+        # Drop helper column before writing the final CSV.
+        if '_info_row_idx' in info_df.columns:
+            info_df = info_df.drop(columns=['_info_row_idx'])
 
         # Save the updated dataframe back to the info file
         info_df.to_csv(info_filepath, index=False, na_rep='')

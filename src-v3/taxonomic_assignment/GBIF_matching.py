@@ -3,33 +3,15 @@ from pygbif import species
 import os
 import time
 import pickle
-import multiprocess as mp
+from multiprocess import Pool, cpu_count
 import logging
 import re
-import sys
 
 # --- Setup logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # --- Constants ---
 AMBIGUOUS_KINGDOMS = ['bacteria', 'plantae', 'fungi', 'animalia', 'archaea', 'protista', 'chromista']
-
-def _get_mp_context():
-    """
-    On macOS, forking can crash with Objective-C runtime errors like:
-    'may have been in progress in another thread when fork() was called'.
-    Use 'spawn' on macOS; keep default elsewhere.
-    """
-    if sys.platform == 'darwin':
-        return mp.get_context('spawn')
-    return mp.get_context()
-
-def _safe_str_or_na(x):
-    """Coerce to Python str or pd.NA. Avoids Mac/Linux pandas dtype 'str' error from numpy scalars/bytes."""
-    if pd.isna(x) or x is None:
-        return pd.NA
-    return str(x).strip() if isinstance(x, str) else str(x)
-
 
 def parse_semicolon_taxonomy(tax_string):
     """
@@ -175,10 +157,6 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     if assays_to_skip_species is None:
         assays_to_skip_species = []
 
-    # Safe string conversion (avoids Mac/pandas dtype 'str' error)
-    occurrence_df['verbatimIdentification'] = occurrence_df['verbatimIdentification'].apply(
-        lambda x: '' if pd.isna(x) else str(x).strip()
-    )
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
     occurrence_df['gbif_limit'] = gbif_limit # Add the limit to the dataframe for the worker
     unique_lookups = [tuple(row) for row in occurrence_df[['verbatimIdentification', 'skip_species_flag', 'gbif_limit']].drop_duplicates().to_numpy()]
@@ -190,15 +168,14 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     if new_lookups:
         if n_proc == 0:
-            n_proc = mp.cpu_count()
+            n_proc = cpu_count()
         
         total_lookups = len(new_lookups)
         logging.info(f"Starting parallel GBIF matching for {total_lookups} lookups with {n_proc} processes...")
         start_time = time.time()
         
         processed_count = 0
-        ctx = _get_mp_context()
-        with ctx.Pool(processes=n_proc) as pool:
+        with Pool(processes=n_proc) as pool:
             # Use imap_unordered to get results as they complete, allowing for progress reporting
             for key_tuple, result_list in pool.imap_unordered(_gbif_worker, new_lookups):
                 if key_tuple is not None:
@@ -265,15 +242,6 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     # --- Create Final DataFrames ---
     main_results_df = pd.DataFrame(main_df_records)
     info_df = pd.DataFrame(info_df_records)
-    # IMPORTANT: don't coerce merge keys like skip_species_flag to string
-    if 'verbatimIdentification' in main_results_df.columns:
-        main_results_df['verbatimIdentification'] = main_results_df['verbatimIdentification'].apply(_safe_str_or_na)
-    for col in main_results_df.columns:
-        if col in ['verbatimIdentification', 'skip_species_flag']:
-            continue
-        main_results_df[col] = main_results_df[col].apply(_safe_str_or_na)
-    for col in info_df.columns:
-        info_df[col] = info_df[col].apply(_safe_str_or_na)
     
     # Merge best match results back into the main occurrence DataFrame
     cols_to_drop = [
