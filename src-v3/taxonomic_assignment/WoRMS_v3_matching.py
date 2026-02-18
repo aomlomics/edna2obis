@@ -321,9 +321,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
                 'cleanedTaxonomy': cleaned_verbatim, 'name_change': False,
-                'consistency_score': pd.NA,
-                'consistency_matched_count': pd.NA,
-                'consistency_total_count': pd.NA
+                'assignment_score': pd.NA,
+                'ranks_matched': pd.NA,
+                'ranks_provided': pd.NA
             }
             for col in DWC_RANKS_STD:
                 incertae_sedis_record[col] = None
@@ -375,9 +375,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         result_with_cleaned = {
                             **result,
                             'cleanedTaxonomy': cleaned_taxonomy,
-                            'consistency_score': consistency_score,
-                            'consistency_matched_count': matched_count,
-                            'consistency_total_count': total_count
+                            'assignment_score': consistency_score,
+                            'ranks_matched': matched_count,
+                            'ranks_provided': total_count
                         }
                         
                         results_cache[combo] = result_with_cleaned
@@ -459,9 +459,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                             'nameAccordingTo': api_source,
                             'match_type_debug': f'Success_Batch_{term}',
                             'cleanedTaxonomy': cleaned_taxonomy,
-                            'consistency_score': best_score,
-                            'consistency_matched_count': best_matched_count,
-                            'consistency_total_count': best_total_count
+                            'assignment_score': best_score,
+                            'ranks_matched': best_matched_count,
+                            'ranks_provided': best_total_count
                         }
                         
                         # For info DF, add all matches
@@ -471,9 +471,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                                 'verbatimIdentification': verbatim_str, **match,
                                 'nameAccordingTo': api_source, 'match_type_debug': f'Success_Batch_{term}',
                                 'cleanedTaxonomy': cleaned_taxonomy,
-                                'consistency_score': s,
-                                'consistency_matched_count': matched_count,
-                                'consistency_total_count': total_count,
+                                'assignment_score': s,
+                                'ranks_matched': matched_count,
+                                'ranks_provided': total_count,
                                 'ambiguous': is_ambiguous
                             })
                         
@@ -503,9 +503,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'taxonRank': None, 'nameAccordingTo': api_source,
                 'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
                 'name_change': False,
-                'consistency_score': pd.NA,
-                'consistency_matched_count': pd.NA,
-                'consistency_total_count': pd.NA
+                'assignment_score': pd.NA,
+                'ranks_matched': pd.NA,
+                'ranks_provided': pd.NA
             }
             for col in DWC_RANKS_STD:
                 no_match_record[col] = None
@@ -519,9 +519,9 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'taxonRank': None, 'nameAccordingTo': api_source,
         'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
         'name_change': False,
-        'consistency_score': pd.NA,
-        'consistency_matched_count': pd.NA,
-        'consistency_total_count': pd.NA
+        'assignment_score': pd.NA,
+        'ranks_matched': pd.NA,
+        'ranks_provided': pd.NA
     }
     for col in DWC_RANKS_STD:
         empty_fallback_record[col] = None

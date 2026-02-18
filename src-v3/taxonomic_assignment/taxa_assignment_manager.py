@@ -396,8 +396,9 @@ def create_taxa_assignment_info(params, reporter):
         # Define final column order, now including selected_match and consistency_check
         if api_source == 'worms':
             final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change', 'selected_match',
-                'scientificName', 'taxonRank', 'consistency_matched_count', 'consistency_total_count', 'consistency_score', 'scientificNameID',
+                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change',
+                'ranks_matched', 'ranks_provided', 'assignment_score',
+                'selected_match', 'scientificName', 'taxonRank', 'scientificNameID',
                 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
             ]
@@ -458,6 +459,9 @@ def create_taxa_assignment_info(params, reporter):
             "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
             "<li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
             "<li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li>"
+            "<li><b>ranks_matched:</b> (WoRMS only) Count of verbatim lineage tokens found in the matched classification.</li>"
+            "<li><b>ranks_provided:</b> (WoRMS only) Total number of verbatim lineage tokens considered for scoring.</li>"
+            "<li><b>assignment_score:</b> (WoRMS only) Ratio = ranks_matched / ranks_provided.</li>"
             "<li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li>"
             "</ul>"
         )
