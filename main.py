@@ -71,6 +71,7 @@ from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
 from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
 from create_eMoF.eMoF_builder import create_emof_table
+from create_meta_xml.meta_xml_builder import create_meta_xml
 # from create_EML.EML_builder import create_eml_file
 
 
@@ -164,6 +165,19 @@ def load_config(config_path="config.yaml"):
         # --- NEW: Run name for config saving and report naming ---
         params['edna2obis_run_name'] = config.get('edna2obis_run_name', 'unnamed_run')
 
+        # WoRMS walk-up matching controls (WoRMS only)
+        params['worms_min_ranks_matched'] = config.get('worms_min_ranks_matched', 1)
+        params['worms_max_walkup_steps'] = config.get('worms_max_walkup_steps', None)
+
+        # Put all outputs for a run into a single folder.
+        base_output_dir = params.get('output_dir', "processed-v3/")
+        run_name = str(params.get('edna2obis_run_name', 'unnamed_run')).strip() or "unnamed_run"
+        invalid = '<>:"/\\|?*'
+        safe_run_name = ''.join(('_' if c in invalid else c) for c in run_name).strip()
+        if not safe_run_name:
+            safe_run_name = "unnamed_run"
+        params['output_dir'] = os.path.join(base_output_dir, safe_run_name)
+
         return params
         
     except Exception as e:
@@ -219,8 +233,8 @@ def split_output_files_by_short_name(params, data, reporter):
         - {output_dir}/{short_name}/ subfolder for each unique short_name
         - Filtered files with suffix: occurrence_core_{api}_{short_name}.csv, etc.
     
-    Splits: occurrence_core, dna_derived_extension, eMoF
-    Does NOT split: HTML report, taxa_assignment_INFO, config file, eml.xml
+    Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml, meta.xml
+    Does NOT split: HTML report, taxa_assignment_INFO, config file
     """
     reporter.add_section("Splitting Output Files by short_name", level=2)
     
@@ -352,6 +366,8 @@ def split_output_files_by_short_name(params, data, reporter):
             reporter.add_text(f"Found {len(event_ids_for_short_name)} eventID(s) for this short_name.")
             
             # Filter and save each file
+            filtered_occurrence_df_for_eml = None
+            split_occurrence_path_for_eml = None
             for filename, filter_column in files_to_split:
                 source_path = os.path.join(output_dir, filename)
                 
@@ -388,9 +404,63 @@ def split_output_files_by_short_name(params, data, reporter):
                     filtered_df.to_csv(output_path, index=False, encoding='utf-8-sig')
                     
                     reporter.add_text(f"  {output_filename}: {len(filtered_df):,} rows (from {len(df):,} total)")
+
+                    # Cache the filtered occurrence core for split EML generation
+                    if filename == f'occurrence_core_{api_choice}.csv':
+                        filtered_occurrence_df_for_eml = filtered_df.copy()
+                        split_occurrence_path_for_eml = output_path
                     
                 except Exception as e:
                     reporter.add_warning(f"  Error processing {filename}: {str(e)}")
+
+            # Create split EML file (optional) using the filtered occurrence core for accurate coverage calculations
+            if params.get('eml_enabled', False):
+                # Prefer using the actual split occurrence file on disk (what the user will publish),
+                # falling back to in-memory filtered df only if needed.
+                if (filtered_occurrence_df_for_eml is None or filtered_occurrence_df_for_eml.empty) and split_occurrence_path_for_eml and os.path.exists(split_occurrence_path_for_eml):
+                    try:
+                        filtered_occurrence_df_for_eml = pd.read_csv(split_occurrence_path_for_eml, low_memory=False)
+                    except Exception as _eml_read_e:
+                        reporter.add_warning(
+                            f"  Could not reload split occurrence file for EML generation ('{split_occurrence_path_for_eml}'): {_eml_read_e}"
+                        )
+
+                if filtered_occurrence_df_for_eml is None or filtered_occurrence_df_for_eml.empty:
+                    reporter.add_warning(
+                        f"  Skipping split EML for short_name '{short_name}': no occurrence rows after filtering."
+                    )
+                else:
+                    reporter.add_text("  Creating split EML (eml.xml) for this short_name...")
+                    try:
+                        from create_EML.EML_builder import create_eml_file
+                        params_for_eml = dict(params)
+                        params_for_eml['output_dir'] = short_name_dir
+                        data_for_eml = dict(data)
+                        # The EML builder will prefer this in-memory occurrence DataFrame and skip disk-loading.
+                        data_for_eml['occurrence'] = filtered_occurrence_df_for_eml
+                        eml_path = create_eml_file(params_for_eml, data_for_eml, reporter)
+                        reporter.add_text(f"  Split EML saved to: {eml_path}")
+                    except Exception as e:
+                        reporter.add_warning(f"  Split EML creation failed for short_name '{short_name}': {e}")
+            else:
+                reporter.add_text("  Skipping split EML creation per config (eml_enabled=false)")
+
+            # Create Darwin Core Archive meta.xml for this short_name folder (submission-ready)
+            try:
+                core_fn = f"occurrence_core_{api_choice}_{short_name}.csv"
+                ext_fns = [f"dna_derived_extension_{short_name}.csv"]
+                emof_candidate = os.path.join(short_name_dir, f"eMoF_{short_name}.csv")
+                if os.path.exists(emof_candidate):
+                    ext_fns.append(f"eMoF_{short_name}.csv")
+                create_meta_xml(
+                    output_dir=short_name_dir,
+                    core_filename=core_fn,
+                    extension_filenames=ext_fns,
+                    metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
+                    reporter=reporter,
+                )
+            except Exception as e:
+                reporter.add_warning(f"  meta.xml creation failed for short_name '{short_name}': {e}")
         
         reporter.add_success(f"Successfully split output files into {len(unique_short_names)} subfolder(s).")
         
@@ -399,7 +469,7 @@ def split_output_files_by_short_name(params, data, reporter):
         for short_name in unique_short_names:
             short_name_dir = os.path.join(output_dir, short_name)
             if os.path.exists(short_name_dir):
-                files_in_dir = [f for f in os.listdir(short_name_dir) if f.endswith('.csv')]
+                files_in_dir = [f for f in os.listdir(short_name_dir) if f.endswith('.csv') or f.endswith('.xml')]
                 summary_items.append(f"<strong>{short_name}/</strong>: {len(files_in_dir)} file(s)")
         reporter.add_list(summary_items, "Output folders created:")
         
@@ -1479,6 +1549,20 @@ def main():
             with silence_output():
                 assign_taxonomy(params, data, raw_data_tables, reporter)
         console.print("[green]Finished Taxonomic Assignment.[/]")
+        if params.get('taxonomic_api_source') == 'WoRMS':
+            stats = params.get('worms_walkup_stats')
+            if isinstance(stats, dict) and stats:
+                console.print(
+                    "WoRMS walk-up summary: "
+                    f"min_ranks_matched={stats.get('min_ranks_matched')}, "
+                    f"max_walkup_steps={stats.get('max_walkup_steps')}, "
+                    f"considered_terms={stats.get('considered_terms')}, "
+                    f"rejected_terms={stats.get('rejected_terms')}, "
+                    f"accepted_matches={stats.get('accepted_matches')}, "
+                    f"walked_up_matches={stats.get('walked_up_matches')}, "
+                    f"max_step_used={stats.get('max_step_used')}, "
+                    f"no_acceptable_term_found={stats.get('no_acceptable_term_found')}"
+                )
         
         # Create taxa assignment info file
         from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
@@ -1568,6 +1652,8 @@ def main():
             files_to_validate.append('eMoF.csv')
         if params.get('eml_enabled', False):
             files_to_validate.append('eml.xml')
+        if not params.get('split_output_by_short_name', False):
+            files_to_validate.append('meta.xml')
 
         all_empty_columns_summary = []
         removed_columns_summary = []
@@ -1613,7 +1699,7 @@ def main():
 
         # --- Split output files by short_name (cruise/expedition) if enabled ---
         if params.get('split_output_by_short_name', False):
-            console.print("[bold]Splitting output files by short_name (cruise/expedition)...[/]")
+            console.print("Splitting output files by short_name (cruise/expedition)...")
             try:
                 split_output_files_by_short_name(params, data, reporter)
                 console.print("[green]Output files split successfully![/]")
@@ -1625,6 +1711,21 @@ def main():
         else:
             console.print("Skipping output file splitting (split_output_by_short_name=false)")
             reporter.add_text("Skipping output file splitting (split_output_by_short_name=false)")
+            # Create Darwin Core Archive meta.xml in the run output folder (submission-ready)
+            try:
+                core_fn = f"occurrence_core_{api_choice.lower()}.csv"
+                ext_fns = ["dna_derived_extension.csv"]
+                if params.get("emof_enabled", True) and os.path.exists(os.path.join(output_dir, "eMoF.csv")):
+                    ext_fns.append("eMoF.csv")
+                create_meta_xml(
+                    output_dir=output_dir,
+                    core_filename=core_fn,
+                    extension_filenames=ext_fns,
+                    metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
+                    reporter=reporter,
+                )
+            except Exception as e:
+                reporter.add_warning(f"meta.xml creation failed: {e}")
 
         # --- Final Status Check ---
         # If any warnings were logged during the run, set the final status to WARNING
@@ -1656,6 +1757,8 @@ def main():
             files.append('eMoF.csv')
         if params.get('eml_enabled', False):
             files.append('eml.xml')
+        if not params.get('split_output_by_short_name', False):
+            files.append('meta.xml')
         
         # Add the saved config file
         run_name = params.get('edna2obis_run_name', 'unnamed_run')

@@ -259,6 +259,35 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     pr2_dict = params_dict.get('pr2_worms_dict', {})
     assay_rank_info = params_dict.get('assay_rank_info', {})
 
+    worms_min_ranks_matched = params_dict.get('worms_min_ranks_matched', 1)
+    try:
+        worms_min_ranks_matched = int(worms_min_ranks_matched)
+    except Exception:
+        worms_min_ranks_matched = 1
+    if worms_min_ranks_matched < 1:
+        worms_min_ranks_matched = 1
+
+    worms_max_walkup_steps = params_dict.get('worms_max_walkup_steps', None)
+    if worms_max_walkup_steps is not None:
+        try:
+            worms_max_walkup_steps = int(worms_max_walkup_steps)
+        except Exception:
+            worms_max_walkup_steps = None
+        if worms_max_walkup_steps is not None and worms_max_walkup_steps < 0:
+            worms_max_walkup_steps = 0
+
+    walkup_stats = {
+        'min_ranks_matched': worms_min_ranks_matched,
+        'max_walkup_steps': worms_max_walkup_steps,
+        'considered_terms': 0,
+        'rejected_terms': 0,
+        'accepted_matches': 0,
+        'walked_up_matches': 0,
+        'accepted_at_lowest': 0,
+        'max_step_used': 0,
+        'no_acceptable_term_found': 0
+    }
+
     if n_proc == 0:
         n_proc = min(3, mp.cpu_count())
     else:
@@ -433,10 +462,14 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
                 match_found = False
                 
-                for term in reversed(parsed_names):
+                for walkup_step, term in enumerate(reversed(parsed_names)):
+                    if worms_max_walkup_steps is not None and walkup_step > worms_max_walkup_steps:
+                        break
+
                     if term in batch_lookup:
                         all_matches = batch_lookup[term]
                         is_ambiguous = len(all_matches) > 1
+                        walkup_stats['considered_terms'] += 1
                         
                         # Prefer exact scientificName match to the queried term when available,
                         # then choose by lineage consistency score (tie-breaker: more complete classification).
@@ -453,6 +486,18 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                             scored_candidates.append((s, _candidate_completeness(m), matched_count, total_count, m))
                         scored_candidates.sort(key=lambda x: (x[0], x[1]), reverse=True)
                         best_score, _, best_matched_count, best_total_count, best_match = scored_candidates[0]
+
+                        if best_matched_count < worms_min_ranks_matched:
+                            walkup_stats['rejected_terms'] += 1
+                            continue
+                        
+                        walkup_stats['accepted_matches'] += 1
+                        if walkup_step == 0:
+                            walkup_stats['accepted_at_lowest'] += 1
+                        else:
+                            walkup_stats['walked_up_matches'] += 1
+                            if walkup_step > walkup_stats['max_step_used']:
+                                walkup_stats['max_step_used'] = walkup_step
 
                         results_cache[(verbatim_str, assay_name)] = {
                             **best_match,
@@ -481,10 +526,13 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         break
                 
                 if not match_found:
+                    walkup_stats['no_acceptable_term_found'] += 1
                     still_unmatched_batch.append((verbatim_str, assay_name))
             
             unmatched_tuples = still_unmatched_batch
             logging.info(f"Stage 2 complete. Total matched: {len(results_cache)}. Remaining: {len(unmatched_tuples)}")
+
+    params_dict['worms_walkup_stats'] = dict(walkup_stats)
 
     # --- Handle Final Unmatched ---
     if unmatched_tuples:

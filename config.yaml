@@ -3,7 +3,7 @@
 # USERS: Please edit the config.yaml file, not this one. This is just a template.
 # Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
 
-# STEP 1
+# ================================STEP 1========================================
 # --- OPTIONAL: Specify a path to a different config file for the run ---
 # If you want to use a config file other than this default 'config.yaml',
 # you can specify its path here. The pipeline will then load that file.
@@ -13,37 +13,44 @@ metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysi
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
-# STEP 2: Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
+# ================================STEP 2========================================
+# Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
 # false = You have separate TSV files, one for each metadata sheet.
 # Set to true or false; you can keep both sets of paths below, only the selected one is read (based on combined_metadata_file: true or false)
-combined_metadata_file: false
+combined_metadata_file: true
 
 # When combined_metadata_file: true = single Excel file and sheet names
 sampleMetadata: "sampleMetadata"
 experimentRunMetadata: "experimentRunMetadata"
 projectMetadata: "projectMetadata"
-excel_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe-NOAA_noaa-sefsc-gu1901.xlsx"
+excel_file: "raw-v3/clement_testing/FAIRe-NOAA_noaa-oer-okeanos.xlsx"
 
 # When combined_metadata_file: false = separate TSV files (one path per sheet)
 sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
 experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
 projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
-# STEP 3
+# ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 # For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
 # If your metadata sheets are all in the same Excel file, you do NOT need to include 'analysisMetadata_file' for each run.
 datafiles:
-  rosel-ctd-mifish-addMFtrawlJfish-241001: #analysis_run_name
-    assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-  rosel-ctd-riaz-addMFtrawlJfish-241001: #analysis_run_name
-    assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+  EX2201_18S_naive-bayes_rcrux-18Sv4_20251113:
+    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
+    taxonomy_file: "raw-v3/clement_testing/03_EX2201_18S_naive-bayes_rcrux-18Sv4_20251113-asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/clement_testing/02_EX2201_18S_18Sv4_20251112-table.tsv"
+  EX2205part_18S_naive-bayes_rcrux-18Sv4_20251113:
+    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
+    taxonomy_file : "raw-v3/clement_testing/03_EX2205part_18S_naive-bayes_rcrux-18Sv4_20251113-asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/clement_testing/02_EX2205part_18S_18Sv4_20251112-table.tsv"
+  OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103:
+    assay_name: "Fish-12S-MiFish-Miya"
+    taxonomy_file: "raw-v3/clement_testing/03_OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103-asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/clement_testing/02_OKEX2301_ROV-D2_12S_20251103-table.tsv"
+  EX2201_COI_naive-bayes_rcrux_CO1_no_NA_insect_amphib_uniq_20250626:
+    assay_name: "Metazoa-COI-Leray-Geller"
+    taxonomy_file: "raw-v3/clement_testing/03_EX2201_COI_naive-bayes_rcrux_CO1_no_NA_insect_amphib_uniq_20250626-asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/clement_testing/02_EX2201_COI_20250508-table.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
@@ -53,7 +60,7 @@ datafiles:
   #   analysisMetadata_file: "path/to/analysisMetadata_your_analysis_run_name.tsv" 
 
 
-# STEP 4:
+# ================================STEP 4========================================
 # Sample filtering configuration
 # Control sample detection - specify the column to check and which values indicate control samples
 control_sample_detection:
@@ -62,20 +69,19 @@ control_sample_detection:
     - "negative control"
     - "positive control"
 
-# STEP 5:
+# ================================STEP 5========================================
 # The pipeline will construct the Darwin Core 'locationID' based on the following priority:
 # 1. It will first look for a column literally named 'locationID' in your sampleMetadata. If found, it will be used directly.
 # 2. If not found, it will use the list of columns you define below to create a compound ID (e.g., columnA_columnB).
 # 3. If this section is missing or empty, it will default to combining 'line_id' and 'station_id'.
 locationID_components:
-  - line_id
-  - station_id
+  - locality
 
 # -----------------------------------------------------------------------------
 # Taxonomic Assignment Parameters
 # -----------------------------------------------------------------------------
 
-# STEP 6:
+# ================================STEP 6========================================
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
 # taxonomic_api_source: "GBIF"
@@ -85,7 +91,7 @@ taxonomic_api_source: "WoRMS"
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.
 gbif_match_limit: 3
 
-# STEP 7:
+# ================================STEP 7========================================
 # Define which assays should not consider 'species' rank in their taxonomic assignment.
 # This is because certain assays (for example, 16S) species' level assignments are not useful / correct.
 # Additionally, for example, 18S species' level assignments are good, and we want them!
@@ -94,6 +100,17 @@ gbif_match_limit: 3
 assays_to_skip_species_match:
   # - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic assignment
   # - "another_16s_assay_name_if_any"
+
+# ================================STEP 8========================================
+# WoRMS walk-up matching controls (WoRMS only)
+# When a low-level token has WoRMS hits but none are consistent with the provided lineage,
+# the matcher can walk up to higher-level tokens until it finds an acceptable match.
+#
+# Minimum number of lineage tokens that must overlap with the chosen WoRMS classification.
+# DONT SET ANY HIGHER THAN 1 for the majority of cases.
+worms_min_ranks_matched: 1
+# Maximum number of upward steps from the lowest token to try (0 = only lowest token).
+worms_max_walkup_steps: 6
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -107,7 +124,8 @@ gbif_n_proc: 0
 # Output directory (will be created if it doesn't exist)
 output_dir: "processed-v3/"
 
-# STEP 8: OPTIONAL output files
+# ================================STEP 9========================================
+# OPTIONAL output files
 # -----------------------------------------------------------------------------
 # OPTIONAL Output Files: eMoF (extended measurement or fact), and EML (Ecological Metadata Language)
 # Data for these files must be manually entered in their respective input files:
@@ -116,15 +134,16 @@ output_dir: "processed-v3/"
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
+emof_template_path: "raw-v3/clement_testing/noaa-oer-okeanos_test_eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
 eml_enabled: true
-eml_config_path: "EML_config.yaml"
+eml_config_path: "raw-v3/clement_testing/noaa-oer-okeanos_test_EML_config.yaml"
 
-# STEP 9: OPTIONAL - Split output files by cruise/expedition (short_name)
+# ================================STEP 10========================================
+# OPTIONAL - Split output files by cruise/expedition (short_name)
 # -----------------------------------------------------------------------------
 # If your sampleMetadata contains a 'short_name' column (cruise/expedition codes),
 # you can split the final output files into separate subfolders per short_name.
@@ -133,9 +152,9 @@ eml_config_path: "EML_config.yaml"
 # When enabled:
 #   - Creates subfolders: {output_dir}/{short_name}/
 #   - Saves filtered files with suffix: occurrence_core_{api}_{short_name}.csv
-#   - Splits: occurrence_core, dna_derived_extension, eMoF
+#   - Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml
 #   - Does NOT split: HTML report, taxa_assignment_INFO
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.
-split_output_by_short_name: false
+split_output_by_short_name: true
