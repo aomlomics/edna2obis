@@ -75,7 +75,8 @@ control_sample_detection:
 # 2. If not found, it will use the list of columns you define below to create a compound ID (e.g., columnA_columnB).
 # 3. If this section is missing or empty, it will default to combining 'line_id' and 'station_id'.
 locationID_components:
-  - locality
+  - station_id
+  - line_id
 
 # -----------------------------------------------------------------------------
 # Taxonomic Assignment Parameters
@@ -157,4 +158,4 @@ eml_config_path: "raw-v3/clement_testing/noaa-oer-okeanos_test_EML_config.yaml"
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.
-split_output_by_short_name: true
+split_output_by_short_name: false
