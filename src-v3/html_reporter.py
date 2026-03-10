@@ -217,6 +217,11 @@ class HTMLReporter:
         """Write the complete HTML file"""
         end_time = datetime.datetime.now()
         duration = end_time - self.start_time
+        repo_root = Path(__file__).resolve().parents[1]
+        aoml_logo = (repo_root / "images" / "aoml_logo.png").as_uri()
+        noaa_omics_logo = (repo_root / "images" / "noaa_omics_logo.png").as_uri()
+        obis_logo = (repo_root / "images" / "obis_logo.png").as_uri()
+        gbif_logo = (repo_root / "images" / "gbif_logo.png").as_uri()
         
         # Build status header HTML
         if self.status == "WARNING":
@@ -274,10 +279,10 @@ class HTMLReporter:
         <div class="header-section">
             <h1>edna2obis Processing Report</h1>
             <div class="logo-bar">
-                <img src="../images/aoml_logo.png" alt="AOML">
-                <img src="../images/noaa_omics_logo.png" alt="NOAA Omics">
-                <img src="../images/obis_logo.png" alt="OBIS">
-                <img src="../images/gbif_logo.png" alt="GBIF">
+                <img src="{aoml_logo}" alt="AOML">
+                <img src="{noaa_omics_logo}" alt="NOAA Omics">
+                <img src="{obis_logo}" alt="OBIS">
+                <img src="{gbif_logo}" alt="GBIF">
             </div>
         </div>
         

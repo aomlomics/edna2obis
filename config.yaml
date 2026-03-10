@@ -112,6 +112,14 @@ assays_to_skip_species_match:
 worms_min_ranks_matched: 1
 # Maximum number of upward steps from the lowest token to try (0 = only lowest token).
 worms_max_walkup_steps: 6
+# When false, WoRMS name matching is limited to marine taxa only.
+# When true, edna2obis requests all WoRMS matches, including non-marine taxa.
+worms_return_all_matches: true
+# When true, adds Darwin Core's higherClassification column to outputs. This field is used to show the full WoRMS taxonomic
+# lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
+# significantly increase the runtime, because it requires extra WoRMS classification lookups,
+# so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
+worms_return_higher_classification: true
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -123,6 +131,7 @@ worms_n_proc: 0
 gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
+# Works on both WoRMS and GBIF taxonomic assignment options
 output_dir: "processed-v3/"
 
 # ================================STEP 9========================================

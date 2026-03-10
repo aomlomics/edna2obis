@@ -168,6 +168,8 @@ def load_config(config_path="config.yaml"):
         # WoRMS walk-up matching controls (WoRMS only)
         params['worms_min_ranks_matched'] = config.get('worms_min_ranks_matched', 1)
         params['worms_max_walkup_steps'] = config.get('worms_max_walkup_steps', None)
+        params['worms_return_all_matches'] = config.get('worms_return_all_matches', False)
+        params['worms_return_higher_classification'] = config.get('worms_return_higher_classification', False)
 
         # Put all outputs for a run into a single folder.
         base_output_dir = params.get('output_dir', "processed-v3/")

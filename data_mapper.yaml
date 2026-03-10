@@ -70,6 +70,7 @@ occurrence_core:
   order: { faire_term: order, source: taxonomy }
   family: { faire_term: family, source: taxonomy }
   genus: { faire_term: genus, source: taxonomy }
+  higherClassification: { faire_term: higherClassification, source: constructed }
   scientificName: { faire_term: scientificName, source: taxonomy }
   taxonID: { faire_term: taxonID, source: constructed }  # Used if GBIF is selected
   scientificNameID: { faire_term: scientificNameID, source: constructed } # Used if WoRMS is selected
@@ -160,6 +161,7 @@ generic_occurrence_core:
   order: { faire_term: order, source: taxonomy }
   family: { faire_term: family, source: taxonomy }
   genus: { faire_term: genus, source: taxonomy }
+  higherClassification: { faire_term: higherClassification, source: constructed }
   scientificName: { faire_term: scientificName, source: taxonomy }
   taxonRank: { faire_term: taxonRank, source: taxonomy }
   taxonID: { faire_term: taxonID, source: constructed }  # Used if GBIF is selected

@@ -207,22 +207,26 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             # Apply post-processing for WoRMS (the manual corrections)
             if api_source == 'WoRMS':
                 reporter.add_text("Applying manual taxonomic corrections...")
+
+                match_type_debug_text = matched_df['match_type_debug'].astype('string').fillna('')
+                scientific_name_text = matched_df['scientificName'].astype('string').fillna('')
+                kingdom_text = matched_df['kingdom'].astype('string').fillna('')
                 
                 # Define all taxonomic rank columns that need to be managed
-                ALL_TAX_RANKS = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'taxonRank']
+                ALL_TAX_RANKS = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'higherClassification', 'taxonRank']
 
                 # CASE 1: Handle records where WoRMS lookup completely failed.
                 # The script now assigns these to 'incertae sedis' directly, so we don't need to change them.
                 # But we can log how many we have for reporting purposes.
-                no_match_mask = matched_df['match_type_debug'] == 'Failed_All_Stages_NoMatch'
+                no_match_mask = match_type_debug_text == 'Failed_All_Stages_NoMatch'
                 num_no_match = no_match_mask.sum()
                 if num_no_match > 0:
                     reporter.add_text(f"Found {num_no_match:,} records assigned to 'incertae sedis' due to no WoRMS match.")
                 
                 # Check for pre-handled cases
                 pre_handled_mask = (
-                    matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False) |
-                    matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)
+                    match_type_debug_text.str.contains('incertae_sedis_simple_case', na=False) |
+                    match_type_debug_text.str.contains('incertae_sedis_unassigned', na=False)
                 )
                 num_pre_handled = pre_handled_mask.sum()
                 if num_pre_handled > 0:
@@ -231,10 +235,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
                 # Only reassign to incertae sedis if the kingdom is specifically 'Eukaryota' and scientificName is also 'Eukaryota'
                 eukaryota_override_mask = (
-                    (matched_df['kingdom'] == 'Eukaryota') & 
-                    (matched_df['scientificName'] == 'Eukaryota') &
-                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
-                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
+                    (kingdom_text == 'Eukaryota') &
+                    (scientific_name_text == 'Eukaryota') &
+                    (~match_type_debug_text.str.contains('incertae_sedis_simple_case', na=False)) &
+                    (~match_type_debug_text.str.contains('incertae_sedis_unassigned', na=False)))
                 num_eukaryota_override = eukaryota_override_mask.sum()
                 
                 reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
@@ -256,20 +260,24 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             
             elif api_source == 'GBIF':
                 reporter.add_text("Applying manual taxonomic corrections for GBIF...")
+
+                match_type_debug_text = matched_df['match_type_debug'].astype('string').fillna('')
+                scientific_name_text = matched_df['scientificName'].astype('string').fillna('')
+                kingdom_text = matched_df['kingdom'].astype('string').fillna('')
                 
                 # Define all taxonomic rank columns that need to be managed (GBIF doesn't have scientificNameID)
                 ALL_TAX_RANKS_GBIF = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'taxonRank']
 
                 # CASE 1: Handle records where GBIF lookup completely failed.
-                no_match_mask = matched_df['match_type_debug'] == 'No_GBIF_Match'
+                no_match_mask = match_type_debug_text == 'No_GBIF_Match'
                 num_no_match = no_match_mask.sum()
                 if num_no_match > 0:
                     reporter.add_text(f"Found {num_no_match:,} records assigned to 'incertae sedis' due to no GBIF match.")
                 
                 # Check for pre-handled cases
                 pre_handled_mask = (
-                    matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False) |
-                    matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)
+                    match_type_debug_text.str.contains('incertae_sedis_simple_case', na=False) |
+                    match_type_debug_text.str.contains('incertae_sedis_unassigned', na=False)
                 )
                 num_pre_handled = pre_handled_mask.sum()
                 if num_pre_handled > 0:
@@ -278,10 +286,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 # CASE 2: Handle specific high-level Eukaryota assignments that should be 'incertae sedis'.
                 # Only reassign to incertae sedis if the kingdom is specifically 'Eukaryota' and scientificName is also 'Eukaryota'
                 eukaryota_override_mask = (
-                    (matched_df['kingdom'] == 'Eukaryota') & 
-                    (matched_df['scientificName'] == 'Eukaryota') &
-                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_simple_case', na=False)) &
-                    (~matched_df['match_type_debug'].str.contains('incertae_sedis_unassigned', na=False)))
+                    (kingdom_text == 'Eukaryota') &
+                    (scientific_name_text == 'Eukaryota') &
+                    (~match_type_debug_text.str.contains('incertae_sedis_simple_case', na=False)) &
+                    (~match_type_debug_text.str.contains('incertae_sedis_unassigned', na=False)))
                 num_eukaryota_override = eukaryota_override_mask.sum()
                 
                 reporter.add_text(f"Reassigned {num_eukaryota_override:,} complex Eukaryota records to 'incertae sedis'.")
@@ -397,14 +405,14 @@ def create_taxa_assignment_info(params, reporter):
         if api_source == 'worms':
             final_column_order = [
                 'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change',
-                'ranks_matched', 'ranks_provided', 'assignment_score',
+                'ranks_matched', 'ranks_provided', 'assignment_score', 'environment',
                 'selected_match', 'scientificName', 'taxonRank', 'scientificNameID',
-                'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
+                'higherClassification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
             ]
         else: # GBIF, includes confidence, does not include ambiguous
             final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'selected_match',
+                'verbatimIdentification', 'cleanedTaxonomy', 'environment', 'selected_match',
                 'scientificName', 'confidence', 'taxonRank', 'taxonID', 
                 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
                 'match_type_debug', 'nameAccordingTo'
@@ -459,9 +467,11 @@ def create_taxa_assignment_info(params, reporter):
             "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
             "<li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
             "<li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li>"
+            "<li><b>higherClassification:</b> (WoRMS only, optional) Pipe-separated higher-taxon lineage from WoRMS, used to preserve intermediate ranks without creating many sparse columns.</li>"
             "<li><b>ranks_matched:</b> (WoRMS only) Count of verbatim lineage tokens found in the matched classification.</li>"
             "<li><b>ranks_provided:</b> (WoRMS only) Total number of verbatim lineage tokens considered for scoring.</li>"
             "<li><b>assignment_score:</b> (WoRMS only) Ratio = ranks_matched / ranks_provided.</li>"
+            "<li><b>environment:</b> (WoRMS only) Semicolon-separated WoRMS habitat labels for the selected match, such as marine or freshwater. Blank means WoRMS did not provide habitat data.</li>"
             "<li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li>"
             "</ul>"
         )

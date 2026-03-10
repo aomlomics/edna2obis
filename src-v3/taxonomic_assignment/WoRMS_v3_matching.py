@@ -6,12 +6,264 @@ from functools import partial
 import logging
 import re
 import sys
+import os
+import pickle
 
 # Set up logging to provide clear progress updates
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Standard Darwin Core ranks used for structuring the output
 DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
+
+# Ordered WoRMS lineage fields used to build Darwin Core's `higherClassification`.
+# Skip `superdomain` because WoRMS commonly returns the unhelpful root `Biota`.
+WORMS_HIGHER_CLASSIFICATION_RANKS = [
+    'kingdom',
+    'subkingdom',
+    'infrakingdom',
+    'phylum',
+    'subphylum',
+    'infraphylum',
+    'superclass',
+    'megaclass',
+    'class',
+    'subclass',
+    'infraclass',
+    'superorder',
+    'order',
+    'suborder',
+    'infraorder',
+    'superfamily',
+    'family',
+    'subfamily',
+    'tribe',
+    'subtribe',
+    'genus',
+    'subgenus',
+    'section',
+    'subsection',
+    'series',
+    'subseries',
+    'species',
+    'subspecies'
+]
+
+
+def _format_environment(record):
+    """
+    Build a semicolon-separated environment label from WoRMS habitat flags.
+    Leave blank when WoRMS does not provide any environment information.
+    """
+    if not isinstance(record, dict):
+        return None
+
+    environment_map = [
+        ('isMarine', 'marine'),
+        ('isBrackish', 'brackish'),
+        ('isFreshwater', 'freshwater'),
+        ('isTerrestrial', 'terrestrial')
+    ]
+    environments = []
+
+    for field_name, label in environment_map:
+        value = record.get(field_name)
+        if value in (1, True, '1', 'true', 'True'):
+            environments.append(label)
+
+    return ';'.join(environments) if environments else None
+
+
+def _get_higher_classification(aphia_id):
+    """
+    Build a Darwin Core higherClassification string from the WoRMS classification payload.
+    WoRMS returns a flat rank dictionary here, not a nested `child` tree.
+    Use ' | ' as the separator and exclude the matched leaf taxon itself.
+    """
+    if not aphia_id:
+        return None
+
+    try:
+        classification = pyworms.aphiaClassificationByAphiaID(aphia_id)
+    except Exception:
+        return None
+
+    if not isinstance(classification, dict) or not classification:
+        return None
+
+    lineage = []
+    seen_names = set()
+    for rank_name in WORMS_HIGHER_CLASSIFICATION_RANKS:
+        value = classification.get(rank_name)
+        if value is None or pd.isna(value):
+            continue
+
+        cleaned_value = str(value).strip()
+        if not cleaned_value:
+            continue
+
+        normalized_value = cleaned_value.lower()
+        if normalized_value in seen_names:
+            continue
+
+        seen_names.add(normalized_value)
+        lineage.append(cleaned_value)
+
+    if len(lineage) <= 1:
+        return None
+
+    higher_taxa = lineage[:-1]
+    return ' | '.join(higher_taxa) if higher_taxa else None
+
+
+def _extract_aphia_id_from_lsid(scientific_name_id):
+    """
+    Extract the numeric AphiaID from a WoRMS LSID string.
+    """
+    if scientific_name_id is None or pd.isna(scientific_name_id):
+        return None
+
+    match = re.search(r'(\d+)$', str(scientific_name_id).strip())
+    if not match:
+        return None
+
+    try:
+        return int(match.group(1))
+    except Exception:
+        return None
+
+
+def _get_higher_classification_worker(scientific_name_id):
+    """
+    Worker wrapper for fetching higherClassification by scientificNameID / AphiaID.
+    """
+    aphia_id = _extract_aphia_id_from_lsid(scientific_name_id)
+    return scientific_name_id, _get_higher_classification(aphia_id)
+
+
+def _load_higher_classification_cache(output_dir):
+    """
+    Load cached higherClassification lookups from disk if available.
+    """
+    if not output_dir:
+        return {}
+
+    cache_path = os.path.join(output_dir, 'worms_higherClassification_cache.pkl')
+    if not os.path.exists(cache_path):
+        return {}
+
+    try:
+        with open(cache_path, 'rb') as f:
+            cache = pickle.load(f)
+        if not isinstance(cache, dict):
+            return {}
+        # Ignore empty/failed cached values so a bad run does not poison future runs.
+        return {
+            str(k).strip(): str(v).strip()
+            for k, v in cache.items()
+            if k is not None and not pd.isna(k) and v is not None and not pd.isna(v) and str(v).strip()
+        }
+    except Exception:
+        return {}
+
+
+def _save_higher_classification_cache(output_dir, cache):
+    """
+    Persist higherClassification lookups so repeated runs do not re-fetch them.
+    """
+    if not output_dir or not isinstance(cache, dict):
+        return
+
+    cache_path = os.path.join(output_dir, 'worms_higherClassification_cache.pkl')
+    try:
+        cache_to_save = {
+            str(k).strip(): str(v).strip()
+            for k, v in cache.items()
+            if k is not None and not pd.isna(k) and v is not None and not pd.isna(v) and str(v).strip()
+        }
+        with open(cache_path, 'wb') as f:
+            pickle.dump(cache_to_save, f)
+    except Exception:
+        pass
+
+
+def _enrich_higher_classification_dataframes(source_df, target_dataframes, output_dir='.', n_proc=1):
+    """
+    Populate higherClassification once per unique scientificNameID across the target outputs.
+    This keeps the final occurrence core and taxa assignment info file aligned.
+    """
+    valid_targets = [
+        df for df in target_dataframes
+        if df is not None and not df.empty and 'scientificNameID' in df.columns
+    ]
+    if not valid_targets:
+        return
+
+    unique_scientific_name_ids = []
+    seen_ids = set()
+    dataframes_to_scan = []
+    if source_df is not None and not source_df.empty and 'scientificNameID' in source_df.columns:
+        dataframes_to_scan.append(source_df)
+    dataframes_to_scan.extend(valid_targets)
+
+    for df in dataframes_to_scan:
+        for scientific_name_id in df['scientificNameID'].dropna().astype(str).str.strip().unique().tolist():
+            aphia_id = _extract_aphia_id_from_lsid(scientific_name_id)
+            if aphia_id is None or aphia_id == 12 or scientific_name_id in seen_ids:
+                continue
+            seen_ids.add(scientific_name_id)
+            unique_scientific_name_ids.append(scientific_name_id)
+
+    if not unique_scientific_name_ids:
+        return
+
+    cache = _load_higher_classification_cache(output_dir)
+    ids_to_fetch = [scientific_name_id for scientific_name_id in unique_scientific_name_ids if scientific_name_id not in cache]
+
+    fetch_n_proc = min(max(int(n_proc or 1), 1), 3)
+    if ids_to_fetch:
+        logging.info(f"Fetching higherClassification for {len(ids_to_fetch)} uncached WoRMS taxa.")
+
+        if len(ids_to_fetch) == 1 or fetch_n_proc == 1:
+            classification_results = [
+                _get_higher_classification_worker(scientific_name_id) for scientific_name_id in ids_to_fetch
+            ]
+        else:
+            ctx = _get_mp_context()
+            with ctx.Pool(processes=fetch_n_proc) as pool:
+                classification_results = pool.map(_get_higher_classification_worker, ids_to_fetch)
+
+        for scientific_name_id, value in classification_results:
+            if value is not None and str(value).strip():
+                cache[scientific_name_id] = str(value).strip()
+
+        _save_higher_classification_cache(output_dir, cache)
+
+    for df in valid_targets:
+        if 'higherClassification' not in df.columns:
+            df['higherClassification'] = pd.NA
+
+        mapped_values = df['scientificNameID'].astype('string').map(cache)
+        fill_mask = df['higherClassification'].isna() | (df['higherClassification'].astype('string').str.strip() == '')
+        df.loc[fill_mask, 'higherClassification'] = mapped_values[fill_mask]
+
+
+def _build_worms_result_record(record_to_use, api_source_for_record, name_change=False):
+    """
+    Format a WoRMS record into the edna2obis result structure.
+    """
+    result = {
+        'scientificName': record_to_use.get('scientificname'),
+        'scientificNameID': record_to_use.get('lsid'),
+        'taxonRank': record_to_use.get('rank'),
+        'nameAccordingTo': api_source_for_record,
+        'name_change': name_change,
+        'environment': _format_environment(record_to_use)
+    }
+    for rank_std in DWC_RANKS_STD:
+        result[rank_std] = record_to_use.get(rank_std.lower())
+    result['higherClassification'] = pd.NA
+
+    return result
 
 def _normalize_taxon_token(s):
     """
@@ -148,13 +400,12 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
         record = pyworms.aphiaRecordByAphiaID(aphia_id_to_check)
         
         if record and isinstance(record, dict) and record.get('status') == 'accepted':
-            result = {
-                'scientificName': record.get('scientificname'), 'scientificNameID': record.get('lsid'),
-                'taxonRank': record.get('rank'), 'nameAccordingTo': api_source_for_record,
-                'match_type_debug': f'Success_AphiaID_{aphia_id_to_check}', 'name_change': False
-            }
-            for rank_std in DWC_RANKS_STD:
-                result[rank_std] = record.get(rank_std.lower())
+            result = _build_worms_result_record(
+                record_to_use=record,
+                api_source_for_record=api_source_for_record,
+                name_change=False
+            )
+            result['match_type_debug'] = f'Success_AphiaID_{aphia_id_to_check}'
             return aphia_id_to_check, result
     except Exception:
         pass
@@ -166,11 +417,11 @@ def get_worms_batch_worker(batch_info):
     Worker function for parallel batch processing - with timeout safety.
     Now collects ALL accepted matches to handle ambiguous cases.
     """
-    batch_num, chunk = batch_info
+    batch_num, chunk, marine_only = batch_info
     batch_results = {}
     
     try:
-        batch_results_raw = pyworms.aphiaRecordsByMatchNames(chunk)
+        batch_results_raw = pyworms.aphiaRecordsByMatchNames(chunk, marine_only=marine_only)
 
         for j, name_list in enumerate(batch_results_raw):
             if not name_list:
@@ -217,14 +468,11 @@ def get_worms_batch_worker(batch_info):
 
                 existing = accepted_by_lsid.get(sci_id)
                 if existing is None:
-                    res = {
-                        'scientificName': record_to_use.get('scientificname'),
-                        'scientificNameID': record_to_use.get('lsid'),
-                        'taxonRank': record_to_use.get('rank'),
-                        'name_change': name_changed
-                    }
-                    for rank in DWC_RANKS_STD:
-                        res[rank] = record_to_use.get(rank.lower())
+                    res = _build_worms_result_record(
+                        record_to_use=record_to_use,
+                        api_source_for_record='WoRMS',
+                        name_change=name_changed
+                    )
                     accepted_by_lsid[sci_id] = res
                 else:
                     if name_changed and not existing.get('name_change'):
@@ -276,9 +524,24 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         if worms_max_walkup_steps is not None and worms_max_walkup_steps < 0:
             worms_max_walkup_steps = 0
 
+    worms_return_all_matches = params_dict.get('worms_return_all_matches', False)
+    if isinstance(worms_return_all_matches, str):
+        worms_return_all_matches = worms_return_all_matches.strip().lower() in {'1', 'true', 'yes', 'y'}
+    else:
+        worms_return_all_matches = bool(worms_return_all_matches)
+    marine_only = not worms_return_all_matches
+
+    worms_return_higher_classification = params_dict.get('worms_return_higher_classification', False)
+    if isinstance(worms_return_higher_classification, str):
+        worms_return_higher_classification = worms_return_higher_classification.strip().lower() in {'1', 'true', 'yes', 'y'}
+    else:
+        worms_return_higher_classification = bool(worms_return_higher_classification)
+
     walkup_stats = {
         'min_ranks_matched': worms_min_ranks_matched,
         'max_walkup_steps': worms_max_walkup_steps,
+        'marine_only': marine_only,
+        'return_higher_classification': worms_return_higher_classification,
         'considered_terms': 0,
         'rejected_terms': 0,
         'accepted_matches': 0,
@@ -350,6 +613,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
                 'cleanedTaxonomy': cleaned_verbatim, 'name_change': False,
+                'environment': pd.NA,
+                'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
                 'ranks_matched': pd.NA,
                 'ranks_provided': pd.NA
@@ -427,7 +692,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         batch_lookup = {}
         if all_terms_to_match:
             chunk_size = 50
-            batch_data = [( (i // chunk_size) + 1, all_terms_to_match[i:i+chunk_size] ) for i in range(0, len(all_terms_to_match), chunk_size)]
+            batch_data = [((i // chunk_size) + 1, all_terms_to_match[i:i+chunk_size], marine_only) for i in range(0, len(all_terms_to_match), chunk_size)]
             total_batches = len(batch_data)
             
             logging.info(f"Processing {total_batches} batches with {n_proc} processes...")
@@ -551,6 +816,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'taxonRank': None, 'nameAccordingTo': api_source,
                 'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
                 'name_change': False,
+                'environment': pd.NA,
+                'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
                 'ranks_matched': pd.NA,
                 'ranks_provided': pd.NA
@@ -567,6 +834,8 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'taxonRank': None, 'nameAccordingTo': api_source,
         'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
         'name_change': False,
+        'environment': pd.NA,
+        'higherClassification': pd.NA,
         'assignment_score': pd.NA,
         'ranks_matched': pd.NA,
         'ranks_provided': pd.NA
@@ -576,9 +845,21 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     results_cache['IS_TRULY_EMPTY'] = empty_fallback_record
 
     # --- Apply results to main occurrence DataFrame ---
+    results_df = pd.DataFrame()
     if results_cache:
         mapped_results = df_to_process['_map_key'].map(results_cache)
         results_df = pd.DataFrame(mapped_results.to_list(), index=df_to_process.index)
+    info_df = pd.DataFrame(info_records)
+
+    if worms_return_higher_classification:
+        _enrich_higher_classification_dataframes(
+            source_df=results_df,
+            target_dataframes=[results_df, info_df],
+            output_dir=params_dict.get('output_dir', '.'),
+            n_proc=n_proc
+        )
+
+    if not results_df.empty:
         for col in results_df.columns:
             results_df[col] = results_df[col].apply(_safe_str_or_na)
         for col in results_df.columns:
@@ -587,7 +868,6 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     df_to_process.drop(columns=['_map_key'], inplace=True, errors='ignore')
     
     # --- Create the detailed info DataFrame ---
-    info_df = pd.DataFrame(info_records)
     for col in info_df.columns:
         info_df[col] = info_df[col].apply(_safe_str_or_na)
 

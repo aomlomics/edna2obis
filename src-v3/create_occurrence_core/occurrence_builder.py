@@ -747,7 +747,7 @@ def get_final_occurrence_column_order():
     # Fallback to legacy static order
     return [
         'occurrenceID', 'eventID', 'verbatimIdentification', 'kingdom', 'phylum', 'class',
-        'order', 'family', 'genus', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank', 'parentEventID', 'datasetID', 'locationID', 'basisOfRecord',
+        'order', 'family', 'genus', 'higherClassification', 'scientificName', 'taxonID', 'scientificNameID', 'taxonRank', 'parentEventID', 'datasetID', 'locationID', 'basisOfRecord',
         'occurrenceStatus', 'organismQuantity', 'organismQuantityType',
         'sampleSizeValue', 'sampleSizeUnit', 'recordedBy', 'materialSampleID',
         'eventDate', 'minimumDepthInMeters', 'maximumDepthInMeters', 'locality',
