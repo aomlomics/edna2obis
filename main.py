@@ -170,6 +170,7 @@ def load_config(config_path="config.yaml"):
         params['worms_max_walkup_steps'] = config.get('worms_max_walkup_steps', None)
         params['worms_return_all_matches'] = config.get('worms_return_all_matches', False)
         params['worms_return_higher_classification'] = config.get('worms_return_higher_classification', False)
+        params['worms_consider_unaccepted_for_selection'] = config.get('worms_consider_unaccepted_for_selection', False)
 
         # Put all outputs for a run into a single folder.
         base_output_dir = params.get('output_dir', "processed-v3/")

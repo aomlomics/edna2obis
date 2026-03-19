@@ -247,9 +247,10 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
         df.loc[fill_mask, 'higherClassification'] = mapped_values[fill_mask]
 
 
-def _build_worms_result_record(record_to_use, api_source_for_record, name_change=False):
+def _build_worms_result_record(record_to_use, api_source_for_record, name_change=False, unaccepted_match_row=False):
     """
     Format a WoRMS record into the edna2obis result structure.
+    unaccepted_match_row: True when this row is the unaccepted (queried) taxon shown for transparency when WoRMS resolved to a different accepted name.
     """
     result = {
         'scientificName': record_to_use.get('scientificname'),
@@ -257,6 +258,7 @@ def _build_worms_result_record(record_to_use, api_source_for_record, name_change
         'taxonRank': record_to_use.get('rank'),
         'nameAccordingTo': api_source_for_record,
         'name_change': name_change,
+        'unaccepted_match_row': unaccepted_match_row,
         'environment': _format_environment(record_to_use)
     }
     for rank_std in DWC_RANKS_STD:
@@ -403,14 +405,15 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
             result = _build_worms_result_record(
                 record_to_use=record,
                 api_source_for_record=api_source_for_record,
-                name_change=False
+                name_change=False,
+                unaccepted_match_row=False
             )
             result['match_type_debug'] = f'Success_AphiaID_{aphia_id_to_check}'
             return aphia_id_to_check, result
     except Exception:
         pass
     
-    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}', 'name_change': False}
+    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}', 'name_change': False, 'unaccepted_match_row': False}
 
 def get_worms_batch_worker(batch_info):
     """
@@ -428,6 +431,7 @@ def get_worms_batch_worker(batch_info):
                 continue
 
             accepted_by_lsid = {}
+            unaccepted_rows_for_term = []
 
             for match in name_list:
                 if not match:
@@ -455,6 +459,13 @@ def get_worms_batch_worker(batch_info):
                             if resolved and resolved.get('status') == 'accepted':
                                 record_to_use = resolved
                                 name_changed = True
+                                # Expose the unaccepted match as its own row so the user can see it and compare assignment scores.
+                                unaccepted_rows_for_term.append(_build_worms_result_record(
+                                    record_to_use=match,
+                                    api_source_for_record='WoRMS',
+                                    name_change=False,
+                                    unaccepted_match_row=True
+                                ))
                         except Exception:
                             record_to_use = None
 
@@ -471,14 +482,15 @@ def get_worms_batch_worker(batch_info):
                     res = _build_worms_result_record(
                         record_to_use=record_to_use,
                         api_source_for_record='WoRMS',
-                        name_change=name_changed
+                        name_change=name_changed,
+                        unaccepted_match_row=False
                     )
                     accepted_by_lsid[sci_id] = res
                 else:
                     if name_changed and not existing.get('name_change'):
                         existing['name_change'] = True
 
-            accepted_matches = list(accepted_by_lsid.values())
+            accepted_matches = list(accepted_by_lsid.values()) + unaccepted_rows_for_term
 
             if accepted_matches:
                 batch_results[chunk[j]] = accepted_matches
@@ -536,6 +548,12 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         worms_return_higher_classification = worms_return_higher_classification.strip().lower() in {'1', 'true', 'yes', 'y'}
     else:
         worms_return_higher_classification = bool(worms_return_higher_classification)
+
+    worms_consider_unaccepted_for_selection = params_dict.get('worms_consider_unaccepted_for_selection', False)
+    if isinstance(worms_consider_unaccepted_for_selection, str):
+        worms_consider_unaccepted_for_selection = worms_consider_unaccepted_for_selection.strip().lower() in {'1', 'true', 'yes', 'y'}
+    else:
+        worms_consider_unaccepted_for_selection = bool(worms_consider_unaccepted_for_selection)
 
     walkup_stats = {
         'min_ranks_matched': worms_min_ranks_matched,
@@ -612,7 +630,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis',
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
-                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False,
+                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False, 'unaccepted_match_row': False,
                 'environment': pd.NA,
                 'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
@@ -736,14 +754,19 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         is_ambiguous = len(all_matches) > 1
                         walkup_stats['considered_terms'] += 1
                         
+                        # For selection (occurrence core), optionally exclude unaccepted-match rows so only accepted names can win.
+                        candidates_for_selection = [m for m in all_matches if not m.get('unaccepted_match_row')] if not worms_consider_unaccepted_for_selection else all_matches
+                        if not candidates_for_selection:
+                            candidates_for_selection = all_matches
+                        
                         # Prefer exact scientificName match to the queried term when available,
                         # then choose by lineage consistency score (tie-breaker: more complete classification).
                         norm_term = _normalize_taxon_token(term)
                         exact_candidates = []
-                        for m in all_matches:
+                        for m in candidates_for_selection:
                             if _normalize_taxon_token(m.get('scientificName')) == norm_term:
                                 exact_candidates.append(m)
-                        candidates = exact_candidates if exact_candidates else all_matches
+                        candidates = exact_candidates if exact_candidates else candidates_for_selection
 
                         scored_candidates = []
                         for m in candidates:
@@ -815,7 +838,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None, 'nameAccordingTo': api_source,
                 'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
-                'name_change': False,
+                'name_change': False, 'unaccepted_match_row': False,
                 'environment': pd.NA,
                 'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
@@ -833,7 +856,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
         'taxonRank': None, 'nameAccordingTo': api_source,
         'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
-        'name_change': False,
+        'name_change': False, 'unaccepted_match_row': False,
         'environment': pd.NA,
         'higherClassification': pd.NA,
         'assignment_score': pd.NA,

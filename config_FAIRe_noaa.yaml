@@ -109,8 +109,15 @@ worms_max_walkup_steps: 6
 # When false, WoRMS name matching is limited to marine taxa only.
 # When true, edna2obis requests all WoRMS matches, including non-marine taxa.
 worms_return_all_matches: false
-# When true, add WoRMS higherClassification to outputs. This is slower because it
-# requires extra WoRMS classification lookups, so leave false unless you need it.
+
+# When WoRMS resolves an unaccepted name to an accepted one, the unaccepted match is always shown as an extra row in taxa_assignment_INFO.
+# If true, that unaccepted row's assignment score is considered when choosing the selected match for the occurrence core; if false (default), only accepted-name rows can be selected.
+worms_consider_unaccepted_for_selection: false
+
+# When true, adds Darwin Core's higherClassification column to outputs. This field is used to show the full WoRMS taxonomic
+# lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
+# significantly increase the runtime, because it requires extra WoRMS classification lookups,
+# so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
 worms_return_higher_classification: false
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
@@ -142,7 +149,7 @@ emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
 eml_enabled: false
-eml_config_path: "EML_config.yaml"
+eml_config_path: "raw-v3/EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)
@@ -159,4 +166,4 @@ eml_config_path: "EML_config.yaml"
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.
-split_output_by_short_name: true
+split_output_by_short_name: false

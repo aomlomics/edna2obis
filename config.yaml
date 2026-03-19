@@ -17,7 +17,7 @@ edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used 
 # Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
 # false = You have separate TSV files, one for each metadata sheet.
 # Set to true or false; you can keep both sets of paths below, only the selected one is read (based on combined_metadata_file: true or false)
-combined_metadata_file: true
+combined_metadata_file: false
 
 # When combined_metadata_file: true = single Excel file and sheet names
 sampleMetadata: "sampleMetadata"
@@ -35,22 +35,16 @@ projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901
 # For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
 # If your metadata sheets are all in the same Excel file, you do NOT need to include 'analysisMetadata_file' for each run.
 datafiles:
-  EX2201_18S_naive-bayes_rcrux-18Sv4_20251113:
-    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
-    taxonomy_file: "raw-v3/clement_testing/03_EX2201_18S_naive-bayes_rcrux-18Sv4_20251113-asv_taxa_features.tsv"
-    occurrence_file: "raw-v3/clement_testing/02_EX2201_18S_18Sv4_20251112-table.tsv"
-  EX2205part_18S_naive-bayes_rcrux-18Sv4_20251113:
-    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
-    taxonomy_file : "raw-v3/clement_testing/03_EX2205part_18S_naive-bayes_rcrux-18Sv4_20251113-asv_taxa_features.tsv"
-    occurrence_file: "raw-v3/clement_testing/02_EX2205part_18S_18Sv4_20251112-table.tsv"
-  OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103:
-    assay_name: "Fish-12S-MiFish-Miya"
-    taxonomy_file: "raw-v3/clement_testing/03_OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103-asv_taxa_features.tsv"
-    occurrence_file: "raw-v3/clement_testing/02_OKEX2301_ROV-D2_12S_20251103-table.tsv"
-  EX2201_COI_naive-bayes_rcrux_CO1_no_NA_insect_amphib_uniq_20250626:
-    assay_name: "Metazoa-COI-Leray-Geller"
-    taxonomy_file: "raw-v3/clement_testing/03_EX2201_COI_naive-bayes_rcrux_CO1_no_NA_insect_amphib_uniq_20250626-asv_taxa_features.tsv"
-    occurrence_file: "raw-v3/clement_testing/02_EX2201_COI_20250508-table.tsv"
+  rosel-ctd-mifish-addMFtrawlJfish-241001:
+    assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+  rosel-ctd-riaz-addMFtrawlJfish-241001:
+    assay_name: "Fish-12S-Riaz"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
@@ -115,6 +109,11 @@ worms_max_walkup_steps: 6
 # When false, WoRMS name matching is limited to marine taxa only.
 # When true, edna2obis requests all WoRMS matches, including non-marine taxa.
 worms_return_all_matches: true
+
+# When WoRMS resolves an unaccepted name to an accepted one, the unaccepted match is always shown as an extra row in taxa_assignment_INFO.
+# If true, that unaccepted row's assignment score is considered when choosing the selected match for the occurrence core; if false (default), only accepted-name rows can be selected.
+worms_consider_unaccepted_for_selection: false
+
 # When true, adds Darwin Core's higherClassification column to outputs. This field is used to show the full WoRMS taxonomic
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
@@ -144,13 +143,13 @@ output_dir: "processed-v3/"
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
-emof_template_path: "raw-v3/clement_testing/noaa-oer-okeanos_test_eMoF_Fields_edna2obis.tsv"
+emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: true
-eml_config_path: "raw-v3/clement_testing/noaa-oer-okeanos_test_EML_config.yaml"
+eml_enabled: false
+eml_config_path: "raw-v3/EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)
