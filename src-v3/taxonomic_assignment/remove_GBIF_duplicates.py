@@ -1,9 +1,15 @@
 import pandas as pd
 import os
 
+from .taxa_assignment_info_export import (
+    read_taxa_assignment_info_dataframe,
+    write_taxa_assignment_info_xlsx,
+)
+
+
 def remove_duplicates_from_gbif_taxa_info(params, reporter=None):
     """
-    Reads the taxa_assignment_INFO_GBIF.csv file, removes duplicate rows,
+    Reads the taxa_assignment_INFO_GBIF.xlsx file, removes duplicate rows,
     and overwrites the file with the deduplicated data.
     """
     try:
@@ -12,13 +18,13 @@ def remove_duplicates_from_gbif_taxa_info(params, reporter=None):
             return
 
         output_dir = params.get('output_dir', '../processed-v3/')
-        filename = f"taxa_assignment_INFO_{api_choice}.csv"
+        filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
         filepath = os.path.join(output_dir, filename)
 
         if not os.path.exists(filepath):
             return
 
-        df = pd.read_csv(filepath)
+        df = read_taxa_assignment_info_dataframe(filepath)
         
         initial_rows = len(df)
 
@@ -27,8 +33,7 @@ def remove_duplicates_from_gbif_taxa_info(params, reporter=None):
         
         final_rows = len(df)
 
-        # Save the deduplicated dataframe back to the original file
-        df.to_csv(filepath, index=False, na_rep='')
+        write_taxa_assignment_info_xlsx(df, filepath)
 
         if reporter:
             removed = initial_rows - final_rows
@@ -45,6 +50,6 @@ if __name__ == '__main__':
         'taxonomic_api_source': 'GBIF',
         'output_dir': '../../processed-v3/'
     }
-    # To test, you would need a sample 'taxa_assignment_INFO_GBIF.csv' in the 'processed-v3' directory.
+    # To test, you would need a sample 'taxa_assignment_INFO_GBIF.xlsx' in the 'processed-v3' directory.
     # remove_duplicates_from_gbif_taxa_info(mock_params)
     print("This script is intended to be called from the main edna2obis pipeline.")

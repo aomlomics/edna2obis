@@ -449,7 +449,7 @@ def limit_info_df_preserving_selected(info_df: pd.DataFrame, match_limit: int) -
 
 def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict) -> pd.DataFrame:
     """
-    Same column order, filled columns, and sorting as taxa_assignment_INFO.csv in the full workflow.
+    Same column order, filled columns, and sorting as taxa_assignment_INFO.xlsx in the full workflow.
     Used by create_taxa_assignment_info and taxassign.py.
     """
     taxa_info = taxa_info.copy()
@@ -505,7 +505,7 @@ def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict)
 
 def create_taxa_assignment_info(params, reporter):
     """
-    Create a taxa_assignment_INFO.csv file.
+    Create a taxa_assignment_INFO.xlsx file (sheets taxa_assignment_INFO and README).
     For WoRMS, this now includes all ambiguous matches and an 'ambiguous' flag.
     For GBIF, it retains the original behavior of one row per unique verbatimIdentification.
     """
@@ -544,10 +544,11 @@ def create_taxa_assignment_info(params, reporter):
         os.makedirs(output_dir, exist_ok=True)
         
         api_choice = params.get('taxonomic_api_source', 'WoRMS')
-        output_filename = f"taxa_assignment_INFO_{api_choice}.csv"
+        output_filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
         output_path = os.path.join(output_dir, output_filename)
-        taxa_info.to_csv(output_path, index=False, na_rep='')
-        
+        from .taxa_assignment_info_export import write_taxa_assignment_info_xlsx
+        write_taxa_assignment_info_xlsx(taxa_info, output_path)
+
         reporter.add_success("Taxa assignment info file created successfully")
         reporter.add_text(f"Saved taxa assignment info: {len(taxa_info):,} total rows ({taxa_info['verbatimIdentification'].nunique():,} unique strings)")
         reporter.add_text(f"Output file: {output_filename}")
@@ -562,7 +563,7 @@ def create_taxa_assignment_info(params, reporter):
         # Add detailed explanation and table view to the report
         reporter.add_text("<h3>Detailed Taxa Assignment Information</h3>")
         reporter.add_text(
-            "<p>The table below (<code>taxa_assignment_INFO.csv</code>) provides a comprehensive look at the results of the taxonomic matching process. "
+            "<p>The table below (<code>taxa_assignment_INFO.xlsx</code>, sheet <code>taxa_assignment_INFO</code>) provides a comprehensive look at the results of the taxonomic matching process. "
             "It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. "
             "This allows for manual review and complete transparency.</p>"
             "<ul>"

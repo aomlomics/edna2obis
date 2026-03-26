@@ -133,7 +133,13 @@ class HTMLReporter:
                 
                 # Re-read the dataframe from the provided filepath
                 try:
-                    df = pd.read_csv(filepath)
+                    if filepath.lower().endswith('.xlsx'):
+                        from taxonomic_assignment.taxa_assignment_info_export import SHEET_DATA
+                        df = pd.read_excel(
+                            filepath, sheet_name=SHEET_DATA, engine='openpyxl'
+                        )
+                    else:
+                        df = pd.read_csv(filepath)
                     
                     # Re-create the HTML content for this section, just like in add_dataframe
                     # This assumes the title is in an h4 tag from the original add_dataframe call

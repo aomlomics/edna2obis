@@ -1,9 +1,15 @@
 import pandas as pd
 import os
 
+from .taxa_assignment_info_export import (
+    read_taxa_assignment_info_dataframe,
+    write_taxa_assignment_info_xlsx,
+)
+
+
 def mark_selected_worms_matches(params, reporter=None):
     """
-    Reads taxa_assignment_INFO_WoRMS.csv and the final occurrence_WoRMS_matched.csv
+    Reads taxa_assignment_INFO_WoRMS.xlsx and the final occurrence_WoRMS_matched.csv
     to mark which of the ambiguous WoRMS matches was selected.
     """
     try:
@@ -12,7 +18,7 @@ def mark_selected_worms_matches(params, reporter=None):
             return
 
         output_dir = params.get('output_dir', '../processed-v3/')
-        info_filename = f"taxa_assignment_INFO_{api_choice}.csv"
+        info_filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
         info_filepath = os.path.join(output_dir, info_filename)
 
         occurrence_filename = f"occurrence_core_{api_choice.lower()}.csv"
@@ -23,7 +29,7 @@ def mark_selected_worms_matches(params, reporter=None):
         if not os.path.exists(occurrence_filepath):
             return
 
-        info_df = pd.read_csv(info_filepath)
+        info_df = read_taxa_assignment_info_dataframe(info_filepath)
         
         if info_df.empty:
             return
@@ -78,13 +84,12 @@ def mark_selected_worms_matches(params, reporter=None):
             cols.insert(ambiguous_idx + 1, 'selected_match')
             info_df = info_df[cols]
 
-        # Drop helper column before writing the final CSV.
+        # Drop helper column before writing the final file.
         if '_info_row_idx' in info_df.columns:
             info_df = info_df.drop(columns=['_info_row_idx'])
 
-        # Save the updated dataframe back to the info file
-        info_df.to_csv(info_filepath, index=False, na_rep='')
-        
+        write_taxa_assignment_info_xlsx(info_df, info_filepath)
+
         num_selected = info_df['selected_match'].sum()
         if reporter:
             reporter.add_text(f"Marked {num_selected} selected matches in {info_filename}.")

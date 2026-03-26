@@ -18,6 +18,7 @@ from taxonomic_assignment.taxa_assignment_manager import (
     limit_info_df_preserving_selected,
     mark_selected_match_from_main_dataframe,
 )
+from taxonomic_assignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
 
 # Default config next to this script (no path typing required for normal use)
 DEFAULT_CONFIG_PATH = os.path.join(THIS_DIR, 'config.yaml')
@@ -48,7 +49,7 @@ DEFAULTS = {
     'API': 'GBIF',                  # 'GBIF' or 'WoRMS'
     'MATCH_LIMIT': 3,               # max matches per verbatimIdentification in output
     'OUTPUT_DIR': 'processed-v3',   # used if OUTPUT_PATH is empty
-    'OUTPUT_PATH': '',              # explicit path for taxa_assignment_INFO CSV; if empty, uses OUTPUT_DIR
+    'OUTPUT_PATH': '',              # explicit path for taxa_assignment_INFO .xlsx; if empty, uses OUTPUT_DIR
     'N_PROC': None,               # None = with --use-config use config worms_n_proc/gbif_n_proc; else 0
 }
 # ------------------------------
@@ -116,11 +117,20 @@ def _read_verbatim_input(path: str) -> pd.DataFrame:
     return df[['verbatimIdentification', 'assay_name']]
 
 
-def _write_taxa_assignment_csv(df: pd.DataFrame, out_path: str) -> None:
-    parent = os.path.dirname(out_path)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    df.to_csv(out_path, index=False, na_rep='')
+def _normalize_taxa_output_xlsx(path: str) -> str:
+    """Output is always .xlsx. If the user passed .csv, swap to .xlsx."""
+    p = path.strip()
+    if p.lower().endswith('.csv'):
+        return p[:-4] + '.xlsx'
+    if not p.lower().endswith('.xlsx'):
+        return p + '.xlsx'
+    return p
+
+
+def _write_taxa_assignment_xlsx(df: pd.DataFrame, out_path: str) -> str:
+    out_path = _normalize_taxa_output_xlsx(out_path)
+    write_taxa_assignment_info_xlsx(df, out_path)
+    return out_path
 
 
 def run_taxassign(
@@ -228,9 +238,9 @@ def run_taxassign(
     out_df = format_taxa_assignment_info_dataframe(info_df_limited, params)
 
     if out_path is None or str(out_path).strip() == '':
-        out_path = os.path.join(out_dir, f'taxa_assignment_INFO_{api}.csv')
+        out_path = os.path.join(out_dir, f'taxa_assignment_INFO_{api}.xlsx')
 
-    _write_taxa_assignment_csv(out_df, out_path)
+    out_path = _write_taxa_assignment_xlsx(out_df, out_path)
 
     console.print(f'[green]Wrote {len(out_df):,} rows[/] to {out_path}')
     return out_path
@@ -256,7 +266,7 @@ def main():
             '  With --use-config, matcher tuning is read from config.yaml (next to taxassign.py).\n'
             '  Input and output paths are NEVER taken from config:\n'
             '    -i  --input     TSV/CSV of verbatimIdentification\n'
-            '    -o  --output    Full path to one .csv file (not a folder)\n'
+            '    -o  --output    Full path to one .xlsx file (not a folder). .csv is rewritten to .xlsx\n'
             '        --outdir    Folder only; used when you omit -o\n'
             '\n'
             '  These flags override config when you pass them (with --use-config):\n'
@@ -292,12 +302,12 @@ def main():
     )
     parser.add_argument(
         '-o', '--output', default=None, metavar='FILE',
-        help='Output .csv path (include a filename; not a folder). If omitted, uses --outdir and the default filename below.',
+        help='Output .xlsx path (include a filename; not a folder). If you pass .csv it is saved as .xlsx. If omitted, uses --outdir and the default filename.',
     )
     parser.add_argument(
         '--outdir', default=DEFAULTS['OUTPUT_DIR'], metavar='DIR',
         help=(
-            f"Folder for output when -o is omitted (writes taxa_assignment_INFO_<API>.csv). Default: {DEFAULTS['OUTPUT_DIR']}. Not from config."
+            f"Folder for output when -o is omitted (writes taxa_assignment_INFO_<API>.xlsx). Default: {DEFAULTS['OUTPUT_DIR']}. Not from config."
         ),
     )
     parser.add_argument(

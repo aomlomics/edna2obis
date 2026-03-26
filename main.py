@@ -1588,7 +1588,7 @@ def main():
             with silence_output():
                 mark_selected_worms_matches(params, reporter)
             
-        # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.csv)
+        # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.xlsx)
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
         final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
         try:
@@ -1598,7 +1598,7 @@ def main():
                 if 'match_type_debug' in final_df.columns:
                     final_df = final_df.drop(columns=['match_type_debug'])
                     final_df.to_csv(final_occurrence_path, index=False, na_rep='')
-                    reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.csv)")
+                    reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.xlsx)")
         except Exception as e:
             reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
         
@@ -1648,7 +1648,7 @@ def main():
         
         files_to_validate = [
             f'occurrence_core_{api_choice.lower()}.csv',
-            f'taxa_assignment_INFO_{api_choice}.csv',
+            f'taxa_assignment_INFO_{api_choice}.xlsx',
             'dna_derived_extension.csv'
         ]
         if params.get('emof_enabled', True):
@@ -1667,6 +1667,22 @@ def main():
                     if filename.lower().endswith('.xml'):
                         # Validate XML structure instead of reading as CSV
                         ET.parse(filepath)
+                    elif filename.lower().endswith('.xlsx'):
+                        from taxonomic_assignment.taxa_assignment_info_export import (
+                            read_taxa_assignment_info_dataframe,
+                            write_taxa_assignment_info_xlsx,
+                        )
+                        df = read_taxa_assignment_info_dataframe(filepath)
+                        empty_columns = [col for col in df.columns if df[col].isna().all()]
+                        if empty_columns:
+                            for col in empty_columns:
+                                reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
+                                all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+                        if empty_columns:
+                            df.drop(columns=empty_columns, inplace=True)
+                            write_taxa_assignment_info_xlsx(df, filepath)
+                            for col in empty_columns:
+                                removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
                     else:
                         sep = '\t' if filename.lower().endswith('.tsv') else ','
                         df = pd.read_csv(filepath, sep=sep, low_memory=False)
@@ -1751,7 +1767,7 @@ def main():
         # Define the list of expected final files
         files = [
             f'occurrence_core_{api_choice.lower()}.csv', 
-            f'taxa_assignment_INFO_{api_choice}.csv', 
+            f'taxa_assignment_INFO_{api_choice}.xlsx',
             'dna_derived_extension.csv'
         ]
         
