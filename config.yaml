@@ -118,7 +118,7 @@ worms_consider_unaccepted_for_selection: false
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
 # so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
-worms_return_higher_classification: true
+worms_return_higher_classification: false
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  

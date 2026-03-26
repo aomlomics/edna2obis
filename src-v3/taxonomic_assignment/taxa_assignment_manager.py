@@ -24,6 +24,62 @@ from . import GBIF_matching
 from create_occurrence_core.occurrence_builder import get_final_occurrence_column_order
 
 
+def load_pr2_worms_dict_into_params(params, reporter=None, warn_print=None):
+    """
+    When use_local_reference_database is True and API is WoRMS, load PR2 (or similar) Excel
+    into params['pr2_worms_dict']. Shared by assign_taxonomy and taxassign.
+    warn_print: optional callable(str) when reporter is None (e.g. CLI).
+    """
+    def _warn(msg):
+        if reporter:
+            reporter.add_warning(msg)
+        elif warn_print:
+            warn_print(msg)
+
+    use_local_db = params.get('use_local_reference_database', False)
+    api_source = params.get('taxonomic_api_source', 'WoRMS')
+
+    if use_local_db and api_source == 'WoRMS':
+        local_db_path = params.get('local_reference_database_path')
+        if local_db_path and os.path.exists(local_db_path):
+            try:
+                if reporter:
+                    reporter.add_text(f"Loading local reference database from: {local_db_path}")
+                elif warn_print:
+                    warn_print(f"Loading local reference database from: {local_db_path}")
+
+                local_df = pd.read_excel(local_db_path, index_col=None, na_values=[""])
+                local_df.dropna(subset=['worms_id', 'species'], inplace=True)
+
+                species_cleaned = local_df['species'].str.replace('_', ' ', regex=False)
+                species_cleaned = species_cleaned.str.replace(' sp.', '', regex=False).str.strip()
+
+                params['pr2_worms_dict'] = dict(zip(species_cleaned, local_df['worms_id'].astype(int)))
+
+                if reporter:
+                    reporter.add_success(
+                        f"Successfully loaded local reference database with {len(params['pr2_worms_dict'])} AphiaID mappings"
+                    )
+                    reporter.add_text(
+                        "This will significantly speed up taxonomic matching via direct AphiaID lookup!"
+                    )
+                elif warn_print:
+                    warn_print(
+                        f"Loaded local reference database: {len(params['pr2_worms_dict'])} AphiaID mappings"
+                    )
+
+            except Exception as e:
+                _warn(f"Could not load local reference database: {e}")
+                params['pr2_worms_dict'] = {}
+        else:
+            _warn(f"Local reference database enabled but file not found at: {local_db_path}")
+            params['pr2_worms_dict'] = {}
+    else:
+        if use_local_db and api_source != 'WoRMS':
+            _warn("Local reference database optimization is only available for WoRMS API")
+        params['pr2_worms_dict'] = {}
+
+
 def assign_taxonomy(params, data, raw_data_tables, reporter):
     """
     Perform taxonomic assignment using WoRMS or GBIF API
@@ -54,41 +110,8 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         reporter.add_text(f"Using API source: {api_source}")
         reporter.add_text(f"Assays configured to skip species-level matching: {params.get('assays_to_skip_species_match', [])}")
         
-        # OPTIONAL PR2 database optimization
-        use_local_db = params.get('use_local_reference_database', False)
-        if use_local_db and api_source == 'WoRMS':
-            local_db_path = params.get('local_reference_database_path')
-            if local_db_path and os.path.exists(local_db_path):
-                try:
-                    reporter.add_text(f"Loading local reference database from: {local_db_path}")
-                    
-                    local_df = pd.read_excel(local_db_path, index_col=None, na_values=[""])
-                    
-                    # Filter for rows that have a WoRMS ID and a species name
-                    local_df.dropna(subset=['worms_id', 'species'], inplace=True)
-                    
-                    # Clean up the species names to match the format in our main data
-                    # (e.g., replacing underscores, removing 'sp.', etc.)
-                    species_cleaned = local_df['species'].str.replace('_', ' ', regex=False)
-                    species_cleaned = species_cleaned.str.replace(' sp.', '', regex=False).str.strip()
-                    
-                    # Create the dictionary: {species_name: aphia_id}
-                    params['pr2_worms_dict'] = dict(zip(species_cleaned, local_df['worms_id'].astype(int)))
-                    
-                    reporter.add_success(f"Successfully loaded local reference database with {len(params['pr2_worms_dict'])} AphiaID mappings")
-                    reporter.add_text("This will significantly speed up taxonomic matching via direct AphiaID lookup!")
-                    
-                except Exception as e:
-                    reporter.add_warning(f"Could not load local reference database: {e}")
-                    params['pr2_worms_dict'] = {}
-            else:
-                reporter.add_warning(f"Local reference database enabled but file not found at: {local_db_path}")
-                params['pr2_worms_dict'] = {}
-        else:
-            if use_local_db and api_source != 'WoRMS':
-                reporter.add_warning("Local reference database optimization is only available for WoRMS API")
-            params['pr2_worms_dict'] = {}
-        
+        load_pr2_worms_dict_into_params(params, reporter)
+
         # Determine maximum taxonomic ranks for each assay
         # Determine maximum taxonomic ranks for each assay (silent)
         
@@ -356,6 +379,130 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         reporter.add_text(f"<pre>{traceback.format_exc()}</pre>")
 
 
+def mark_selected_match_from_main_dataframe(info_df: pd.DataFrame, main_df: pd.DataFrame, api: str) -> pd.DataFrame:
+    """
+    Mark selected_match True for rows matching the matcher's chosen taxon per verbatimIdentification
+    (main_df), equivalent to mark_selected_* using occurrence_core but without an occurrence file.
+    """
+    if info_df.empty:
+        return info_df
+    out = info_df.copy()
+    out['selected_match'] = False
+    if main_df is None or main_df.empty:
+        return out
+
+    api_norm = (api or '').strip()
+    if api_norm == 'WoRMS':
+        key_cols = ['verbatimIdentification', 'scientificNameID']
+        if not all(c in main_df.columns for c in key_cols) or not all(c in out.columns for c in key_cols):
+            return out
+        selected_pairs = main_df[key_cols].drop_duplicates()
+    elif api_norm == 'GBIF':
+        key_cols = ['verbatimIdentification', 'taxonID']
+        if not all(c in main_df.columns for c in key_cols) or not all(c in out.columns for c in key_cols):
+            return out
+        selected_pairs = main_df[key_cols].drop_duplicates()
+    else:
+        return out
+
+    for col in key_cols:
+        selected_pairs[col] = selected_pairs[col].astype(str)
+        out[col] = out[col].astype(str)
+
+    out['_info_row_idx'] = out.index
+    merged = pd.merge(out, selected_pairs, on=key_cols, how='inner')
+    if merged.empty:
+        out = out.drop(columns=['_info_row_idx'], errors='ignore')
+        return out
+
+    if api_norm == 'GBIF' and 'confidence' in merged.columns:
+        merged = merged.sort_values('confidence', ascending=False)
+    best_candidates = merged.drop_duplicates(subset=key_cols, keep='first')
+    out.loc[best_candidates['_info_row_idx'], 'selected_match'] = True
+    out = out.drop(columns=['_info_row_idx'], errors='ignore')
+    return out
+
+
+def limit_info_df_preserving_selected(info_df: pd.DataFrame, match_limit: int) -> pd.DataFrame:
+    """Cap rows per verbatimIdentification; always keeps selected_match rows, then fills to match_limit."""
+    if info_df.empty or match_limit <= 0:
+        return info_df
+    if 'selected_match' not in info_df.columns:
+        return (
+            info_df.groupby('verbatimIdentification', group_keys=False)
+            .head(match_limit)
+            .reset_index(drop=True)
+        )
+
+    parts = []
+    for _, g in info_df.groupby('verbatimIdentification', sort=False):
+        sel = g[g['selected_match'] == True]
+        if sel.empty:
+            parts.append(g.head(match_limit))
+        else:
+            rest = g[g['selected_match'] != True]
+            combined = pd.concat([sel, rest], ignore_index=True)
+            combined = combined.drop_duplicates(keep='first')
+            parts.append(combined.head(match_limit))
+    return pd.concat(parts, ignore_index=True)
+
+
+def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict) -> pd.DataFrame:
+    """
+    Same column order, filled columns, and sorting as taxa_assignment_INFO.csv in the full workflow.
+    Used by create_taxa_assignment_info and taxassign.py.
+    """
+    taxa_info = taxa_info.copy()
+    api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
+
+    if 'cleanedTaxonomy' not in taxa_info.columns:
+        if api_source == 'worms':
+            from .WoRMS_v3_matching import parse_semicolon_taxonomy
+        else:
+            from .GBIF_matching import parse_semicolon_taxonomy
+
+        cleaned_taxonomies = [
+            ';'.join(parse_semicolon_taxonomy(vid)) if pd.notna(vid) else ''
+            for vid in taxa_info['verbatimIdentification']
+        ]
+        taxa_info['cleanedTaxonomy'] = cleaned_taxonomies
+
+    taxa_info['nameAccordingTo'] = params.get('taxonomic_api_source', 'WoRMS')
+
+    if api_source == 'worms':
+        final_column_order = [
+            'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change', 'unaccepted_match_row',
+            'ranks_matched', 'ranks_provided', 'assignment_score', 'environment',
+            'selected_match', 'scientificName', 'taxonRank', 'scientificNameID',
+            'higherClassification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
+            'match_type_debug', 'nameAccordingTo'
+        ]
+    else:
+        final_column_order = [
+            'verbatimIdentification', 'cleanedTaxonomy', 'environment', 'selected_match',
+            'scientificName', 'confidence', 'taxonRank', 'taxonID',
+            'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
+            'match_type_debug', 'nameAccordingTo'
+        ]
+
+    for col in final_column_order:
+        if col not in taxa_info.columns:
+            taxa_info[col] = pd.NA
+
+    taxa_info = taxa_info[final_column_order]
+
+    if api_source == 'gbif':
+        taxa_info = taxa_info.sort_values(
+            ['verbatimIdentification', 'confidence'], ascending=[True, False]
+        ).reset_index(drop=True)
+    else:
+        taxa_info = taxa_info.sort_values(
+            ['verbatimIdentification', 'scientificName']
+        ).reset_index(drop=True)
+
+    return taxa_info
+
+
 def create_taxa_assignment_info(params, reporter):
     """
     Create a taxa_assignment_INFO.csv file.
@@ -390,50 +537,8 @@ def create_taxa_assignment_info(params, reporter):
             taxa_info['ambiguous'] = False
             reporter.add_text(f"Found {len(taxa_info):,} unique taxonomy strings")
 
-        # --- Column Formatting ---
-        if 'cleanedTaxonomy' not in taxa_info.columns:
-            # Recreate cleanedTaxonomy if it's missing (e.g., from old GBIF path)
-            if api_source == 'worms': from .WoRMS_v3_matching import parse_semicolon_taxonomy
-            else: from .GBIF_matching import parse_semicolon_taxonomy
-            
-            cleaned_taxonomies = [';'.join(parse_semicolon_taxonomy(vid)) if pd.notna(vid) else '' for vid in taxa_info['verbatimIdentification']]
-            taxa_info['cleanedTaxonomy'] = cleaned_taxonomies
-            
-        taxa_info['nameAccordingTo'] = params.get('taxonomic_api_source', 'WoRMS')
+        taxa_info = format_taxa_assignment_info_dataframe(taxa_info, params)
 
-        # Define final column order, now including selected_match and consistency_check
-        if api_source == 'worms':
-            final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'name_change', 'unaccepted_match_row',
-                'ranks_matched', 'ranks_provided', 'assignment_score', 'environment',
-                'selected_match', 'scientificName', 'taxonRank', 'scientificNameID',
-                'higherClassification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
-                'match_type_debug', 'nameAccordingTo'
-            ]
-        else: # GBIF, includes confidence, does not include ambiguous
-            final_column_order = [
-                'verbatimIdentification', 'cleanedTaxonomy', 'environment', 'selected_match',
-                'scientificName', 'confidence', 'taxonRank', 'taxonID', 
-                'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
-                'match_type_debug', 'nameAccordingTo'
-            ]
-        
-        # Ensure all required columns exist, adding any that are missing
-        for col in final_column_order:
-            if col not in taxa_info.columns:
-                taxa_info[col] = pd.NA
-        
-        # Filter to only include the desired columns in the correct order
-        taxa_info = taxa_info[final_column_order]
-        
-        # Sort for consistency and readability
-        if api_source == 'gbif':
-            # For GBIF, group by the original string, then show the best confidence match first
-            taxa_info = taxa_info.sort_values(['verbatimIdentification', 'confidence'], ascending=[True, False]).reset_index(drop=True)
-        else:
-            # For WoRMS, group by original string, then by the scientific name
-            taxa_info = taxa_info.sort_values(['verbatimIdentification', 'scientificName']).reset_index(drop=True)
-        
         # --- Save and Report ---
         output_dir = params.get('output_dir', '../processed-v3/')
         os.makedirs(output_dir, exist_ok=True)
