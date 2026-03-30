@@ -471,15 +471,16 @@ def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict)
 
     if api_source == 'worms':
         final_column_order = [
-            'verbatimIdentification', 'cleanedTaxonomy', 'ambiguous', 'replaced_unaccepted', 'unaccepted_match',
+            'verbatimIdentification', 'cleanedTaxonomy', 'selected_match',
+            'ambiguous', 'replaced_unaccepted', 'unaccepted_match',
             'ranks_matched', 'ranks_provided', 'assignment_score', 'environment',
-            'selected_match', 'scientificName', 'taxonRank', 'scientificNameID',
+            'scientificName', 'taxonRank', 'scientificNameID',
             'higherClassification', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
             'match_type_debug', 'nameAccordingTo'
         ]
     else:
         final_column_order = [
-            'verbatimIdentification', 'cleanedTaxonomy', 'environment', 'selected_match',
+            'verbatimIdentification', 'cleanedTaxonomy', 'selected_match', 'environment',
             'scientificName', 'confidence', 'taxonRank', 'taxonID',
             'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
             'match_type_debug', 'nameAccordingTo'
@@ -569,12 +570,12 @@ def create_taxa_assignment_info(params, reporter):
             "<ul>"
             "<li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li>"
             "<li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li>"
+            "<li><b>selected_match:</b> (WoRMS and GBIF) <strong>Primary column to use when reading this file:</strong> True on the one row per <code>verbatimIdentification</code> that was chosen for the final occurrence file (or, for taxassign-only runs, the row that <em>would</em> be chosen in the full pipeline). Other rows are alternate candidates for review.</li>"
             "<li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li>"
             "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
             "<li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
             "<li><b>replaced_unaccepted:</b> (WoRMS only) True when WoRMS resolved an unaccepted name to its accepted valid name.</li>"
             "<li><b>unaccepted_match:</b> (WoRMS only) True when this row is the unaccepted (queried) taxon shown so you can compare its assignment score to the accepted name. Whether it can be selected for the occurrence core is controlled by worms_consider_unaccepted_for_selection in config.</li>"
-            "<li><b>selected_match:</b> (WoRMS and GBIF) A flag indicating which of the potential matches was chosen and used in the final occurrence file.</li>"
             "<li><b>higherClassification:</b> (WoRMS only, optional) Pipe-separated higher-taxon lineage from WoRMS, used to preserve intermediate ranks without creating many sparse columns.</li>"
             "<li><b>ranks_matched:</b> (WoRMS only) Count of verbatim lineage tokens found in the matched classification.</li>"
             "<li><b>ranks_provided:</b> (WoRMS only) Total number of verbatim lineage tokens considered for scoring.</li>"

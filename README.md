@@ -21,10 +21,10 @@ The latest version of edna2obis (version 3) builds upon the original edna2obis, 
 - Improved taxonomic assignment accuracy and performance, with new caching methods
   - Users can choose to perform their taxonomic assignment via [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs  
   - Users can specify which assays to NOT include species rank for taxonomic assignment (for example, Bacterial taxonomies often have the HOST organism as the species)
-  - New output `taxa_assignment_INFO_<API>.xlsx` documents how taxonomies were assigned (sheet `taxa_assignment_INFO` is the table, sheet `README` lists columns)
+  - New output `taxa_assignment_INFO_<API>.csv` documents how taxonomies were assigned (sheet `taxa_assignment_INFO`). **Start with the `selected_match` column**—it marks the one row per name that the pipeline used (or would use) for the occurrence file; other rows are alternate candidates.
 - Generates an HTML output report, `edna2obis_report.html` to document your run
 - Options to generate an extended Measurement of Fact file and a Project-level EML metadata file
-- You can use the taxonomic assignment algorithms for WoRMS and GBIF taxonomy backbones on a simple input file of taxonomies, and just get taxonomic assignments without running through the entire edna2obis workflow via `taxassign.py`. It can be run as a script using `python taxassign.py` or can run it via the command line. You can set parameters in the command line or in the Python file itself. 
+- You can use the taxonomic assignment algorithms for WoRMS and GBIF taxonomy backbones on a simple input file of taxonomies, and just get taxonomic assignments without running through the entire edna2obis workflow via `taxassign.py`. It can be run as a script using `python taxassign.py` or can run it via the command line. You can set parameters in the command line or in the Python file itself. Output is the same style of `taxa_assignment_INFO_<API>.csv` as the full pipeline—**filter to `selected_match` True** to see the match that would be carried forward, same as in the main workflow.
 
 
 ### Example data abstract:
@@ -306,7 +306,7 @@ The pipeline will:
 If you only want to assign taxonomy to a list of identifiers (without running the full edna2obis workflow), use `taxassign.py`.
 
 - Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxassign_example_input.tsv`.
-- Output: `taxa_assignment_INFO_<API>.xlsx` (same layout as the full pipeline, with sheet `README` for column text). Up to N candidate rows per name unless you omit `-n` and use `--use-config` to take `gbif_match_limit` from `config.yaml`.
+- Output: `taxa_assignment_INFO_<API>.csv` (same column layout as the full pipeline; sheet `taxa_assignment_INFO` only). **Important!  `selected_match`:** it is True on the row that would be chosen as the official assignment (equivalent to what goes to occurrence in the full pipeline). You may get several candidate rows per name; the rest are for review. Up to N candidate rows per name unless you omit `-n` and use `--use-config` to take `gbif_match_limit` from `config.yaml`.
 
 Help:
 
@@ -317,7 +317,7 @@ python taxassign.py --help
 Examples:
 
 ```bash
-# Example input, default API and limits from taxassign.py, writes processed-v3/taxa_assignment_INFO_<API>.xlsx
+# Example input, default API and limits from taxassign.py, writes processed-v3/taxa_assignment_INFO_<API>.csv
 python taxassign.py
 
 # Use WoRMS and a custom input
@@ -326,8 +326,8 @@ python taxassign.py -i raw-v3/taxassign_example_input.tsv -a WoRMS
 # Up to 5 candidate rows per name
 python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -n 5
 
-# Explicit output path (.csv in the flag is rewritten to .xlsx)
-python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -o processed-v3/my_run.xlsx
+# Explicit output path
+python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -o processed-v3/my_run.csv
 
 # Matcher options from config.yaml
 python taxassign.py --use-config
@@ -340,7 +340,7 @@ Options:
 - `-i, --input`: TSV/CSV with column `verbatimIdentification` (default: `raw-v3/taxassign_example_input.tsv`)
 - `-a, --api`: `GBIF` or `WoRMS` (omit with `--use-config` to use `taxonomic_api_source` from config)
 - `-n, --limit`: max candidate rows per name (omit with `--use-config` to use `gbif_match_limit` from config)
-- `-o, --output`: output `.xlsx` path (not a folder). If you pass `.csv` it is saved as `.xlsx` instead. If omitted, `{outdir}/taxa_assignment_INFO_<API>.xlsx`
+- `-o, --output`: output `.csv` path (not a folder). If omitted, `{outdir}/taxa_assignment_INFO_<API>.csv`
 - `--outdir`: directory when `-o` omitted (default: `processed-v3`)
 - `--use-config`: load matcher settings from `config.yaml` beside `taxassign.py`
 - `--n-proc`: parallel workers (optional)
@@ -355,7 +355,7 @@ The pipeline generates several files in your output directory:
 - `processed-v3/`
     *   `edna2obis_report_worms.html` / `edna2obis_report_gbif.html` - Detailed HTML report of the conversion process.
     *   `occurrence_core_worms.csv` / `occurrence_core_gbif.csv` - Final Occurrence Core with assigned taxonomies.
-    *   `taxa_assignment_INFO_worms.xlsx` / `taxa_assignment_INFO_GBIF.xlsx` - Candidate matches and column README sheet.
+    *   `taxa_assignment_INFO_worms.csv` / `taxa_assignment_INFO_GBIF.csv` - All candidate matches per name; use **`selected_match`** to see which row was used for the occurrence file (see column table below).
     *   `dna_derived_extension.csv` - DNA Derived Data extension file.
     *   `eMoF.csv` - eMoF (extended Measurement or Fact) extension file.
 
@@ -403,14 +403,19 @@ The pipeline generates several files in your output directory:
 - GBIF candidate limit and caching
 - Local reference database (WoRMS only) for fast AphiaID lookups
 
-Also writes `taxa_assignment_INFO_<API>.xlsx`. Sheet `taxa_assignment_INFO` holds the table. Sheet `README` lists each column. One row can appear per candidate match, not only the match used in the occurrence file.
+Also writes `taxa_assignment_INFO_<API>.csv` (sheet `taxa_assignment_INFO`). One row can appear per candidate match, not only the match used in the occurrence file.
 
 ### taxa_assignment_INFO columns
+
+**Important column!** `selected_match` is True on the row the pipeline treats as the official assignment for each `verbatimIdentification` (the one reflected in the occurrence file). For `taxassign.py`-only runs, it is True on the row that *would* be chosen in the full pipeline. When you summarize results, **filter on `selected_match` = TRUE**; other assignment rows exist for transparency and QA.
+
+Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in the `.csv` file.
 
 | Column | Meaning |
 |:--|:--|
 | verbatimIdentification | Original taxonomic string from your data before matching. |
 | cleanedTaxonomy | Normalized / cleaned version of verbatimIdentification (what is actually used for API lookup. |
+| selected_match | **Indicates the taxonomic assignment!** True only on the chosen assignment row for that `verbatimIdentification` (occurrence file in full pipeline; same rule for taxassign-only output). False on alternate candidate rows kept for review. |
 | ambiguous | WoRMS. True when more than one candidate assignment was found for this verbatim string. |
 | replaced_unaccepted | WoRMS. True when WoRMS replaced an unaccepted name with the accepted valid name. |
 | unaccepted_match | WoRMS. True when the assignment in that row is an unaccepted name. Shows you the unaccepted name for comparison. |
@@ -418,7 +423,6 @@ Also writes `taxa_assignment_INFO_<API>.xlsx`. Sheet `taxa_assignment_INFO` hold
 | ranks_provided | WoRMS. Number of taxonomic ranks given in your verbatimIdentification for that taxonomy. |
 | assignment_score | WoRMS. Ratio of ranks_matched / ranks_provided. |
 | environment | WoRMS habitat labels when available. Non-marine taxa can be included in results when worms_return_all_matches is true in config.yaml. |
-| selected_match | True on the row chosen for Occurrence Core. For taxassign results, this is True for the match that WOULD be chosen if you ran the full pipeline. |
 | scientificName | Scientific name for this candidate row from the backbone. |
 | confidence | GBIF only. Assignment confidence score from 0 to 100. |
 | taxonRank | Rank of scientificName assigned. |
