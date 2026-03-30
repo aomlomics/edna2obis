@@ -412,8 +412,8 @@ Also writes `taxa_assignment_INFO_<API>.xlsx`. Sheet `taxa_assignment_INFO` hold
 | verbatimIdentification | Original taxonomic string from your data before matching. |
 | cleanedTaxonomy | Normalized / cleaned version of verbatimIdentification (what is actually used for API lookup. |
 | ambiguous | WoRMS. True when more than one candidate assignment was found for this verbatim string. |
-| name_change | WoRMS. True when WoRMS replaced an unaccepted name with the accepted valid name. |
-| unaccepted_match_row | WoRMS. True when the assignment in that row is an unaccepted name. Shows you the unaccepted name for comparison. |
+| replaced_unaccepted | WoRMS. True when WoRMS replaced an unaccepted name with the accepted valid name. |
+| unaccepted_match | WoRMS. True when the assignment in that row is an unaccepted name. Shows you the unaccepted name for comparison. |
 | ranks_matched | WoRMS. Number of taxonomic ranks given in your verbatimIdentification that perfectly matched with the WoRMS assignment's ranks. |
 | ranks_provided | WoRMS. Number of taxonomic ranks given in your verbatimIdentification for that taxonomy. |
 | assignment_score | WoRMS. Ratio of ranks_matched / ranks_provided. |

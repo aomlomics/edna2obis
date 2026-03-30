@@ -247,18 +247,18 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
         df.loc[fill_mask, 'higherClassification'] = mapped_values[fill_mask]
 
 
-def _build_worms_result_record(record_to_use, api_source_for_record, name_change=False, unaccepted_match_row=False):
+def _build_worms_result_record(record_to_use, api_source_for_record, replaced_unaccepted=False, unaccepted_match=False):
     """
     Format a WoRMS record into the edna2obis result structure.
-    unaccepted_match_row: True when this row is the unaccepted (queried) taxon shown for transparency when WoRMS resolved to a different accepted name.
+    unaccepted_match: True when this row is the unaccepted (queried) taxon shown for transparency when WoRMS resolved to a different accepted name.
     """
     result = {
         'scientificName': record_to_use.get('scientificname'),
         'scientificNameID': record_to_use.get('lsid'),
         'taxonRank': record_to_use.get('rank'),
         'nameAccordingTo': api_source_for_record,
-        'name_change': name_change,
-        'unaccepted_match_row': unaccepted_match_row,
+        'replaced_unaccepted': replaced_unaccepted,
+        'unaccepted_match': unaccepted_match,
         'environment': _format_environment(record_to_use)
     }
     for rank_std in DWC_RANKS_STD:
@@ -405,15 +405,15 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
             result = _build_worms_result_record(
                 record_to_use=record,
                 api_source_for_record=api_source_for_record,
-                name_change=False,
-                unaccepted_match_row=False
+                replaced_unaccepted=False,
+                unaccepted_match=False
             )
             result['match_type_debug'] = f'Success_AphiaID_{aphia_id_to_check}'
             return aphia_id_to_check, result
     except Exception:
         pass
     
-    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}', 'name_change': False, 'unaccepted_match_row': False}
+    return aphia_id_to_check, {'match_type_debug': f'Failure_AphiaID_{aphia_id_to_check}', 'replaced_unaccepted': False, 'unaccepted_match': False}
 
 def get_worms_batch_worker(batch_info):
     """
@@ -463,8 +463,8 @@ def get_worms_batch_worker(batch_info):
                                 unaccepted_rows_for_term.append(_build_worms_result_record(
                                     record_to_use=match,
                                     api_source_for_record='WoRMS',
-                                    name_change=False,
-                                    unaccepted_match_row=True
+                                    replaced_unaccepted=False,
+                                    unaccepted_match=True
                                 ))
                         except Exception:
                             record_to_use = None
@@ -482,13 +482,13 @@ def get_worms_batch_worker(batch_info):
                     res = _build_worms_result_record(
                         record_to_use=record_to_use,
                         api_source_for_record='WoRMS',
-                        name_change=name_changed,
-                        unaccepted_match_row=False
+                        replaced_unaccepted=name_changed,
+                        unaccepted_match=False
                     )
                     accepted_by_lsid[sci_id] = res
                 else:
-                    if name_changed and not existing.get('name_change'):
-                        existing['name_change'] = True
+                    if name_changed and not existing.get('replaced_unaccepted'):
+                        existing['replaced_unaccepted'] = True
 
             accepted_matches = list(accepted_by_lsid.values()) + unaccepted_rows_for_term
 
@@ -630,7 +630,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis',
                 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12', 'taxonRank': None,
                 'nameAccordingTo': api_source, 'match_type_debug': match_type,
-                'cleanedTaxonomy': cleaned_verbatim, 'name_change': False, 'unaccepted_match_row': False,
+                'cleanedTaxonomy': cleaned_verbatim, 'replaced_unaccepted': False, 'unaccepted_match': False,
                 'environment': pd.NA,
                 'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
@@ -755,7 +755,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         walkup_stats['considered_terms'] += 1
                         
                         # For selection (occurrence core), optionally exclude unaccepted-match rows so only accepted names can win.
-                        candidates_for_selection = [m for m in all_matches if not m.get('unaccepted_match_row')] if not worms_consider_unaccepted_for_selection else all_matches
+                        candidates_for_selection = [m for m in all_matches if not m.get('unaccepted_match')] if not worms_consider_unaccepted_for_selection else all_matches
                         if not candidates_for_selection:
                             candidates_for_selection = all_matches
                         
@@ -838,7 +838,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
                 'taxonRank': None, 'nameAccordingTo': api_source,
                 'match_type_debug': 'Failed_All_Stages_NoMatch', 'cleanedTaxonomy': cleaned_taxonomy,
-                'name_change': False, 'unaccepted_match_row': False,
+                'replaced_unaccepted': False, 'unaccepted_match': False,
                 'environment': pd.NA,
                 'higherClassification': pd.NA,
                 'assignment_score': pd.NA,
@@ -856,7 +856,7 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         'scientificName': 'incertae sedis', 'scientificNameID': 'urn:lsid:marinespecies.org:taxname:12',
         'taxonRank': None, 'nameAccordingTo': api_source,
         'match_type_debug': 'incertae_sedis_truly_empty_fallback', 'cleanedTaxonomy': '',
-        'name_change': False, 'unaccepted_match_row': False,
+        'replaced_unaccepted': False, 'unaccepted_match': False,
         'environment': pd.NA,
         'higherClassification': pd.NA,
         'assignment_score': pd.NA,
