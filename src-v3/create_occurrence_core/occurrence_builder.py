@@ -241,6 +241,9 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
 
                     # 2. Filter the raw dataframe to keep only the columns we need, safely
                     final_cols_to_keep = [col for col in tax_source_faire_terms if col in current_tax_df_raw.columns]
+                    for _extra in ('Confidence', 'classify_method', 'percent_id'):
+                        if _extra in current_tax_df_raw.columns and _extra not in final_cols_to_keep:
+                            final_cols_to_keep.append(_extra)
                     current_tax_df_processed = current_tax_df_raw[final_cols_to_keep].copy()
                     
                     # 3. Rename columns from FAIRe terms to Darwin Core terms
@@ -550,7 +553,6 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
 
                     # --- STEP 8: `identificationRemarks`, `sampleSizeValue`/`Unit`, `parentEventID` ---
                     otu_seq_comp_appr_str = "Unknown sequence comparison approach"
-                    taxa_class_method_str = ""
                     taxa_ref_db_str = "Unknown reference DB"
 
                     if final_assay_name and analysis_run_name in data.get('analysis_data_by_assay', {}).get(final_assay_name, {}):
@@ -560,14 +562,34 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                                 val_series = df[df['term_name'].astype(str).str.strip() == term]['values']
                                 return str(val_series.iloc[0]).strip() if not val_series.empty and pd.notna(val_series.iloc[0]) else default
                             otu_seq_comp_appr_str = get_analysis_meta('otu_seq_comp_appr', analysis_meta_df_for_run, otu_seq_comp_appr_str)
-                            taxa_class_method_str = get_analysis_meta('taxa_class_method', analysis_meta_df_for_run, taxa_class_method_str)
                             taxa_ref_db_str = get_analysis_meta('otu_db', analysis_meta_df_for_run, taxa_ref_db_str)
                     
-                    confidence_value_series = pd.Series(["unknown confidence"] * len(current_assay_occurrence_intermediate_df), index=current_assay_occurrence_intermediate_df.index, dtype=object)
+                    idx = current_assay_occurrence_intermediate_df.index
+                    if 'classify_method' in current_assay_occurrence_intermediate_df.columns:
+                        cm = current_assay_occurrence_intermediate_df['classify_method'].astype(str).str.strip()
+                        valid_cm = current_assay_occurrence_intermediate_df['classify_method'].notna() & (cm != '') & (cm.str.lower() != 'nan')
+                        method_series = pd.Series(np.where(valid_cm, cm, otu_seq_comp_appr_str), index=idx, dtype=object)
+                    else:
+                        method_series = pd.Series(otu_seq_comp_appr_str, index=idx, dtype=object)
+
+                    confidence_value_series = pd.Series('unknown confidence', index=idx, dtype=object)
                     if 'Confidence' in current_assay_occurrence_intermediate_df.columns:
-                        confidence_value_series = current_assay_occurrence_intermediate_df['Confidence'].astype(str).fillna("unknown confidence")
-                    
-                    current_assay_occurrence_intermediate_df['identificationRemarks'] = f"{otu_seq_comp_appr_str}, confidence: " + confidence_value_series + f", against reference database: {taxa_ref_db_str}"
+                        confidence_value_series = current_assay_occurrence_intermediate_df['Confidence'].astype(str).fillna('unknown confidence')
+
+                    pct_part = pd.Series('', index=idx, dtype=object)
+                    if 'percent_id' in current_assay_occurrence_intermediate_df.columns:
+                        pid = pd.to_numeric(current_assay_occurrence_intermediate_df['percent_id'], errors='coerce')
+                        has_pid = pid.notna()
+                        pct_part.loc[has_pid] = ', percent identity (to seq): ' + pid.loc[has_pid].astype(str)
+
+                    current_assay_occurrence_intermediate_df['identificationRemarks'] = (
+                        method_series.astype(str)
+                        + ', confidence: '
+                        + confidence_value_series.astype(str)
+                        + pct_part
+                        + ', against reference database: '
+                        + taxa_ref_db_str
+                    )
                     
                     if 'eventID' in current_assay_occurrence_intermediate_df.columns and not current_assay_occurrence_intermediate_df['eventID'].isna().all():
                         sample_size_map = current_assay_occurrence_intermediate_df.groupby('eventID')['organismQuantity'].sum().to_dict()
