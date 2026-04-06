@@ -3,20 +3,32 @@
 # -----------------------------------------------------------------------------
 # Configure metadata for generating EML XML files for OBIS/GBIF submission
 # Fill out as much information as possible for better dataset discoverability
+#
+# Leaving a field blank (very common):
+#   Single-line / short text — use empty quotes:  key: ""
+#   Repeatable list — use an empty list and add nothing:  key: []  (no "-" lines until you have entries)
+#   Multi-line block (key: | …) — for "nothing extra," use  key: ""  on one line instead of |; if you keep |, the indented lines are the value (replace placeholder text when you fill it in)
+#   Nested blocks (address:, collection:) — leave each unused subfield as  ""
+#
+# YAML shapes used in this file (same rules are repeated next to each field):
+#   Nested block (e.g. address:) — fixed keys underneath; no "-" on those key lines.
+#   Repeatable list — starts as []. Each real item begins with "- " (dash space); commented examples show that shape.
+#   Live lists (keywords) — already written as "- item:" blocks; add more by copying a full block.
+#   Multi-line text — key: | then indented lines. Do not leave plain text lines under [].
 
 eml_metadata:
   # Basic Dataset Information
   title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]" # title: " " leave defaults blank
-  title_source_field: "project_name" 
+  title_source_field: "project_name"
   abstract: |
-    Brief description of your dataset. Include what organisms were studied, 
+    Brief description of your dataset. Include what organisms were studied,
     where samples were collected, what methods were used, and the purpose of the study.
     This should help users understand the fitness-for-use of your data.
-  
+
   # Dataset identifiers and publication info
   publication_date: "2024"  # YYYY or YYYY-MM-DD format
   language: "en"  # ISO language code (en for English)
-  
+
   # People and Organizations (at least contact is required)
   contact:
     individual_name:
@@ -28,6 +40,7 @@ eml_metadata:
     position_name: ""  # Alternative to individual name (e.g., "Data Manager")
     email: "your.email@institution.edu"
     phone: ""
+    # Nested address fields (not a "- " list): one key per line below.
     address:
       delivery_point: "123 University Ave"
       city: "Your City"
@@ -36,7 +49,7 @@ eml_metadata:
       country: "United States"
     online_url: ""  # Personal or institutional website
     user_id: ""  # ORCID (e.g., "https://orcid.org/0000-0000-0000-0000")
-  
+
   creator:
     individual_name:
       given_name: "Principal First"
@@ -47,6 +60,7 @@ eml_metadata:
     position_name: ""
     email: "pi@institution.edu"
     phone: ""
+    # Nested address fields (not a "- " list): one key per line below.
     address:
       delivery_point: "456 Science Blvd"
       city: "Research City"
@@ -55,7 +69,7 @@ eml_metadata:
       country: "United States"
     online_url: ""
     user_id: ""  # ORCID
-  
+
   # Optional metadata provider (if different from creator)
   metadata_provider:
     individual_name:
@@ -63,8 +77,9 @@ eml_metadata:
       surname: ""
     organization_name: ""
     email: ""
-  
+
   # Associated parties (additional contributors)
+  # Repeatable list: [] = none yet. To add people, use "- " entries like the commented example (same "- " pattern as classifications, personnel, method_steps, bibliography).
   associated_parties: []
     # Example entry:
     # - individual_name:
@@ -73,11 +88,12 @@ eml_metadata:
     #   organization_name: "Partner Institution"
     #   email: "collab@partner.edu"
     #   role: "principal investigator"  # Options: originator, content provider, custodian, owner, point of contact, principal investigator
-  
+
   # Coverage Information
   geographic_coverage:
     description: "Geographic area description (e.g., 'Gulf of Mexico', 'North Atlantic')" # Consider summarizing sampleMetadata.locality or waterBody
     # Optional: configure preferred source columns in occurrence for description (in order)
+    # List of field names (each line is "- \"column\""):
     description_source_fields:
       - "locality"
       - "waterBody"
@@ -89,14 +105,15 @@ eml_metadata:
     # Optional: customize occurrence latitude/longitude field names
     latitude_field: "decimalLatitude"
     longitude_field: "decimalLongitude"
-  
+
   temporal_coverage:
     # The begin_date and end_date are now automatically calculated from the eventDate column.
     # Optional: customize occurrence date column name if it's not 'eventDate'.
     event_date_field: "eventDate"
-  
+
   taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section). should be a combo of all ranks used across all assays. ALSO assay names from data
     general_description: "Marine organisms identified through eDNA metabarcoding"
+    # Repeatable list (same "- " pattern as associated_parties): [] or uncomment/build "- " blocks from the example.
     classifications: []
       # Example entries:
       # - taxon_rank_name: "kingdom"
@@ -111,8 +128,9 @@ eml_metadata:
       - "phylum"
       - "class"
       - "order"
-  
+
   # Keywords for discoverability
+  # Already in "list" form: each keyword is a "- keyword:" block. Add more by copying a full block (dash + nested lines).
   keywords:
     #   - sampleMetadata: env_broad_scale, env_local_scale, env_medium, waterBody
     #   - projectMetadata: target_gene, target_subfragment, instrument, lib_layout, ampliconSize
@@ -134,19 +152,20 @@ eml_metadata:
       thesaurus: "ASFA"
     - keyword: "environmental DNA"
       thesaurus: "GCMD"
-  
+
   # Project Information
   project:
     title: "Your Project Title" # Leave as-is to auto-fill from your metadata
     # Optional: customize which projectMetadata column should auto-fill project title
     title_source_field: "project_id"
-    # TODO: 
+    # TODO:
     description: |
       Description of the research project under which this dataset was collected.
       Include objectives, hypotheses, and broader context.
     funding: |
       Information about funding sources, grant numbers, etc.
       Example: "This work was supported by NOAA Grant #12345"
+    # Repeatable list (same "- " pattern as associated_parties).
     personnel: []
       # Example entry:
       # - individual_name:
@@ -154,17 +173,18 @@ eml_metadata:
       #     surname: "PI Last"
       #   role: "principal investigator"
       #   email: "pi@institution.edu"
-  
+
   # Methods and Sampling
   methods:
     study_extent: |
       Description of the specific sampling area and frequency.
       Example: "Samples were collected monthly from 5 stations in the Gulf of Mexico from January to December 2020."
-    
+
     sampling_description: |
       Detailed description of sampling procedures, similar to methods section of a journal article.
       Include collection methods, equipment used, sample processing, etc.
-    
+
+    # Repeatable list (same "- " pattern): each step is one "- description:" block; use | under description for long text.
     method_steps: []
       # Example entries:
       # - description: |
@@ -173,34 +193,39 @@ eml_metadata:
       # - description: |
       #     DNA was extracted using the DNeasy PowerSoil Kit following manufacturer protocols.
       #     PCR amplification targeted the 16S rRNA gene using primers 515F and 806R.
-    
+
     quality_control: |
       Description of quality control measures taken during sample collection,
       processing, and analysis.
-  
+
   # Intellectual Property and Usage Rights
   # TIP: If you track a license in projectMetadata.license, mirror it here
   license: "CC0"  # Options: CC0, CC-BY, CC-BY-NC
   purpose: |
     A description of the purpose of this dataset.
     Why was it collected? What questions does it aim to answer?
-  
+
   # Citations and References
   # TIP: Paste projectMetadata.bibliographicCitation here (or customize)
+  # To rely on auto-generated citation text: use "" on one line instead of | (see header: Leaving a field blank).
   dataset_citation: |
     How users should cite this dataset. Can be auto-generated or custom.
     Leave blank for auto-generation based on creator, title, etc.
-  
+
+  # Repeatable list (same "- " pattern): each reference is one "- \"citation string\"" line.
   bibliography: []
     # Example entries (publications related to this dataset):
     # - "Smith, J. et al. (2020). Marine biodiversity patterns. Journal of Marine Science. DOI: 10.1000/example"
     # - "Jones, A. (2019). eDNA methods handbook. Marine Methods Press."
-  
+
   # Additional Information
+  # Multi-line text (same as abstract:). To leave blank / omit from EML: use "" instead of | (see header: Leaving a field blank).
+  # If you switch this to [], delete the indented lines below—do not leave stray text under [].
   additional_info: |
     Any other relevant information about the dataset that doesn't fit in other sections.
-  
+
   # Collection Information (only if museum specimens are involved)
+  # Single record (not a repeatable "- list"): four fixed keys. Different from associated_parties / method_steps.
   collection:
     name: ""
     identifier: ""
