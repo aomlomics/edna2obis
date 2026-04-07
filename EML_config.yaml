@@ -111,7 +111,7 @@ eml_metadata:
     # Optional: customize occurrence date column name if it's not 'eventDate'.
     event_date_field: "eventDate"
 
-  taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section). should be a combo of all ranks used across all assays. ALSO assay names from data
+  taxonomic_coverage:
     general_description: "Marine organisms identified through eDNA metabarcoding"
     # Repeatable list (same "- " pattern as associated_parties): [] or uncomment/build "- " blocks from the example.
     classifications: []
