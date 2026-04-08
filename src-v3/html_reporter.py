@@ -8,6 +8,21 @@ import webbrowser
 from pathlib import Path
 
 
+def _logo_src_for_html(repo_root: Path, report_filename: str, image_basename: str) -> str:
+    """
+    Relative URL from the report file to images/ so the HTML works when opened from any
+    folder on any machine (same repo layout). Falls back to file:// if a relative path
+    cannot be formed (e.g. report and repo on different Windows drives).
+    """
+    logo_abs = (repo_root / "images" / image_basename).resolve()
+    report_dir = Path(report_filename).expanduser().resolve().parent
+    try:
+        rel = os.path.relpath(str(logo_abs), str(report_dir))
+    except ValueError:
+        return logo_abs.as_uri()
+    return rel.replace("\\", "/")
+
+
 class HTMLReporter:
     def __init__(self, filename="edna2obis_report.html", run_name=None):
         self.filename = filename
@@ -224,10 +239,10 @@ class HTMLReporter:
         end_time = datetime.datetime.now()
         duration = end_time - self.start_time
         repo_root = Path(__file__).resolve().parents[1]
-        aoml_logo = (repo_root / "images" / "aoml_logo.png").as_uri()
-        noaa_omics_logo = (repo_root / "images" / "noaa_omics_logo.png").as_uri()
-        obis_logo = (repo_root / "images" / "obis_logo.png").as_uri()
-        gbif_logo = (repo_root / "images" / "gbif_logo.png").as_uri()
+        aoml_logo = _logo_src_for_html(repo_root, self.filename, "aoml_logo.png")
+        noaa_omics_logo = _logo_src_for_html(repo_root, self.filename, "noaa_omics_logo.png")
+        obis_logo = _logo_src_for_html(repo_root, self.filename, "obis_logo.png")
+        gbif_logo = _logo_src_for_html(repo_root, self.filename, "gbif_logo.png")
         
         # Build status header HTML
         if self.status == "WARNING":

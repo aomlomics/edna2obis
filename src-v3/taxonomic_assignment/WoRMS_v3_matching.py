@@ -459,13 +459,6 @@ def get_worms_batch_worker(batch_info):
                             if resolved and resolved.get('status') == 'accepted':
                                 record_to_use = resolved
                                 name_changed = True
-                                # Expose the unaccepted match as its own row so the user can see it and compare assignment scores.
-                                unaccepted_rows_for_term.append(_build_worms_result_record(
-                                    record_to_use=match,
-                                    api_source_for_record='WoRMS',
-                                    replaced_unaccepted=False,
-                                    unaccepted_match=True
-                                ))
                         except Exception:
                             record_to_use = None
 
@@ -476,6 +469,15 @@ def get_worms_batch_worker(batch_info):
                 sci_id = record_to_use.get('lsid')
                 if not sci_id:
                     continue
+
+                # Only after we have a usable accepted record (with lsid): add the unaccepted row for transparency.
+                if name_changed and status == 'unaccepted':
+                    unaccepted_rows_for_term.append(_build_worms_result_record(
+                        record_to_use=match,
+                        api_source_for_record='WoRMS',
+                        replaced_unaccepted=False,
+                        unaccepted_match=True
+                    ))
 
                 existing = accepted_by_lsid.get(sci_id)
                 if existing is None:
@@ -757,7 +759,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         # For selection (occurrence core), optionally exclude unaccepted-match rows so only accepted names can win.
                         candidates_for_selection = [m for m in all_matches if not m.get('unaccepted_match')] if not worms_consider_unaccepted_for_selection else all_matches
                         if not candidates_for_selection:
-                            candidates_for_selection = all_matches
+                            if worms_consider_unaccepted_for_selection:
+                                candidates_for_selection = all_matches
+                            else:
+                                continue
                         
                         # Prefer exact scientificName match to the queried term when available,
                         # then choose by lineage consistency score (tie-breaker: more complete classification).
