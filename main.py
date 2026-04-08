@@ -29,6 +29,28 @@ import io
 # Import custom modules from src-v3
 from html_reporter import HTMLReporter
 
+# FAIRe Excel wide sheets (sampleMetadata, experimentRunMetadata): rows 1–2 are preamble; row 3 is headers.
+_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW = 2
+
+# Intentional missing-data placeholders (FAIRe / MIxS style). Report guidance; use exact wording in the sheet.
+_FAIRE_PLACEHOLDER_TERMS_ALL_FIELDS = [
+    "missing",
+    "not applicable",
+    "not collected",
+    "not provided",
+    "restricted access",
+]
+_FAIRE_PLACEHOLDER_TERMS_EVENTDATE_AND_GEO_LOC_ONLY = [
+    "missing: control sample",
+    "missing: sample group",
+    "missing: synthetic construct",
+    "missing: lab stock",
+    "missing: third party data",
+    "missing: data agreement established pre-2023",
+    "missing: endangered species",
+    "missing: human-identifiable",
+]
+
 
 def read_text_file_cross_platform(filepath, sep='\t', **kwargs):
     """
@@ -516,8 +538,15 @@ def load_project_data(params, reporter):
                 reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
 
                 for sheet_name in analysis_sheets:
-                    analysis_df = pd.read_excel(params['excel_file'], sheet_name)
-                    
+                    analysis_df = pd.read_excel(
+                        params['excel_file'],
+                        sheet_name,
+                        header=0,
+                        index_col=None,
+                        na_values=[""],
+                        keep_default_na=False,
+                    )
+
                     assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
                     analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
                     
@@ -532,7 +561,14 @@ def load_project_data(params, reporter):
             elif params['metadata_format'] == 'GENERIC':
                 reporter.add_text("Using GENERIC FAIRe format. Synthesizing analysis metadata from projectMetadata.")
                 
-                project_meta_df = pd.read_excel(params['excel_file'], params['projectMetadata'], index_col=None, na_values=[""], comment="#")
+                project_meta_df = pd.read_excel(
+                    params['excel_file'],
+                    params['projectMetadata'],
+                    header=0,
+                    index_col=None,
+                    na_values=[""],
+                    keep_default_na=False,
+                )
                 
                 # --- Build a map from assay_name to its column header (e.g., 'ssu16s...': 'assay1') ---
                 assay_map = {}
@@ -579,23 +615,34 @@ def load_project_data(params, reporter):
                     analysis_data_by_assay[assay_name][run_name] = synthesized_df
                     reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
 
-            # Load the main data sheets
-            data = pd.read_excel(
-                params['excel_file'],
-                [params['projectMetadata'], params['sampleMetadata'], params['experimentRunMetadata']],
-                index_col=None, na_values=[""], comment="#"
-            )
-            
-            # Rename keys to standard terms
-            data['sampleMetadata'] = data.pop(params['sampleMetadata'])
-            data['experimentRunMetadata'] = data.pop(params['experimentRunMetadata'])
-            data['projectMetadata'] = data.pop(params['projectMetadata'])
+            # Load the main data sheets (do not use read_excel(comment='#') — '#' inside a cell truncates the rest of that row)
+            _xlsx_kw = dict(index_col=None, na_values=[""], keep_default_na=False)
+            excel_path = params['excel_file']
+            pm_sheet = params['projectMetadata']
+            sm_sheet = params['sampleMetadata']
+            erm_sheet = params['experimentRunMetadata']
+            data = {
+                'projectMetadata': pd.read_excel(excel_path, pm_sheet, header=0, **_xlsx_kw),
+                'sampleMetadata': pd.read_excel(
+                    excel_path, sm_sheet, header=_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW, **_xlsx_kw
+                ),
+                'experimentRunMetadata': pd.read_excel(
+                    excel_path, erm_sheet, header=_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW, **_xlsx_kw
+                ),
+            }
             
             # For backward compatibility
             if params['metadata_format'] == 'NOAA':
                 analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
                 if analysis_sheets:
-                    data['analysisMetadata'] = pd.read_excel(params['excel_file'], analysis_sheets[0])
+                    data['analysisMetadata'] = pd.read_excel(
+                        params['excel_file'],
+                        analysis_sheets[0],
+                        header=0,
+                        index_col=None,
+                        na_values=[""],
+                        keep_default_na=False,
+                    )
         
         else:
             # --- TSV FORMAT (new implementation) ---
@@ -1220,7 +1267,19 @@ def drop_some_na_columns(data, reporter):
     reporter.add_section("Now lets check for columns or rows with SOME missing values", level=2)
     
     try:
-        reporter.add_text("Now let's check which columns have missing values in some of the rows. These should be filled in on the Excel sheet with the appropriate term ('not applicable', 'missing', or 'not collected'). Alternatively, you can drop the column if it is not needed for submission to OBIS.")
+        reporter.add_text(
+            "Now let's check which columns have missing values in some of the rows. "
+            "Where data are intentionally absent, use one of the accepted placeholder terms below instead of leaving cells blank. "
+            "Alternatively, you can drop the column if it is not needed for submission to OBIS."
+        )
+        reporter.add_list(
+            _FAIRE_PLACEHOLDER_TERMS_ALL_FIELDS,
+            title="Accepted placeholder terms for all FAIRe fields",
+        )
+        reporter.add_list(
+            _FAIRE_PLACEHOLDER_TERMS_EVENTDATE_AND_GEO_LOC_ONLY,
+            title="Additional terms accepted only for eventDate and geo_loc_name (do not use these for other columns)",
+        )
         
         some = pd.DataFrame()
 
