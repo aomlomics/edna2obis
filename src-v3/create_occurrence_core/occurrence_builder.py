@@ -15,6 +15,112 @@ import datetime
 from html_reporter import HTMLReporter
 
 
+def _identification_remarks_norm_term_key(s: str) -> str:
+    return "".join(ch for ch in str(s).lower().strip() if ch.isalnum())
+
+
+def _identification_remarks_resolve_ci_column(df: pd.DataFrame, name: str):
+    lower_map = {str(c).lower(): c for c in df.columns}
+    return lower_map.get(str(name).lower())
+
+
+def get_analysis_metadata_value(analysis_df, faire_term_candidates: list, default=None):
+    """Read NOAA-style analysisMetadata (term_name / values); term keys matched like extension_builder."""
+    if analysis_df is None or not isinstance(analysis_df, pd.DataFrame) or analysis_df.empty:
+        return default
+    term_col = _identification_remarks_resolve_ci_column(analysis_df, "term_name") or "term_name"
+    val_col = _identification_remarks_resolve_ci_column(analysis_df, "values") or "values"
+    if term_col not in analysis_df.columns or val_col not in analysis_df.columns:
+        return default
+    targets = {_identification_remarks_norm_term_key(t) for t in faire_term_candidates}
+    series_norm = analysis_df[term_col].astype(str).map(_identification_remarks_norm_term_key)
+    for tgt in targets:
+        mask = series_norm == tgt
+        if mask.any():
+            val = analysis_df.loc[mask, val_col].iloc[0]
+            if pd.notna(val) and str(val).strip() and str(val).strip().lower() != "nan":
+                return str(val).strip()
+    return default
+
+
+def combine_otu_db_fields(db, custom):
+    """Merge otu_db and otu_db_custom the same way as DNA derived extension."""
+    db_str = str(db).strip() if pd.notna(db) and str(db).strip() not in ["nan", "None", ""] else ""
+    custom_str = (
+        str(custom).strip() if pd.notna(custom) and str(custom).strip() not in ["nan", "None", ""] else ""
+    )
+    if db_str and custom_str:
+        return f"{db_str};{custom_str}"
+    if db_str:
+        return db_str
+    if custom_str:
+        return custom_str
+    return None
+
+
+def _build_assay_to_column_map_for_generic(project_metadata_df: pd.DataFrame) -> dict:
+    assay_to_column_map = {}
+    if project_metadata_df is None or project_metadata_df.empty or "term_name" not in project_metadata_df.columns:
+        return assay_to_column_map
+    assay_name_row = project_metadata_df[project_metadata_df["term_name"] == "assay_name"]
+    if assay_name_row.empty:
+        return assay_to_column_map
+    assay_name_series = assay_name_row.iloc[0]
+    for col_name, assay_name_val in assay_name_series.items():
+        if col_name in ["term_name", "project_level"] or pd.isna(assay_name_val):
+            continue
+        assay_to_column_map[str(assay_name_val).strip()] = col_name
+    return assay_to_column_map
+
+
+def _get_project_metadata_term_for_assay(project_metadata_df, faire_term: str, assay_name, assay_to_column_map):
+    if project_metadata_df is None or project_metadata_df.empty or "term_name" not in project_metadata_df.columns:
+        return None
+    term_mask = project_metadata_df["term_name"].astype(str).str.strip().str.lower() == str(faire_term).strip().lower()
+    field_row_df = project_metadata_df[term_mask]
+    if field_row_df.empty:
+        return None
+    field_row = field_row_df.iloc[0]
+    project_level_val = field_row.get("project_level")
+    an = str(assay_name).strip() if assay_name is not None else ""
+    if assay_to_column_map and an in assay_to_column_map:
+        col_name = assay_to_column_map[an]
+        val = field_row.get(col_name)
+        if pd.notna(val) and str(val).strip():
+            return val
+    if an and an in field_row.index:
+        val2 = field_row.get(an)
+        if pd.notna(val2) and str(val2).strip():
+            return val2
+    if pd.notna(project_level_val) and str(project_level_val).strip():
+        return project_level_val
+    return None
+
+
+def get_combined_otu_db_scalar(analysis_df, data: dict, params: dict, assay_name):
+    """Reference DB phrase for identificationRemarks; aligned with DNA extension otu_db merge."""
+    unknown = "Unknown reference DB"
+    is_generic = params.get("metadata_format") == "GENERIC"
+    db = get_analysis_metadata_value(analysis_df, ["otu_db"], default=None)
+    custom = None if is_generic else get_analysis_metadata_value(analysis_df, ["otu_db_custom"], default=None)
+
+    if is_generic and "projectMetadata" in data:
+        pm = data.get("projectMetadata")
+        if isinstance(pm, pd.DataFrame) and not pm.empty:
+            assay_map = _build_assay_to_column_map_for_generic(pm)
+            db_pm = _get_project_metadata_term_for_assay(pm, "otu_db", assay_name, assay_map)
+            if db_pm is not None and str(db_pm).strip():
+                db = db_pm
+            custom_pm = _get_project_metadata_term_for_assay(pm, "otu_db_custom", assay_name, assay_map)
+            if custom_pm is not None and str(custom_pm).strip():
+                custom = custom_pm
+
+    combined = combine_otu_db_fields(db, custom)
+    if combined:
+        return combined
+    return unknown
+
+
 def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HTMLReporter):
     """
     Build a combined Occurrence Core for all Analyses
@@ -541,8 +647,25 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     analysis_component = str(analysis_run_name).strip()
                     analysis_component = re.sub(r"\s+", "_", analysis_component)
                     analysis_component = re.sub(r"[^\w\.\-]+", "_", analysis_component)
+                    if params.get('split_output_by_short_name', False):
+                        short_name_col = 'short_name' if 'short_name' in current_assay_occurrence_intermediate_df.columns else (
+                            'short_name_sm' if 'short_name_sm' in current_assay_occurrence_intermediate_df.columns else None
+                        )
+                        if short_name_col:
+                            short_series = current_assay_occurrence_intermediate_df[short_name_col].astype(str).str.strip()
+                            short_series = short_series.str.replace(r"\s+", "_", regex=True)
+                            short_series = short_series.str.replace(r"[^\w\.\-]+", "_", regex=True)
+                            short_series = short_series.where(
+                                current_assay_occurrence_intermediate_df[short_name_col].notna() & (short_series != ''),
+                                dataset_component
+                            )
+                            id_prefix_series = short_series
+                        else:
+                            id_prefix_series = pd.Series(dataset_component, index=current_assay_occurrence_intermediate_df.index)
+                    else:
+                        id_prefix_series = pd.Series(dataset_component, index=current_assay_occurrence_intermediate_df.index)
                     current_assay_occurrence_intermediate_df['occurrenceID'] = (
-                        dataset_component
+                        id_prefix_series
                         + ":"
                         + analysis_component
                         + ":"
@@ -552,17 +675,14 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     )
 
                     # --- STEP 8: `identificationRemarks`, `sampleSizeValue`/`Unit`, `parentEventID` ---
-                    otu_seq_comp_appr_str = "Unknown sequence comparison approach"
-                    taxa_ref_db_str = "Unknown reference DB"
-
-                    if final_assay_name and analysis_run_name in data.get('analysis_data_by_assay', {}).get(final_assay_name, {}):
-                        analysis_meta_df_for_run = data['analysis_data_by_assay'][final_assay_name][analysis_run_name]
-                        if 'term_name' in analysis_meta_df_for_run.columns and 'values' in analysis_meta_df_for_run.columns:
-                            def get_analysis_meta(term, df, default):
-                                val_series = df[df['term_name'].astype(str).str.strip() == term]['values']
-                                return str(val_series.iloc[0]).strip() if not val_series.empty and pd.notna(val_series.iloc[0]) else default
-                            otu_seq_comp_appr_str = get_analysis_meta('otu_seq_comp_appr', analysis_meta_df_for_run, otu_seq_comp_appr_str)
-                            taxa_ref_db_str = get_analysis_meta('otu_db', analysis_meta_df_for_run, taxa_ref_db_str)
+                    # Use this loop's analysisMetadata dataframe (analysis_df) so assay keys always match.
+                    # otu_db text matches DNA derived extension: otu_db + otu_db_custom (helpers above).
+                    otu_seq_comp_appr_str = get_analysis_metadata_value(
+                        analysis_df, ['otu_seq_comp_appr'], default="Unknown sequence comparison approach"
+                    )
+                    if not otu_seq_comp_appr_str:
+                        otu_seq_comp_appr_str = "Unknown sequence comparison approach"
+                    taxa_ref_db_str = get_combined_otu_db_scalar(analysis_df, data, params, final_assay_name)
                     
                     idx = current_assay_occurrence_intermediate_df.index
                     if 'classify_method' in current_assay_occurrence_intermediate_df.columns:

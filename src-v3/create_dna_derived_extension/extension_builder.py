@@ -8,6 +8,8 @@ import pandas as pd
 import numpy as np
 import os
 
+from create_occurrence_core.occurrence_builder import combine_otu_db_fields
+
 
 def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter):
     """Create DNA derived extension file"""
@@ -78,6 +80,14 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 reporter.add_text("No pass-through fields found in occurrence core.")
         except Exception as _e:
             reporter.add_text(f"Could not merge pass-through fields from occurrence core: {_e}")
+
+        if 'identificationRemarks' in occurrence_core.columns:
+            try:
+                id_merge = occurrence_core[['occurrenceID', 'identificationRemarks']].drop_duplicates(subset=['occurrenceID'])
+                dna_derived_df_final = dna_derived_df_final.merge(id_merge, on='occurrenceID', how='left')
+                reporter.add_text("Merged identificationRemarks from occurrence core so DNA extension matches occurrence core.")
+            except Exception as _e:
+                reporter.add_warning(f"Could not merge identificationRemarks from occurrence core: {_e}")
 
         # Now merge DNA sequences from taxonomy files
         # Build a lookup table of (featureID, assay_name) -> DNA_sequence
@@ -570,15 +580,9 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                             assay_mask = dna_derived_df_final['assay_name'] == assay_name
                             custom_db_series.loc[assay_mask] = value
             
-            # Combine them
-            def combine_db_fields(db, custom):
-                db_str = str(db).strip() if pd.notna(db) and str(db).strip() not in ['nan', 'None'] else ""
-                custom_str = str(custom).strip() if pd.notna(custom) and str(custom).strip() not in ['nan', 'None'] else ""
-                if db_str and custom_str:
-                    return f"{db_str};{custom_str}"
-                return db_str or custom_str or pd.NA
-            
-            dna_derived_df_final['otu_db'] = [combine_db_fields(db, custom) for db, custom in zip(otu_db_series, custom_db_series)]
+            # Combine them (same helper as occurrence core identificationRemarks reference DB text)
+            _combined_otu = [combine_otu_db_fields(db, custom) for db, custom in zip(otu_db_series, custom_db_series)]
+            dna_derived_df_final['otu_db'] = [c if c is not None else pd.NA for c in _combined_otu]
             reporter.add_success("Successfully combined 'otu_db' and 'otu_db_custom' fields.")
             
         except Exception as e:

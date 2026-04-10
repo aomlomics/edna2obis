@@ -260,6 +260,10 @@ def split_output_files_by_short_name(params, data, reporter):
     
     Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml, meta.xml
     Does NOT split: HTML report, taxa_assignment_INFO, config file
+
+    Recommended: each short_name should start with project_id (projectMetadata project_id /
+    Darwin Core datasetID) so occurrenceID prefixes stay namespaced. When splitting is disabled,
+    occurrenceID uses project_id for that segment only; short_name is ignored for IDs.
     """
     reporter.add_section("Splitting Output Files by short_name", level=2)
     

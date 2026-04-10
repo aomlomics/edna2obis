@@ -118,7 +118,7 @@ worms_consider_unaccepted_for_selection: false
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
 # so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
-worms_return_higher_classification: false
+worms_return_higher_classification: true
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -166,4 +166,10 @@ eml_config_path: "raw-v3/EML_config.yaml"
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.
-split_output_by_short_name: false
+#
+# Naming convention (recommended): each short_name should START WITH your project_id — the same
+# value as the projectMetadata `project_id` field (Darwin Core datasetID). That keeps the first
+# segment of occurrenceID aligned with your project namespace when splitting is enabled.
+# When split_output_by_short_name is false, occurrenceID always uses project_id for that segment
+# (short_name is not used in occurrenceID).
+split_output_by_short_name: true

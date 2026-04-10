@@ -166,4 +166,10 @@ eml_config_path: "raw-v3/EML_config.yaml"
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.
+#
+# Naming convention (recommended): each short_name should START WITH your project_id — the same
+# value as the projectMetadata `project_id` field (Darwin Core datasetID). That keeps the first
+# segment of occurrenceID aligned with your project namespace when splitting is enabled.
+# When split_output_by_short_name is false, occurrenceID always uses project_id for that segment
+# (short_name is not used in occurrenceID).
 split_output_by_short_name: false
