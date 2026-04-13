@@ -778,6 +778,7 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         root = ET.Element('eml:eml')
         root.set('packageId', package_id)
         root.set('system', 'https://doi.org')
+        root.set('scope', 'system')
         root.set('xmlns:eml', 'https://eml.ecoinformatics.org/eml-2.2.0')
         root.set('xmlns:xsi', 'http://www.w3.org/2001/XMLSchema-instance')
         root.set('xmlns:stmml', 'http://www.xml-cml.org/schema/stmml-1.1')
