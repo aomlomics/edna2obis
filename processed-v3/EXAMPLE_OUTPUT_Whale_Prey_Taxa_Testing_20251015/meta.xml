@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<archive xmlns="http://rs.tdwg.org/dwc/text/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://rs.tdwg.org/dwc/text/ http://rs.tdwg.org/dwc/text/tdwg_dwc_text.xsd">
+    <core encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/Occurrence">
+        <files>
+            <location>occurrence_core_worms.csv</location>
+        </files>
+        <id index="0"/>
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/occurrenceID"/>
+        <field index="1" term="http://rs.tdwg.org/dwc/terms/eventID"/>
+        <field index="2" term="http://rs.tdwg.org/dwc/terms/basisOfRecord"/>
+        <field index="3" term="http://rs.tdwg.org/dwc/terms/verbatimIdentification"/>
+        <field index="4" term="http://rs.tdwg.org/dwc/terms/kingdom"/>
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/phylum"/>
+        <field index="6" term="http://rs.tdwg.org/dwc/terms/class"/>
+        <field index="7" term="http://rs.tdwg.org/dwc/terms/order"/>
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/family"/>
+        <field index="9" term="http://rs.tdwg.org/dwc/terms/genus"/>
+        <field index="10" term="http://rs.tdwg.org/dwc/terms/higherClassification"/>
+        <field index="11" term="http://rs.tdwg.org/dwc/terms/scientificName"/>
+        <field index="12" term="http://rs.tdwg.org/dwc/terms/scientificNameID"/>
+        <field index="13" term="http://rs.tdwg.org/dwc/terms/taxonRank"/>
+        <field index="14" term="http://rs.tdwg.org/dwc/terms/parentEventID"/>
+        <field index="15" term="http://rs.tdwg.org/dwc/terms/datasetID"/>
+        <field index="16" term="http://rs.tdwg.org/dwc/terms/license"/>
+        <field index="17" term="http://rs.tdwg.org/dwc/terms/institutionID"/>
+        <field index="18" term="http://rs.tdwg.org/dwc/terms/occurrenceStatus"/>
+        <field index="19" term="http://rs.tdwg.org/dwc/terms/organismQuantity"/>
+        <field index="20" term="http://rs.tdwg.org/dwc/terms/organismQuantityType"/>
+        <field index="21" term="http://rs.tdwg.org/dwc/terms/sampleSizeValue"/>
+        <field index="22" term="http://rs.tdwg.org/dwc/terms/sampleSizeUnit"/>
+        <field index="23" term="http://rs.tdwg.org/dwc/terms/recordedBy"/>
+        <field index="24" term="http://rs.tdwg.org/dwc/terms/materialSampleID"/>
+        <field index="25" term="http://rs.tdwg.org/dwc/terms/eventDate"/>
+        <field index="26" term="http://rs.tdwg.org/dwc/terms/minimumDepthInMeters"/>
+        <field index="27" term="http://rs.tdwg.org/dwc/terms/maximumDepthInMeters"/>
+        <field index="28" term="http://rs.tdwg.org/dwc/terms/locality"/>
+        <field index="29" term="http://rs.tdwg.org/dwc/terms/decimalLatitude"/>
+        <field index="30" term="http://rs.tdwg.org/dwc/terms/decimalLongitude"/>
+        <field index="31" term="http://rs.tdwg.org/dwc/terms/geodeticDatum"/>
+        <field index="32" term="http://rs.tdwg.org/dwc/terms/identificationRemarks"/>
+    </core>
+    <extension encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.gbif.org/terms/1.0/DNADerivedData">
+        <files>
+            <location>dna_derived_extension.csv</location>
+        </files>
+        <coreid index="0"/>
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/occurrenceID"/>
+        <field index="1" term="http://rs.tdwg.org/dwc/terms/eventID"/>
+        <field index="2" term="http://rs.gbif.org/terms/1.0/samp_name"/>
+        <field index="3" term="http://rs.gbif.org/terms/1.0/env_broad_scale"/>
+        <field index="4" term="http://rs.gbif.org/terms/1.0/env_local_scale"/>
+        <field index="5" term="http://rs.gbif.org/terms/1.0/env_medium"/>
+        <field index="6" term="http://rs.gbif.org/terms/1.0/samp_collect_device"/>
+        <field index="7" term="http://rs.gbif.org/terms/1.0/samp_mat_process"/>
+        <field index="8" term="http://rs.gbif.org/terms/1.0/size_frac"/>
+        <field index="9" term="http://rs.gbif.org/terms/1.0/samp_size"/>
+        <field index="10" term="http://rs.gbif.org/terms/1.0/samp_vol_we_dna_ext"/>
+        <field index="11" term="http://rs.gbif.org/terms/1.0/nucl_acid_ext"/>
+        <field index="12" term="http://rs.gbif.org/terms/1.0/concentration"/>
+        <field index="13" term="http://rs.gbif.org/terms/1.0/concentrationUnit"/>
+        <field index="14" term="http://rs.gbif.org/terms/1.0/target_gene"/>
+        <field index="15" term="http://rs.gbif.org/terms/1.0/target_subfragment"/>
+        <field index="16" term="http://rs.gbif.org/terms/1.0/ampliconSize"/>
+        <field index="17" term="http://rs.gbif.org/terms/1.0/pcr_primer_forward"/>
+        <field index="18" term="http://rs.gbif.org/terms/1.0/pcr_primer_reverse"/>
+        <field index="19" term="http://rs.gbif.org/terms/1.0/pcr_primer_name_forward"/>
+        <field index="20" term="http://rs.gbif.org/terms/1.0/pcr_primer_name_reverse"/>
+        <field index="21" term="http://rs.gbif.org/terms/1.0/pcr_primer_reference"/>
+        <field index="22" term="http://rs.gbif.org/terms/1.0/nucl_acid_amp"/>
+        <field index="23" term="http://rs.gbif.org/terms/1.0/pcr_cond"/>
+        <field index="24" term="http://rs.gbif.org/terms/1.0/seq_meth"/>
+        <field index="25" term="http://rs.gbif.org/terms/1.0/lib_layout"/>
+        <field index="26" term="http://rs.gbif.org/terms/1.0/DNA_sequence"/>
+        <field index="27" term="http://rs.gbif.org/terms/1.0/otu_class_appr"/>
+        <field index="28" term="http://rs.gbif.org/terms/1.0/otu_db"/>
+        <field index="29" term="http://rs.gbif.org/terms/1.0/otu_seq_comp_appr"/>
+        <field index="30" term="http://rs.gbif.org/terms/1.0/source_mat_id"/>
+        <field index="31" term="http://rs.gbif.org/terms/1.0/adapters"/>
+    </extension>
+    <extension encoding="UTF-8" fieldsTerminatedBy="," linesTerminatedBy="\n" fieldsEnclosedBy="&quot;" ignoreHeaderLines="1" rowType="http://rs.tdwg.org/dwc/terms/MeasurementOrFact">
+        <files>
+            <location>eMoF.csv</location>
+        </files>
+        <coreid index="1"/>
+        <field index="0" term="http://rs.tdwg.org/dwc/terms/eventID"/>
+        <field index="1" term="http://rs.tdwg.org/dwc/terms/occurrenceID"/>
+        <field index="2" term="http://rs.tdwg.org/dwc/terms/verbatimMeasurementType"/>
+        <field index="3" term="http://rs.tdwg.org/dwc/terms/measurementType"/>
+        <field index="4" term="http://rs.tdwg.org/dwc/terms/measurementValue"/>
+        <field index="5" term="http://rs.tdwg.org/dwc/terms/measurementUnit"/>
+        <field index="6" term="http://rs.tdwg.org/dwc/terms/measurementTypeID"/>
+        <field index="7" term="http://rs.tdwg.org/dwc/terms/measurementValueID"/>
+        <field index="8" term="http://rs.tdwg.org/dwc/terms/measurementUnitID"/>
+        <field index="9" term="http://rs.tdwg.org/dwc/terms/measurementRemarks"/>
+    </extension>
+</archive>
