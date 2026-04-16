@@ -443,7 +443,7 @@ def _create_methods_element(parent: ET.Element, methods_config: Dict) -> None:
         qc_elem = ET.SubElement(methods, 'qualityControl')
         qc_desc = ET.SubElement(qc_elem, 'description')
         ET.SubElement(qc_desc, 'para').text = quality_control
-    
+
     # Sampling
     study_extent = _safe_get(methods_config, 'study_extent')
     sampling_desc = _safe_get(methods_config, 'sampling_description')
@@ -496,6 +496,8 @@ def _create_project_element(parent: ET.Element, project_config: Dict) -> None:
     
     # Project description
     description = _safe_get(project_config, 'description')
+    if not description:
+        description = _safe_get(project_config, 'abstract')
     if description:
         desc_elem = ET.SubElement(project, 'description')
         ET.SubElement(desc_elem, 'para').text = description
@@ -831,11 +833,11 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
                 if role:
                     ET.SubElement(assoc_party, 'role').text = role
         
-        # Contact (required)
+        # Contact
         contact_config = eml_config.get('contact', {})
         if contact_config:
             _create_person_element(dataset, 'contact', contact_config)
-        
+
         # Publication date
         pub_date = _safe_get(eml_config, 'publication_date')
         if pub_date:
@@ -857,13 +859,13 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         
         # Coverage (geographic, temporal, taxonomic)
         _create_coverage_element(dataset, eml_config)
-        
+
         # Purpose
         purpose = _safe_get(eml_config, 'purpose')
         if purpose:
             purpose_elem = ET.SubElement(dataset, 'purpose')
             ET.SubElement(purpose_elem, 'para').text = purpose.strip()
-        
+
         # Intellectual rights (license)
         license_type = _safe_get(eml_config, 'license', 'CC0')
         license_text = _get_license_text(license_type)
@@ -879,11 +881,6 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         project_config = eml_config.get('project', {})
         if project_config:
             _create_project_element(dataset, project_config)
-        
-        # Additional metadata
-        additional_info = _safe_get(eml_config, 'additional_info')
-        if additional_info:
-            ET.SubElement(dataset, 'additionalInfo').text = additional_info.strip()
         
         # Generate pretty XML
         xml_string = _prettify_xml(root)
