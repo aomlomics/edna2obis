@@ -1,0 +1,64 @@
+requirement_level_code	section	term_name	values
+M	Project	project_id	noaa-sefsc-gu1901
+M	PCR	assay_name	Fish-12S-MiFish-Miya-Stoeckle
+M	Bioinformatics	analysis_run_name	rosel-ctd-mifish-addMFtrawlJfish-241001
+-	Bioinformatics	sop_bioinformatics	https://github.com/aomlomics/tourmaline/releases/tag/v1.1.1
+R	Bioinformatics	trim_method	qiime2-2023.5; Cutadapt 
+R	Bioinformatics	trim_param	"Trim forward reads of reverse complement of reverse primer, and reverse reads of reverse complement of forward primer. Then trim forward reads of forward primer, and reverse reads of reverse primer. "
+R	Bioinformatics	demux_tool	Illumina Bcl2fastq v2.20.0
+R	Bioinformatics	demux_max_mismatch	missing: not provided
+R	Bioinformatics	merge_tool	qiime2-2023.5; DADA2 1.26.0
+R	Bioinformatics	merge_min_overlap	12
+R	Bioinformatics	min_len_cutoff	50
+R	Bioinformatics	min_len_tool	qiime2-2023.5; Cutadapt 
+R	Bioinformatics	error_rate_tool	qiime2-2023.5; DADA2 1.26.0
+R	Bioinformatics	error_rate_type	expected error rate
+R	Bioinformatics	error_rate_cutoff	2
+R	Bioinformatics	chimera_check_method	denovo; qiime2-2023.5; DADA2 1.26.0
+R	Bioinformatics	chimera_check_param	--chimera_method consensus --min_parental_fold 1 
+R	Bioinformatics	otu_clust_tool	qiime2-2023.5; DADA2 1.26.0
+R	Bioinformatics	otu_clust_cutoff	100
+R	Bioinformatics	min_reads_cutoff	1
+R	Bioinformatics	min_reads_cutoff_unit	reads
+R	Bioinformatics	min_reads_tool	qiime2-2023.5; DADA2 1.26.0
+HR	Bioinformatics	otu_db	custom
+O	Bioinformatics	otu_db_custom	rc_12S_efc_fish-addSI_MF_trawl_J-mifish-taxa-derepU
+HR	Bioinformatics	tax_assign_cat	sequence composition
+HR	Bioinformatics	otu_seq_comp_appr	qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1
+R	Bioinformatics	tax_class_id_cutoff	not applicable
+R	Bioinformatics	tax_class_query_cutoff	not applicable
+R	Bioinformatics	tax_class_collapse	collapse to taxa level with confidence threshold of 0.7
+R	Bioinformatics	tax_class_other	taxonomy assignments were validated by blasting ASV sequences against NCBI 
+HR	Bioinformatics	screen_contam_method	All non-Delphinidae mammal ASVs were removed
+R	Bioinformatics	screen_geograph_method	"If a taxa assignment was to a non-native taxa over an identical native taxa, the native taxa was chosen or the assignment was collapsed back to genus"
+R	Bioinformatics	screen_nontarget_method	All non-Delphinidae mammal ASVs were removed
+R	Bioinformatics	screen_other	
+R	Bioinformatics	otu_raw_description	"Removed ASVs shorter than 100 bp, All non-Delphinidae mammal ASVs were removed"
+R	Bioinformatics	otu_final_description	
+O	Bioinformatics	bioinfo_method_additional	
+R	Bioinformatics	discard_untrimmed	missing: not collected
+R	Bioinformatics	qiime2_version	qiime2-2023.5
+R	Bioinformatics	tourmaline_asv_method	dada2pe
+R	Bioinformatics	dada2_trunc_len_f	0
+R	Bioinformatics	dada2pe_trunc_len_r	0
+R	Bioinformatics	dada2_trim_left_f	0
+R	Bioinformatics	dada2pe_trim_left_r	0
+R	Bioinformatics	dada2_max_ee_f	2
+R	Bioinformatics	dada2pe_max_ee_r	2
+R	Bioinformatics	dada2_trunc_q	2
+R	Bioinformatics	dada2_pooling_method	independent
+R	Bioinformatics	dada2_chimera_method	consensus
+R	Bioinformatics	dada2_min_fold_parent_over_abundance	1
+R	Bioinformatics	dada2_n_reads_learn	1000000
+R	Bioinformatics	deblur_trim_length	not applicable
+R	Bioinformatics	deblur_mean_error	not applicable
+R	Bioinformatics	deblur_indel_prob	not applicable
+R	Bioinformatics	deblur_indel_max	not applicable
+R	Bioinformatics	deblur_min_reads	not applicable
+R	Bioinformatics	deblur_min_size	not applicable
+R	Bioinformatics	repseqs_min_abundance	0
+R	Bioinformatics	repseqs_min_length	100
+R	Bioinformatics	repseqs_max_length	500
+R	Bioinformatics	repseqs_min_prevalence	0
+R	Bioinformatics	skl_confidence	0.7
+R	Bioinformatics	min_consensus	not applicable

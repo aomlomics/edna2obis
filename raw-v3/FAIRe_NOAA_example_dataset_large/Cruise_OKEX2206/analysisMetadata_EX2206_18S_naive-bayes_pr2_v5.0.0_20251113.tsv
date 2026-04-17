@@ -1,0 +1,60 @@
+term_name	values
+project_id	noaa-oer-okeanos
+assay_name	Eukarya-18S-V4-Stoeck-Piredda
+analysis_run_name	EX2206_18S_naive_bayes_pr2_v5.0.0_18Sv4_20251113
+sop_bioinformatics	https://github.com/aomlomics/tourmaline/tree/develop
+trim_method	qiime2-amplicon-2024.10; Cutadapt 4.9
+trim_param	Trim forward reads of reverse complement of reverse primer, and reverse reads of reverse complement of forward primer. Then trim forward reads of forward primer, and reverse reads of reverse primer. Minimum length of 50 bp. 
+demux_tool	
+demux_max_mismatch	
+merge_tool	qiime2-amplicon-2024.10;DADA2 1.30.0
+merge_min_overlap	12
+min_len_cutoff	50
+min_len_tool	Cutadapt 4.9
+error_rate_tool	qiime2-amplicon-2024.10;DADA2 1.30.0
+error_rate_cutoff	2
+error_rate_type	expected error rate
+chimera_check_method	denovo; qiime2-amplicon-2024.10;DADA2 1.30.0
+chimera_check_param	--chimera_method consensus --min_parental_fold 1
+otu_clust_tool	qiime2-amplicon-2024.10;DADA2 1.30.0
+otu_clust_cutoff	100
+min_reads_cutoff	1
+min_reads_cutoff_unit	reads
+min_reads_tool	qiime2-amplicon-2024.10;DADA2 1.30.0
+otu_db	custom
+otu_db_custom	
+tax_asign_cat	sequence composition
+otu_seq_comp_appr	qiime2-amplicon-2024.10;naive-bayes classifier; scikit-learn 1.4.2
+tax_class_id_cutoff	not applicable
+tax_class_query_cutoff	not applicable
+tax_class_other	
+tax_class_collapse	confidence threshold of 0.7
+screen_contam_method	
+screen_geograph_method	
+screen_nontarget_method	
+screen_other	
+otu_raw_description	
+otu_final_description	
+bioinfo_method_additional	
+discard_untrimmed	False
+qiime2_version	qiime2-amplicon-2024.10
+tourmaline_asv_method	dada2pe
+dada2_trunc_len_f	240
+dada2pe_trunc_len_r	200
+dada2_trim_left_f	0
+dada2pe_trim_left_r	0
+dada2_max_ee_f	2
+dada2pe_max_ee_r	2
+dada2_trunc_q	2
+dada2_pooling_method	pseudo
+dada2_chimera_method	consensus
+dada2_min_fold_parent_over_abundance	1
+dada2_n_reads_learn	1000000
+deblur_trim_length	not applicable
+repseqs_min_abundance	0
+repseqs_min_length	0
+repseqs_max_length	0
+repseqs_min_prevalence	0
+skl_confidence	0.7
+min_consensus	not applicable
+confidence_threshold	not applicable

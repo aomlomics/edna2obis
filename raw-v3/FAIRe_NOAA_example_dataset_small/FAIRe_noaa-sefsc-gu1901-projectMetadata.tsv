@@ -1,0 +1,92 @@
+requirement_level_code	section	term_name	project_level	Fish-12S-MiFish-Miya-Stoeckle	Fish-12S-Riaz
+M	Project	recordedBy	Lynsey Wilcox Talbot | Katherine Silliman		
+R	Project	recordedByID	https://orcid.org/0000-0001-9824-879X | https://orcid.org/0000-0001-5964-3965		
+M	Project	project_contact	lynsey.wilcox@noaa.gov		
+R	Project	institution	NOAA Southeast Fisheries Science Center		
+R	Project	institutionID	https://ror.org/0396y0w87		
+R	Project	project_name	Potential prey of Rice's whales based on seawater eDNA 2019		
+M	Project	short_name	noaa-sefsc-gu1901		
+M	Project	project_id	noaa-sefsc-gu1901		
+O	Project	parent_project_id			
+O	Project	study_factor	water column spatial series		
+M	Project	assay_type	metabarcoding		
+HR	Project	sterilise_method	All Nisken bottles were sterilized before use by thoroughly rinsing several times with ~500 mL of 20% bleach for 10 minutes, followed by multiple rinses with tap water, and allowed to air dry. The outside of each bottle was wiped with a Clorox® Disinfecting Wipe and allowed to air dry. 		
+HR	Project	neg_cont_0_1	1		
+HR	Project	pos_cont_0_1	0		
+M	Data management	checkls_ver	FAIRe_checklist_v1.0.xlsx		
+R	Data management	mod_date	10/17/2025		
+R	Data management	license	https://creativecommons.org/publicdomain/zero/1.0/		
+R	Data management	rightsHolder	US Government		
+R	Data management	accessRights	No Rights Reserved		
+O	Data management	informationWithheld			
+O	Data management	dataGeneralizations			
+R	Data management	bibliographicCitation			
+O	Data management	associated_resource			
+R	Data management	code_repo	https://github.com/aomlomics/rices-prey-edna		
+R	Sample collection	biological_rep	0		
+M	PCR	pcr_0_1	1		
+O	PCR	inhibition_check_0_1	0	0	0
+O	PCR	inhibition_check	not applicable		
+O	PCR	thermocycler	Thermo Fisher Scientific, Veriti		
+M	PCR	assay_name	Fish-12S-MiFish-Miya-Stoeckle | Fish-12S-Riaz	Fish-12S-MiFish-Miya-Stoeckle	Fish-12S-Riaz
+R	PCR	assay_validation		not provided	not provided
+M	PCR	targetTaxonomicAssay		Actinopterygii	Actinopterygii
+R	PCR	targetTaxonomicScope		Also captures non-target: Vertebrates, bacteria	Also captures non-target: Vertebrates
+HR	PCR	target_gene		12S rRNA (SSU mitochondria)	12S rRNA (SSU mitochondria)
+O	PCR	target_subfragment		V5-V6	V5
+HR	PCR	ampliconSize		175	105
+M	PCR	pcr_primer_forward		GTCGGTAAAACTCGTGCCAGC	ACTGGGATTAGATACCCC
+M	PCR	pcr_primer_reverse		CATAGTGGGGTATCTAATCCCAGTTTGT	TAGAACAGGCTCCTCTAG
+R	PCR	pcr_primer_name_forward		MiFish-U-F	12S-Riaz-F
+R	PCR	pcr_primer_name_reverse		MiFish-U-R2	12S-Riaz-R
+HR	PCR	pcr_primer_reference_forward		https://doi.org/10.1098/rsos.150088	https://doi.org/10.1093/nar/gkr732
+HR	PCR	pcr_primer_reference_reverse		https://doi.org/10.1098/rsos.150088 | https://doi.org/10.1093/icesjms/fsab273	https://doi.org/10.1093/nar/gkr732
+R	PCR	pcr_primer_vol_forward	0.5		
+R	PCR	pcr_primer_vol_reverse	0.5		
+R	PCR	pcr_primer_conc_forward	10.0		
+R	PCR	pcr_primer_conc_reverse	10.0		
+HR	PCR	probeReporter	not applicable		
+HR	PCR	probeQuencher	not applicable		
+HR	PCR	probe_seq	not applicable		
+HR	PCR	probe_ref	not applicable		
+HR	PCR	probe_conc	not applicable		
+HR	PCR	commercial_mm	not applicable		
+HR	PCR	custom_mm	Six PCR reations were run for each sample (25.0 µl), with 3 µl of DNA per reaction, 0.25 µl of Phusion Plus Polymerase, 5 µl of Phusion Plus Buffer, 0.5 µl of each primer (10 µM), 0.08 µl of bovine serum albumin (BSA), 0.2 µl of dNTPs, and 15.47 µl of water.		
+O	PCR	block_seq	not applicable		
+O	PCR	block_ref	not applicable		
+O	PCR	block_taxa	not applicable		
+R	PCR	amplificationReactionVolume	25		
+HR	PCR	pcr_dna_vol	3.0		
+HR	PCR	pcr_rep	6		
+R	PCR	nucl_acid_amp	https://doi.org/10.22541/au.175571300.02915570/v1		
+HR	PCR	pcr_cond	initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min		
+HR	PCR	annealingTemp	60		
+HR	PCR	pcr_cycles	40		
+O	PCR	pcr_analysis_software	BIO-RAD GelDoc Go Imaging System		
+O	PCR	pcr_method_additional	not applicable		
+HR	Library preparation sequencing	barcoding_pcr_appr	two-step PCR		
+O	Library preparation sequencing	pcr2_thermocycler	not provided		
+O	Library preparation sequencing	pcr2_amplificationReactionVolume		15	15
+R	Library preparation sequencing	pcr2_commercial_mm		DreamTaq Hot Start PCR Master Mix (K9012), Thermo Fisher Scientific	DreamTaq Hot Start PCR Master Mix (K9012), Thermo Fisher Scientific
+R	Library preparation sequencing	pcr2_custom_mm		not applicable	not applicable
+R	Library preparation sequencing	pcr2_dna_vol		1	1
+R	Library preparation sequencing	pcr2_cond		initial denaturation:95_3;denaturation:95_0.25;annealing:60_0.5;elongation:72_1;final elongation:72_3;15	initial denaturation:95_3;denaturation:95_0.25;annealing:60_0.5;elongation:72_1;final elongation:72_3;15
+R	Library preparation sequencing	pcr2_annealingTemp		60	60
+R	Library preparation sequencing	pcr2_cycles		11	11
+O	Library preparation sequencing	pcr2_analysis_software		not applicable	not applicable
+R	Library preparation sequencing	pcr2_plate_id		not provided	not provided
+O	Library preparation sequencing	pcr2_method_additional		not applicable	not applicable
+O	Library preparation sequencing	sequencing_location		Michigan State University Research Technology Support Facility Genomics Core	Michigan State University Research Technology Support Facility Genomics Core
+HR	Library preparation sequencing	platform		ILLUMINA	ILLUMINA
+HR	Library preparation sequencing	instrument		Illumina MiSeq [OBI_0002003]	Illumina MiSeq [OBI_0002003]
+HR	Library preparation sequencing	seq_kit		MiSeq v2 500	MiSeq v2 500
+R	Library preparation sequencing	lib_layout	paired end		
+R	Library preparation sequencing	adapter_forward	ACACTGACGACATGGTTCTACA		
+R	Library preparation sequencing	adapter_reverse	TACGGTAGCAGAGACTTGGTCT		
+HR	Library preparation sequencing	lib_screen		The Genomics Core performed secondary PCR using dual indexed, Illumina-compatible primers targeting the Fluidigm CS1/CS2 oligomers at the ends of the primary PCR products. Amplicons were batch normalized using Invitrogen SequalPrep DNA Normalization plates and recovered product was pooled. The pool was QC’d and quantified using a combination of Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000, and Invitrogen Collibri Library Quantification qPCR assays.	The Genomics Core performed secondary PCR using dual indexed, Illumina-compatible primers targeting the Fluidigm CS1/CS2 oligomers at the ends of the primary PCR products. Amplicons were batch normalized using Invitrogen SequalPrep DNA Normalization plates and recovered product was pooled. The pool was QC’d and quantified using a combination of Qubit dsDNA HS, Agilent 4200 TapeStation HS DNA1000, and Invitrogen Collibri Library Quantification qPCR assays.
+R	Library preparation sequencing	checksum_method		MD5	MD5
+O	Library preparation sequencing	seq_method_additional		PhiX control library was spiked in at 10%.	PhiX control library was spiked in at 10%.
+R	Project	expedition_id	GU19-01		
+R	Project	ship_crs_expocode	33GG		
+R	Project	woce_sect	GU1901		
+R	Project	bioproject_accession	PRJNA1322479		

@@ -1,0 +1,93 @@
+requirement_level_code	section	term_name	project_level	Eukarya-18S-V4-Stoeck-Piredda	Eukarya-18S-V9-Lane-Medlin	Fish-12S-MiFish-U-Miya	Metazoa-COI-Leray-Geller
+M	Project	recordedBy	Luke Thompson | Steven Auscavitch | Nicole Miller | Clement Coclet				
+R	Project	recordedByID	https://orcid.org/0000-0002-3911-1280 | https://orcid.org/0000-0001-5777-4814 | https://orcid.org/0009-0002-8148-6323 | https://orcid.org/0000-0002-6672-148X				
+M	Project	project_contact	noaa.omics@noaa.gov				
+R	Project	institution	NOAA Ocean Exploration | NOAA National Systematics Laboratory | National Museum of Natural History | NOAA Atlantic Oceanographic and Meteorological Laboratory | Northern Gulf Institute				
+R	Project	institutionID	https://ror.org/05xqpda80 | https://ror.org/04kw44c30 | https://ror.org/00cz47042 | https://ror.org/042r9xb17 | https://ror.org/018qsef31				
+R	Project	project_name	NOAA Ocean Exploration seawater eDNA metabarcoding				
+M	Project	short_name	(superceded by short_name in sampleMetadata)				
+M	Project	project_id	noaa-oer-okeanos				
+O	Project	parent_project_id					
+O	Project	study_factor	water column spatial series				
+M	Project	assay_type	metabarcoding				
+M	Project	sample_type	Water				
+HR	Project	sterilise_method	Sampling bags were new, sterile WhirPaks. Single-use syringes and filters were used for filtration. Single-use gloves were used to collect and filter each sample. All tools sterilized with 10% bleach and 70% ethanol between handling filters.				
+HR	Project	neg_cont_0_1	1				
+HR	Project	pos_cont_0_1	0				
+M	Sample information	expedition_id					
+R	Sample information	ship_crs_expocode	33OE				
+O	Sample information	woce_sect					
+HR	Sample information	bioproject_accession	PRJNA1284389				
+M	Data management	checkls_ver	FAIRe_checklist_v1.0.xlsx				
+R	Data management	mod_date					
+R	Data management	license	https://creativecommons.org/publicdomain/zero/1.0/				
+R	Data management	rightsHolder	US Government				
+R	Data management	accessRights	No Rights Reserved				
+O	Data management	informationWithheld					
+O	Data management	dataGeneralizations					
+R	Data management	bibliographicCitation					
+O	Data management	associated_resource					
+R	Data management	code_repo					
+R	Sample collection	biological_rep					
+M	PCR	pcr_0_1		1	1	1	1
+O	PCR	inhibition_check_0_1		0	0	0	0
+O	PCR	inhibition_check		not applicable	not applicable	not applicable	not applicable
+O	PCR	thermocycler		Bio-Rad T100 Thermocycler	Eppendorf Mastercycler Nexus Thermal Cycler	Eppendorf Mastercycler Nexus Thermal Cycler	Bio-Rad T100 Thermocycler
+M	PCR	assay_name		Eukarya-18S-V4-Stoeck-Piredda	Eukarya-18S-V9-Lane-Medlin	Fish-12S-MiFish-U-Miya	Metazoa-COI-Leray-Geller
+R	PCR	assay_validation		not provided	not provided	not provided	not provided
+M	PCR	targetTaxonomicAssay		Eukarya	Eukarya	Actinopterygii	Metazoa
+R	PCR	targetTaxonomicScope		protists	phytoplankton, zooplankton	Also captures non-target: Vertebrates, bacteria	not provided
+HR	PCR	target_gene		18s rRNA (SSU eukaryote)	18S rRNA (SSU eukaryote)	12S rRNA (SSU mitochondria)	COI
+O	PCR	target_subfragment		V4	V9	V5-V6	not provided
+HR	PCR	ampliconSize		270	127	163-185	419
+M	PCR	pcr_primer_forward		CCAGCASCYGCGGTAATTCC	GTACACACCGCCCGTC	GTCGGTAAAACTCGTGCCAGC	GGWACWGGWTGAACWGTWTAYCCYCC
+M	PCR	pcr_primer_reverse		ACTTTCGTTCTTGATYRATGA	TGATCCTTCTGCAGGTTCACCTAC	CATAGTGGGGTATCTAATCCCAGTTTG	TANACYTCNGGRTGNCCRAARAAYCA
+R	PCR	pcr_primer_name_forward		18S-V4-TAReuk454FWD1	1391F	MiFish-U-F	COI-mlCOIintF
+R	PCR	pcr_primer_name_reverse		18S-V4-TAReuk454REV3.Piredda	EukBr	MiFish-U-R	COI-jgHCO2198
+HR	PCR	pcr_primer_reference_forward		https://doi.org/10.1111/j.1365-294X.2009.04480.x	https://cir.nii.ac.jp/crid/1570009750603612672 | https://doi.org/10.1111/j.1365-294X.2009.04480.x	http://doi.org/10.1098/rsos.150088	https://doi.org/10.1186/1742-9994-10-34
+HR	PCR	pcr_primer_reference_reverse		https://doi.org/10.1093/femsec/fiw200	https://doi.org/10.1016/0378-1119(88)90066-2 | https://doi.org/10.1111/j.1365-294X.2009.04480.x	http://doi.org/10.1098/rsos.150088	https://doi.org/10.1111/1755-0998.12138
+R	PCR	pcr_primer_vol_forward		0.3	2.5	0.3	0.3
+R	PCR	pcr_primer_vol_reverse		0.3	2.5	0.3	0.3
+R	PCR	pcr_primer_conc_forward		10	1	10	10
+R	PCR	pcr_primer_conc_reverse		10	1	10	10
+HR	PCR	pcr_dna_vol		1	2	1	1
+R	PCR	amplificationReactionVolume		10	13.25	10	10
+HR	PCR	probeReporter		not applicable	not applicable	not applicable	not applicable
+HR	PCR	probeQuencher		not applicable	not applicable	not applicable	not applicable
+HR	PCR	probe_seq		not applicable	not applicable	not applicable	not applicable
+HR	PCR	probe_ref		not applicable	not applicable	not applicable	not applicable
+HR	PCR	probe_conc		not applicable	not applicable	not applicable	not applicable
+HR	PCR	commercial_mm		2X GoTaq Hot Start Master Mix (Promega)	2X KAPA HiFi HotStart ReadyMix (Roche)	2X KAPA HiFi HotStart ReadyMix (Roche)	2X GoTaq Hot Start Master Mix (Promega)
+HR	PCR	custom_mm		not applicable	not applicable	not applicable	not applicable
+O	PCR	block_seq		not applicable	not applicable	not applicable	not applicable
+O	PCR	block_ref		not applicable	not applicable	not applicable	not applicable
+O	PCR	block_taxa		not applicable	not applicable	not applicable	not applicable
+HR	PCR	pcr_rep		3	1	3	3
+R	PCR	nucl_acid_amp		https://doi.org/10.5281/zenodo.19525524	https://doi.org/10.5281/zenodo.19525153	https://doi.org/10.5281/zenodo.19525464	https://doi.org/10.5281/zenodo.19525234
+HR	PCR	pcr_cond		initial denaturation:95_5;denaturation:95_0.5;annealing:55_0.5;elongation:72_0.5;final elongation:72_5;35	initial denaturation:95_3;denaturation:95_0.5;annealing:63_0.5;elongation:72_0.5;final elongation:72_5;30	initialdenaturation:95_3;denaturation:98_0.33;annealing:64_0.25;elongation:72_0.5;final elongation:72_1;35	initial denaturation:95_7;denaturation:95_0.5;annealing:46_0.5;elongation:72_0.5;final elongation:72_5;35
+HR	PCR	annealingTemp		55	63	64	46
+HR	PCR	pcr_cycles		35	30	35	35
+O	PCR	pcr_analysis_software		not provided	not provided	not provided	not provided
+O	PCR	pcr_method_additional		Triplicate PCR reactions were run in 10 uL reaction volumes, with 1.0 uL of environmental DNA template, 5.0 uL of 2X GoTaq Hot Start, 3.3 uL of sterile water, 0.1 uL of Bovine Serum Albumin (BSA) (0.2 mg/mL), and 0.3 uL of each primer (10 uM).	PCR reactions were run in 13.25 uL reaction volumes, with 2.0 uL of DNA, 6.25 uL of Kapa HiFi HotStart ReadyMix, and 2.5 uL of each primer (1 uM).	not provided	Triplicate PCR reactions were run in 10 uL reaction volumes, with 1.0 uL of environmental DNA template, 5.0 uL of 2X GoTaq Hot Start, 3.3 uL of sterile water, 0.1 uL of Bovine Serum Albumin (BSA) (0.2 mg/mL), and 0.3 uL of each primer (10 uM).
+HR	Library preparation sequencing	barcoding_pcr_appr		two-step PCR	two-step PCR	two-step PCR	two-step PCR
+O	Library preparation sequencing	pcr2_thermocycler		not provided	not provided	Eppendorf Mastercycler Nexus Thermal Cycler	not provided
+R	Library preparation sequencing	pcr2_dna_vol		not provided	20	2	not provided
+O	Library preparation sequencing	pcr2_amplificationReactionVolume		not provided	50	25	not provided
+R	Library preparation sequencing	pcr2_commercial_mm		not provided	2X KAPA HiFi HotStart ReadyMix (Roche)	2X KAPA HiFi HotStart ReadyMix (Roche)	not provided
+R	Library preparation sequencing	pcr2_custom_mm		not provided	not applicable	not applicable	not provided
+R	Library preparation sequencing	pcr2_cond		not provided	initial denaturation:95_3;denaturation:95_0.5;annealing:55_0.5;elongation:72_0.5;final elongation:72_5;8	initialdenaturation:95_3;denaturation:98_0.5;annealing:65_0.25;elongation:72_0.5;final elongation:72_1;5-8	not provided
+R	Library preparation sequencing	pcr2_annealingTemp		not provided	55	65	not provided
+R	Library preparation sequencing	pcr2_cycles		not provided	8	2026-05-08 00:00:00	not provided
+O	Library preparation sequencing	pcr2_analysis_software		not provided	not provided	not provided	not provided
+O	Library preparation sequencing	pcr2_method_additional		not provided	PCR reactions were run in 50 uL reaction volumes, with 20 uL of DNA PCR product, 25 uL of 2X Kapa HiFi HotStart ReadyMix, and 5 uL of Illumina index set.	not provided	not provided
+R	Library preparation sequencing	pcr2_plate_id					
+O	Library preparation sequencing	sequencing_location		National Museum of Natural History	not provided	National Museum of Natural History	National Museum of Natural History
+HR	Library preparation sequencing	platform	ILLUMINA				
+HR	Library preparation sequencing	instrument	Illumina NextSeq				
+HR	Library preparation sequencing	seq_kit	NextSeq P1 600				
+R	Library preparation sequencing	lib_layout	paired end				
+R	Library preparation sequencing	adapter_forward	not provided				
+R	Library preparation sequencing	adapter_reverse	not provided				
+HR	Library preparation sequencing	lib_screen	Final library concentrations were quantified using QuBit or Quant-IT fluorometric assays. Library sizes were spot checked on an Agilent Tapestation High Sensitivity D1000 screentape.				
+R	Library preparation sequencing	checksum_method	MD5				
+O	Library preparation sequencing	seq_method_additional					

@@ -26,9 +26,9 @@ projectMetadata: "projectMetadata"
 excel_file: "raw-v3/clement_testing/FAIRe-NOAA_noaa-oer-okeanos.xlsx"
 
 # When combined_metadata_file: false = separate TSV files (one path per sheet)
-sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
-experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
-projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
+sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
+experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
+projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
 # ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
@@ -37,14 +37,14 @@ projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/FAIRe_noaa-sefsc-gu1901
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
