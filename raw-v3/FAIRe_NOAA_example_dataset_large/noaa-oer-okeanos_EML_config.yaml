@@ -1,0 +1,207 @@
+# -----------------------------------------------------------------------------
+# EML (Ecological Metadata Language) Configuration
+# -----------------------------------------------------------------------------
+# Configure metadata for generating EML XML files for OBIS/GBIF submission
+# Fill out as much information as possible for better dataset discoverability
+
+eml_metadata:
+  # Basic Dataset Information
+  title: "NOAA Ocean Exploration seawater eDNA metabarcoding"
+  abstract: |
+    The mission of NOAA Ocean Exploration is to explore the ocean for national benefit, including discovery and characterization of deep-sea environments and biodiversity. This dataset contains preliminary environmental DNA (eDNA) metabarcoding data from seawater collected aboard NOAA Ship Okeanos Explorer, operated by NOAA Ocean Exploration, across six expeditions from October 2021 to April 2023 (EX2107, EX2201, EX2203, EX2205, EX2206, EX2301). Sampling spanned the Atlantic Ocean (Southeast U.S. continental margin, Gulf of America, Puerto Rico and the West Atlantic including the Puerto Rico Trench, and the Central North Atlantic near the Azores) and the Pacific Ocean (U.S. West Coast). Seawater samples were collected using Niskin bottles deployed on the ROV Deep Discoverer and on CTD rosette casts, covering epipelagic to bathypelagic depths (approximately 3 m to 6,000 m). Metabarcoding targets include the 12S rRNA gene (fish), 18S rRNA gene (protists/eukaryotes), and COI gene (metazoa). Sample archiving and management, wet lab processing, and sequencing were conducted by the Smithsonian National Museum of Natural History and the NOAA National Systematics Laboratory. DNA sequence analysis was performed by the NOAA Atlantic Oceanographic and Meteorological Laboratory.
+  
+  # Dataset identifiers and publication info
+  publication_date: "2026-04-14"  # YYYY or YYYY-MM-DD format
+  language: "en"  # ISO language code (en for English)
+  
+  # People and Organizations (at least contact is required)
+  contact:
+    individual_name:
+      given_name: "Luke"
+      surname: "Thompson"
+    organization_name: "NOAA Atlantic Oceanographic and Meteorological Laboratory"
+    position_name: "Research Professor"  # Alternative to individual name (e.g., "Data Manager")
+    email: "luke.thompson@noaa.gov"
+    phone: ""
+    address:
+      delivery_point: "4301 Rickenbacker Cswy"
+      city: "Miami"
+      administrative_area: "Florida"
+      postal_code: "33149"
+      country: "United States"
+    online_url: "https://www.linkedin.com/in/luke-thompson-bb20074/"  # Personal or institutional website
+    user_id: "https://orcid.org/0000-0002-3911-1280"  # ORCID (e.g., "https://orcid.org/0000-0000-0000-0000")
+  
+  creator:
+    individual_name:
+      given_name: "Clement"
+      surname: "Coclet"
+    organization_name: "NOAA Atlantic Oceanographic and Meteorological Laboratory"
+    position_name: "Research Scientist II"  # Alternative to individual name (e.g., "Data Manager")
+    email: "clement.coclet@noaa.gov"
+    phone: ""
+    address:
+      delivery_point: "4301 Rickenbacker Cswy"
+      city: "Miami"
+      administrative_area: "Florida"
+      postal_code: "33149"
+      country: "United States"
+    online_url: ""  # Personal or institutional website
+    user_id: "https://orcid.org/0000-0002-6672-148X"  # ORCID (e.g., "https://orcid.org/0000-0000-0000-0000")
+
+  
+  # Optional metadata provider (if different from creator)
+  metadata_provider:
+    individual_name:
+      given_name: "Nicole"
+      surname: "Miller"
+    organization_name: "NOAA Ocean Exploration"
+    email: "nicole.miller@noaa.gov"
+    user_id: "https://orcid.org/0009-0002-8148-6323"  # ORCID (e.g., "https://orcid.org/0000-0000-0000-0000")
+
+  # Associated parties (additional contributors)
+  associated_parties: []
+    # Example entry:
+    # - individual_name:
+    #     given_name: "Collaborator First"
+    #     surname: "Collaborator Last"
+    #   organization_name: "Partner Institution"
+    #   email: "collab@partner.edu"
+    #   role: "principal investigator"  # Options: originator, content provider, custodian, owner, point of contact, principal investigator
+  
+  # Coverage Information
+  geographic_coverage:
+    description: "Atlantic (SE U.S., Gulf of America, Puerto Rico/Puerto Rico Trench, Azores) and Pacific (U.S. West Coast)" # Consider summarizing sampleMetadata.locality or waterBody
+    # Optional: configure preferred source columns in occurrence for description (in order)
+    bounding_coordinates:
+      west: -126.1   # Decimal degrees
+      east: -24.4
+      north: 48.2
+      south: 16.7
+    # Optional: customize occurrence latitude/longitude field names
+    latitude_field: "decimalLatitude"
+    longitude_field: "decimalLongitude"
+  
+  temporal_coverage:
+    # The begin_date and end_date are now automatically calculated from the eventDate column.
+    # Optional: customize occurrence date column name if it's not 'eventDate'.
+    event_date_field: "eventDate"
+  
+  taxonomic_coverage: # TODO: we can grab from earlier in the code (taxonomy section). should be a combo of all ranks used across all assays. ALSO assay names from data
+    general_description: "Marine organisms identified through eDNA metabarcoding"
+    classifications: []
+      # Example entries:
+      # - taxon_rank_name: "kingdom"
+      #   taxon_rank_value: "Animalia"
+      #   common_name: "Animals"
+      # - taxon_rank_name: "phylum"
+      #   taxon_rank_value: "Chordata"
+      #   common_name: "Vertebrates"
+    # Optional: configure preferred occurrence rank fields for taxonomic coverage
+    rank_fields:
+      - "kingdom"
+      - "phylum"
+      - "class"
+      - "order"
+  
+  # Keywords for discoverability
+  keywords:
+    #   - sampleMetadata: env_broad_scale, env_local_scale, env_medium, waterBody
+    #   - projectMetadata: target_gene, target_subfragment, instrument, lib_layout, ampliconSize
+    # Example placeholders (uncomment and fill as needed):
+    # - keyword: "<env_broad_scale>"
+    # - keyword: "<env_local_scale>"
+    # - keyword: "<env_medium>"
+    # - keyword: "<waterBody>"
+    # - keyword: "<target_gene>"
+    # - keyword: "<target_subfragment>"
+    # - keyword: "<instrument>"
+    # - keyword: "<lib_layout>"
+    # - keyword: "<ampliconSize>"
+    - keyword: "marine biome"
+      thesaurus: "ENVO"
+    - keyword: "marine epipelagic zone"
+      thesaurus: "ENVO"
+    - keyword: "marine mesopelagic zone"
+      thesaurus: "ENVO"
+    - keyword: "marine bathypelagic zone"
+      thesaurus: "ENVO"
+    - keyword: "seawater"
+      thesaurus: "ENVO"
+    - keyword: "Atlantic Ocean"
+    - keyword: "Pacific Ocean"
+    - keyword: "18S rRNA (SSU eukaryote)"
+    - keyword: "12S rRNA (SSU mitochondria)"
+    - keyword: "COI (cytochrome oxidase I)"
+    - keyword: "eDNA"
+      thesaurus: "ASFA"
+    - keyword: "metabarcoding"
+      thesaurus: "ASFA"
+    - keyword: "marine biodiversity"
+      thesaurus: "ASFA"
+    - keyword: "environmental DNA"
+      thesaurus: "GCMD"
+  
+  # Project Information
+  project:
+    title: "NOAA Ocean Exploration seawater eDNA metabarcoding"
+    description: |
+      The mission of NOAA Ocean Exploration is to explore the ocean for national benefit, including discovery and characterization of deep-sea environments and biodiversity. This project provides preliminary environmental DNA metabarcoding data from plankton, metazoa, cnidaria, and fish collected aboard NOAA Ship Okeanos Explorer, operated by NOAA Ocean Exploration. Sample archiving and management, wet lab processing, and sequencing was conducted by the Smithsonian National Museum of Natural History and the NOAA National Systematics Laboratory. DNA sequence analysis was performed by the NOAA Atlantic Oceanographic and Meteorological Laboratory.
+    funding: |
+      "A Comprehensive Bioinformatics Platform for Marine eDNA and Microbiome Data" (Grant ID NA21OAR4320190-T3-01S040, NOAA Ocean Exploration)
+    personnel: []
+      # Example entry:
+      # - individual_name:
+      #     given_name: "PI First"
+      #     surname: "PI Last"
+      #   role: "principal investigator"
+      #   email: "pi@institution.edu"
+  
+  # Methods and Sampling
+  methods:
+    study_extent: |
+      Seawater samples were collected during six expeditions aboard NOAA Ship Okeanos Explorer between October 2021 and April 2023. Sampling areas included the Southeast U.S. continental margin (EX2107, October-November 2021), the Gulf of America (EX2201, April 2022), Puerto Rico and the West Atlantic including the Puerto Rico Trench (EX2203, July 2022 and EX2206, November-December 2022), the Central North Atlantic near the Azores (EX2205, September-October 2022 and EX2206, November-December 2022), and the U.S. West Coast (EX2301, March-April 2023). Samples were collected opportunistically during ROV dives and CTD casts at depths ranging from approximately 3 m to 6,000 m, spanning epipelagic, mesopelagic, and bathypelagic zones.
+    
+    sampling_description: |
+      Seawater samples were collected aboard NOAA Ship Okeanos Explorer during ROV dives and CTD casts. Water was drawn from Niskin bottles mounted on either the Deep Discoverer ROV or a CTD rosette. Standard collection volumes were 1.7 L for water samples and 2.0 L for distilled water blanks. Samples were filtered through 0.45 um or 0.22 um membrane filters. Sample and environmental metadata - including dive or CTD cast ID, date, time, location, in-situ measurements (salinity, temperature, dissolved oxygen), and estimated bottom depth - were recorded electronically and transferred to the Sample Operator User Portal (SOUP). Laboratory procedures followed documented protocols (https://github.com/aomlomics/protocols). DNA was extracted from filters and amplified by PCR targeting three metabarcoding markers: 18S rRNA (protists/eukaryotes), COI (metazoa), and 12S rRNA (fish). Sequencing was performed on the Illumina NextSeq platform at the NOAA National Systematics Laboratory. Bioinformatic processing was performed on the Northern Gulf Institute's Orion computing cluster using the Tourmaline 2 pipeline. Steps included adapter trimming and quality filtering (Cutadapt), denoising and representative sequence determination (DADA2), and taxonomic assignment using a naive Bayes classifier and consensus VSEARCH (QIIME 2). Raw sequence data in FASTQ format were submitted to the NCBI Sequence Read Archive (SRA). FAIRe-formatted sample metadata were submitted to NCBI BioSample. Taxonomic occurrence data were formatted for submission to OBIS.
+    
+    method_steps: []
+      # Example entries:
+      # - description: |
+      #     Water samples were collected using Niskin bottles at depths of 0, 10, and 50 meters.
+      #     Samples were filtered through 0.22μm filters and stored at -80°C until processing.
+      # - description: |
+      #     DNA was extracted using the DNeasy PowerSoil Kit following manufacturer protocols.
+      #     PCR amplification targeted the 16S rRNA gene using primers 515F and 806R.
+    
+    quality_control: |
+      Quality control measures were implemented across all stages of the workflow. During sample collection, laboratory errors and deviations from standard operating procedures (NOAA Ocean Exploration eDNA Sample Workflow, Revision 2.3) were recorded per sample in a physical notebook and transferred to the Sample Operator User Portal (SOUP). Negative controls (distilled water blanks, extraction blanks, PCR blanks, and sequencing blanks) were included throughout sampling and processing to monitor for contamination. Control samples were excluded from the final published dataset but are archived in NCBI SRA and BioSample records for transparency. Raw sequence data were processed using the Tourmaline 2 pipeline. Low-quality bases and adapters were trimmed using Cutadapt, and sequences were denoised using DADA2 to generate representative sequences. Taxonomic assignments were made using a naive Bayes classifier and consensus VSEARCH, with confidence thresholds applied to ensure reliable identifications. Post-assignment filters were applied to remove sequences associated with domestic or human taxa (Bovidae, Suidae, Felidae, Canidae, Primates, Homo sapiens), unresolved assignments (Unassigned), and terrestrial organisms as flagged by WoRMS habitat classifications.
+  
+  # Intellectual Property and Usage Rights
+  # TIP: If you track a license in projectMetadata.license, mirror it here
+  license: "CC0"  # Options: CC0, CC-BY, CC-BY-NC
+  
+  purpose: |
+    This dataset serves two purposes. First, to advance alignment among researchers and stakeholders on making NOAA Ocean Exploration eDNA data publicly available and interpretable, and to identify and address challenges in achieving that goal. Second, to characterize biodiversity in sampled ocean environments using eDNA metabarcoding data from six NOAA Ship Okeanos Explorer expeditions, with emphasis on deep-sea communities in the abyssal zone (depths below 4,000 m).
+  
+  # Citations and References
+  # TIP: Paste projectMetadata.bibliographicCitation here (or customize)
+  dataset_citation: []
+    # How users should cite this dataset. Can be auto-generated or custom.
+    # Leave blank for auto-generation based on creator, title, etc.
+  
+  bibliography: []
+    # Example entries (publications related to this dataset):
+    # - "Smith, J. et al. (2020). Marine biodiversity patterns. Journal of Marine Science. DOI: 10.1000/example"
+    # - "Jones, A. (2019). eDNA methods handbook. Marine Methods Press."
+  
+  # Additional Information
+  additional_info: ""
+    #Any other relevant information about the dataset that doesn't fit in other sections.
+  
+  # Collection Information (only if museum specimens are involved)
+  collection: []
+    #name: ""
+    #identifier: ""
+    #parent_collection_identifier: ""
+    #specimen_preservation_method: ""
