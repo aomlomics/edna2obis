@@ -17,6 +17,9 @@ Key behavior (occurrence-based design for metabarcoding datasets):
 from __future__ import annotations
 
 import os
+import csv
+import heapq
+import tempfile
 from typing import Dict, List, Tuple
 
 import pandas as pd
@@ -50,6 +53,88 @@ def _normalize_str(val) -> str:
 
 def _case_insensitive_equal(a, b) -> bool:
     return _normalize_str(a).lower() == _normalize_str(b).lower()
+
+# Legacy function, not used anymore. Still remains here just in case we need it later.
+def _external_sort_emof_csv(path: str, chunk_size: int = 200000) -> None:
+    temp_chunk_paths: List[str] = []
+    temp_readers = []
+    temp_handles = []
+
+    def sort_key(row: Dict[str, object]) -> Tuple[str, str, str]:
+        return (
+            str(row.get('occurrenceID', '')),
+            str(row.get('measurementType', '')),
+            str(row.get('measurementValue', '')),
+        )
+
+    try:
+        with open(path, 'r', newline='', encoding='utf-8-sig') as src_f:
+            reader = csv.DictReader(src_f)
+            fieldnames = list(reader.fieldnames or EMOF_OUTPUT_COLUMNS_IN_ORDER)
+
+            chunk: List[Dict[str, object]] = []
+            for row in reader:
+                chunk.append(row)
+                if len(chunk) >= chunk_size:
+                    chunk.sort(key=sort_key)
+                    with tempfile.NamedTemporaryFile('w', delete=False, newline='', encoding='utf-8', suffix='.tmp', dir=os.path.dirname(path)) as tf:
+                        w = csv.DictWriter(tf, fieldnames=fieldnames)
+                        w.writeheader()
+                        w.writerows(chunk)
+                        temp_chunk_paths.append(tf.name)
+                    chunk = []
+
+            if chunk:
+                chunk.sort(key=sort_key)
+                with tempfile.NamedTemporaryFile('w', delete=False, newline='', encoding='utf-8', suffix='.tmp', dir=os.path.dirname(path)) as tf:
+                    w = csv.DictWriter(tf, fieldnames=fieldnames)
+                    w.writeheader()
+                    w.writerows(chunk)
+                    temp_chunk_paths.append(tf.name)
+
+        if not temp_chunk_paths:
+            return
+
+        out_sorted = f"{path}.sorted"
+        heap = []
+
+        for idx, p in enumerate(temp_chunk_paths):
+            h = open(p, 'r', newline='', encoding='utf-8')
+            temp_handles.append(h)
+            r = csv.DictReader(h)
+            temp_readers.append(r)
+            first = next(r, None)
+            if first is not None:
+                heapq.heappush(heap, (sort_key(first), idx, first))
+
+        with open(out_sorted, 'w', newline='', encoding='utf-8-sig') as out_f:
+            w = csv.DictWriter(out_f, fieldnames=fieldnames)
+            w.writeheader()
+            while heap:
+                _, idx, row = heapq.heappop(heap)
+                w.writerow(row)
+                nxt = next(temp_readers[idx], None)
+                if nxt is not None:
+                    heapq.heappush(heap, (sort_key(nxt), idx, nxt))
+
+        os.replace(out_sorted, path)
+    finally:
+        for h in temp_handles:
+            try:
+                h.close()
+            except Exception:
+                pass
+        for p in temp_chunk_paths:
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+        sorted_tmp = f"{path}.sorted"
+        if os.path.exists(sorted_tmp):
+            try:
+                os.remove(sorted_tmp)
+            except Exception:
+                pass
 
 
 def _load_final_occurrence(params, reporter) -> pd.DataFrame:
@@ -335,26 +420,68 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         occurrences_df = final_occ_df[required_occ_cols].dropna().drop_duplicates()
         reporter.add_text(f"Total occurrences included (non-control): {len(occurrences_df)}")
 
-        # ------------------------------------------------------------------
-        # Build eMoF rows
-        # ------------------------------------------------------------------
-        emof_rows: List[Dict[str, object]] = []
+        # Pre-sort occurrences by stripped occurrenceID so streaming emission is already
+        # grouped by occurrenceID in the final file. This lets us skip a huge external sort.
+        occurrences_df = occurrences_df.copy()
+        occurrences_df['occurrenceID'] = occurrences_df['occurrenceID'].astype(str).str.strip()
+        occurrences_df['eventID'] = occurrences_df['eventID'].astype(str).str.strip()
+        occurrences_df = occurrences_df.sort_values('occurrenceID', kind='mergesort').reset_index(drop=True)
+        N_occ = len(occurrences_df)
+        occ_ids_arr = occurrences_df['occurrenceID'].values
+        evt_ids_arr = occurrences_df['eventID'].values
 
-        # Cache join frames per measurementType to avoid repeated merges
-        prepared_frames: Dict[str, pd.DataFrame] = {}
-        prepared_sources: Dict[str, Tuple[str, pd.DataFrame]] = {}
+        # Stable-sort template rows by stripped measurementType so within an occurrence,
+        # measurements appear in a deterministic, readable order.
+        template_df = template_df.copy()
+        template_df['_mt_key'] = template_df['measurementType'].apply(_normalize_str)
+        template_df = template_df.sort_values('_mt_key', kind='mergesort').drop(columns=['_mt_key'])
 
         has_verbatim_col = 'verbatimMeasurementType' in template_df.columns
+        output_dir = params.get('output_dir', 'processed-v3/')
+        os.makedirs(output_dir, exist_ok=True)
+        emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
+        preview_rows: List[Dict[str, object]] = []
+        row_count = 0
 
-        # Iterate template rows in order
+        prepared_sources: Dict[str, Tuple[str, pd.DataFrame]] = {}
+        field_value_arr: Dict[str, object] = {}
+        field_unit_arr: Dict[str, object] = {}
+        field_has_unit: Dict[str, bool] = {}
+        template_infos: List[Dict[str, object]] = []
+
+        def _normalize_na_inplace(arr):
+            """Replace NaN / pd.NA / NaT / blank-string entries in-place with None."""
+            for j in range(len(arr)):
+                v = arr[j]
+                if v is None:
+                    continue
+                if isinstance(v, float):
+                    if v != v:
+                        arr[j] = None
+                        continue
+                elif isinstance(v, str):
+                    if v.strip() == '':
+                        arr[j] = None
+                        continue
+                else:
+                    try:
+                        if pd.isna(v):
+                            arr[j] = None
+                            continue
+                    except Exception:
+                        pass
+
         for _, trow in template_df.iterrows():
             output_meas_type = _normalize_str(trow.get('measurementType'))
+            if output_meas_type == '':
+                continue
+
             templ_value = trow.get('measurementValue')
             templ_unit = trow.get('measurementUnit')
-            templ_mtid = trow.get('measurementTypeID')
-            templ_mvid = trow.get('measurementValueID')
-            templ_muid = trow.get('measurementUnitID')
-            templ_rem = trow.get('measurementRemarks')
+            templ_mtid_norm = _normalize_str(trow.get('measurementTypeID'))
+            templ_mvid_norm = _normalize_str(trow.get('measurementValueID'))
+            templ_muid_norm = _normalize_str(trow.get('measurementUnitID'))
+            templ_rem_norm = _normalize_str(trow.get('measurementRemarks'))
             verbatim_raw = trow.get('verbatimMeasurementType') if has_verbatim_col else ''
 
             source_field = output_meas_type
@@ -363,18 +490,11 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                 if verbatim_field:
                     source_field = verbatim_field
 
-            if output_meas_type == '':
-                # Skip defensive; should have been filtered out
-                continue
-
-            # Resolve data source for the measurementType
+            # Resolve source once per source_field
             if source_field not in prepared_sources:
                 try:
                     source_name, source_df = _resolve_source_for_measurement(source_field, data)
                 except Exception as e:
-                    # For master-list behavior: if a verbatimMeasurementType was specified but
-                    # the corresponding source field is missing in this dataset's metadata,
-                    # skip emitting this measurement for this dataset without erroring out.
                     if has_verbatim_col and _normalize_str(trow.get('verbatimMeasurementType')):
                         reporter.add_text(
                             f"Skipping measurementType '{output_meas_type}': source field '{source_field}' not found in metadata for this dataset."
@@ -386,19 +506,42 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
             else:
                 source_name, source_df = prepared_sources[source_field]
 
-            # Prepare the limited join frame for occurrence-based measurements
-            if source_field not in prepared_frames:
-                join_frame = _prepare_join_frame_for_occurrence_measurement(
+            # Build aligned value/unit arrays once per source_field
+            if source_field not in field_value_arr:
+                jf = _prepare_join_frame_for_occurrence_measurement(
                     source_field, occurrences_df, source_name, source_df, data, reporter
                 )
-                prepared_frames[source_field] = join_frame
-            else:
-                join_frame = prepared_frames[source_field]
+                if len(jf) != N_occ:
+                    pos_df = pd.DataFrame({
+                        'occurrenceID': occurrences_df['occurrenceID'],
+                        'eventID': occurrences_df['eventID'],
+                        '_pos': range(N_occ),
+                    })
+                    jf = jf.merge(pos_df, on=['occurrenceID', 'eventID'], how='right')
+                    jf = jf.sort_values('_pos').reset_index(drop=True).drop(columns=['_pos'])
+                    if len(jf) != N_occ:
+                        raise ValueError(
+                            f"Internal alignment error for source field '{source_field}': join frame length {len(jf)} != {N_occ}"
+                        )
 
-            # Unit policy checks
+                val_arr = jf['value'].astype(object).values.copy()
+                _normalize_na_inplace(val_arr)
+                field_value_arr[source_field] = val_arr
+
+                unit_col = f"{source_field}_unit"
+                if unit_col in jf.columns:
+                    unit_arr = jf[unit_col].astype(object).values.copy()
+                    _normalize_na_inplace(unit_arr)
+                    field_unit_arr[source_field] = unit_arr
+                    field_has_unit[source_field] = True
+                else:
+                    field_unit_arr[source_field] = None
+                    field_has_unit[source_field] = False
+
+            has_per_row_unit_col = field_has_unit[source_field]
+
+            # Unit policy checks (identical semantics to previous per-row logic)
             templ_unit_norm = _normalize_str(templ_unit)
-            has_per_row_unit_col = f"{source_field}_unit" in join_frame.columns
-
             if templ_unit_norm == 'provided':
                 if not has_per_row_unit_col:
                     reporter.add_error(
@@ -406,102 +549,99 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
                         f"was not found in the source sheet ('{source_name}')."
                     )
                     raise ValueError(f"Missing per-row unit column for '{source_field}'")
-            else:
-                if templ_unit_norm == '':
-                    # Blank unit: do not fallback; but if a per-row unit column exists, error to avoid silent changes
-                    if has_per_row_unit_col:
-                        reporter.add_error(
-                            f"For measurementType '{output_meas_type}', the template left measurementUnit blank but a per-row unit column "
-                            f"'{source_field}_unit' exists in the source data. Set measurementUnit to 'provided' or a literal."
-                        )
-                        raise ValueError("Ambiguous unit policy detected (blank vs provided)")
-                else:
-                    # Literal unit: use as-is
-                    pass
+            elif templ_unit_norm == '':
+                if has_per_row_unit_col:
+                    reporter.add_error(
+                        f"For measurementType '{output_meas_type}', the template left measurementUnit blank but a per-row unit column "
+                        f"'{source_field}_unit' exists in the source data. Set measurementUnit to 'provided' or a literal."
+                    )
+                    raise ValueError("Ambiguous unit policy detected (blank vs provided)")
 
-            # Determine categorical vs numeric/direct by template value emptiness
-            is_categorical = _normalize_str(templ_value) != ''
+            templ_value_norm = _normalize_str(templ_value)
+            is_categorical = templ_value_norm != ''
+            templ_value_norm_lower = templ_value_norm.lower() if is_categorical else ''
 
-            # Iterate each occurrence row and decide whether to emit
-            for _, row in join_frame.iterrows():
-                occurrence_id = _normalize_str(row.get('occurrenceID'))
-                event_id = _normalize_str(row.get('eventID'))
-                src_val = row.get('value')
+            template_infos.append({
+                'output_meas_type': output_meas_type,
+                'verbatim_raw': verbatim_raw,
+                'source_field': source_field,
+                'is_categorical': is_categorical,
+                'templ_value_norm': templ_value_norm,
+                'templ_value_norm_lower': templ_value_norm_lower,
+                'templ_unit_norm': templ_unit_norm,
+                'templ_mtid_norm': templ_mtid_norm,
+                'templ_mvid_norm': templ_mvid_norm,
+                'templ_muid_norm': templ_muid_norm,
+                'templ_rem_norm': templ_rem_norm,
+            })
 
-                if pd.isna(src_val) or _normalize_str(src_val) == '':
-                    # Skip occurrences without a value (non-destructive)
-                    continue
+        # --- Stream emission: occurrence-major, already sorted. No external sort needed. ---
+        with open(emof_csv_path, 'w', newline='', encoding='utf-8-sig') as emof_f:
+            writer = csv.writer(emof_f)
+            writer.writerow(EMOF_OUTPUT_COLUMNS_IN_ORDER)
 
-                if is_categorical:
-                    # Emit only when src_val matches template value (trimmed, case-insensitive)
-                    if not _case_insensitive_equal(src_val, templ_value):
+            for i in range(N_occ):
+                occ_s = occ_ids_arr[i]
+                evt_s = evt_ids_arr[i]
+
+                for ti in template_infos:
+                    sf = ti['source_field']
+                    src_val = field_value_arr[sf][i]
+                    if src_val is None:
                         continue
-                    out_value = _normalize_str(templ_value)
-                    out_value_id = _normalize_str(templ_mvid)
-                else:
-                    # Numeric/direct: copy the source value as-is
-                    out_value = src_val
-                    out_value_id = ''
 
-                # Resolve unit output per policy
-                if templ_unit_norm == 'provided':
-                    unit_col = f"{source_field}_unit"
-                    unit_val = row.get(unit_col)
-                    if pd.isna(unit_val) or _normalize_str(unit_val) == '':
-                        reporter.add_error(
-                            f"For measurementType '{output_meas_type}', measurementUnit='provided' but unit is blank for occurrenceID '{occurrence_id}'."
-                        )
-                        raise ValueError("Blank per-row unit encountered under 'provided' policy")
-                    out_unit = unit_val
-                elif templ_unit_norm == '':
-                    out_unit = ''
-                else:
-                    out_unit = templ_unit_norm
+                    if ti['is_categorical']:
+                        if isinstance(src_val, str):
+                            src_lower = src_val.strip().lower()
+                        else:
+                            src_lower = str(src_val).strip().lower()
+                        if src_lower != ti['templ_value_norm_lower']:
+                            continue
+                        out_value = ti['templ_value_norm']
+                        out_value_id = ti['templ_mvid_norm']
+                    else:
+                        out_value = src_val
+                        out_value_id = ''
 
-                # Compose eMoF row
-                emof_rows.append({
-                    'eventID': event_id,
-                    'occurrenceID': occurrence_id,
-                    'measurementType': output_meas_type,
-                    'verbatimMeasurementType': verbatim_raw,
-                    'measurementValue': out_value,
-                    'measurementUnit': out_unit,
-                    'measurementTypeID': _normalize_str(templ_mtid),
-                    'measurementValueID': out_value_id,
-                    'measurementUnitID': _normalize_str(templ_muid),
-                    'measurementRemarks': _normalize_str(templ_rem),
-                })
+                    tun = ti['templ_unit_norm']
+                    if tun == 'provided':
+                        unit_val = field_unit_arr[sf][i]
+                        if unit_val is None:
+                            reporter.add_error(
+                                f"For measurementType '{ti['output_meas_type']}', measurementUnit='provided' but unit is blank for occurrenceID '{occ_s}'."
+                            )
+                            raise ValueError("Blank per-row unit encountered under 'provided' policy")
+                        out_unit = unit_val
+                    elif tun == '':
+                        out_unit = ''
+                    else:
+                        out_unit = tun
 
-        # ------------------------------------------------------------------
-        # Finalize and save
-        # ------------------------------------------------------------------
-        if not emof_rows:
+                    row_out = [
+                        evt_s,
+                        occ_s,
+                        ti['verbatim_raw'],
+                        ti['output_meas_type'],
+                        out_value,
+                        out_unit,
+                        ti['templ_mtid_norm'],
+                        out_value_id,
+                        ti['templ_muid_norm'],
+                        ti['templ_rem_norm'],
+                    ]
+                    writer.writerow(row_out)
+                    row_count += 1
+                    if len(preview_rows) < 15:
+                        preview_rows.append(dict(zip(EMOF_OUTPUT_COLUMNS_IN_ORDER, row_out)))
+
+        if row_count == 0:
             reporter.add_warning("No eMoF rows were generated based on the template and available data.")
 
-        emof_df = pd.DataFrame(emof_rows, columns=EMOF_OUTPUT_COLUMNS_IN_ORDER)
-
-        # Deterministic sort: by occurrenceID, measurementType, then measurementValue
-        sort_cols = [c for c in ['occurrenceID', 'measurementType', 'measurementValue'] if c in emof_df.columns]
-        if sort_cols:
-            # Convert sort columns to string to prevent mixed-type errors during sort
-            for col in sort_cols:
-                emof_df[col] = emof_df[col].astype(str)
-            emof_df = emof_df.sort_values(sort_cols).reset_index(drop=True)
-
-        output_dir = params.get('output_dir', 'processed-v3/')
-        os.makedirs(output_dir, exist_ok=True)
-        
-        # Write only CSV file
-        emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
-        try:
-            emof_df.to_csv(emof_csv_path, index=False, encoding='utf-8-sig') # Encoding helps with special characters in units
-        except Exception as e:
-            reporter.add_warning(f"Could not write eMoF CSV ('{emof_csv_path}'): {e}")
-
-        reporter.add_success(f"eMoF created successfully with {len(emof_df)} row(s) (occurrence-based)")
+        reporter.add_success(f"eMoF created successfully with {row_count} row(s) (occurrence-based)")
         reporter.add_text(f"Saved eMoF CSV to: {emof_csv_path}")
-        reporter.add_text(f"File size: {len(emof_df)} rows (one per occurrence per measurement)")
-        reporter.add_dataframe(emof_df.head(15), "eMoF Preview (first 15 rows)")
+        reporter.add_text(f"File size: {row_count} rows (one per occurrence per measurement)")
+        preview_df = pd.DataFrame(preview_rows, columns=EMOF_OUTPUT_COLUMNS_IN_ORDER)
+        reporter.add_dataframe(preview_df, "eMoF Preview (first 15 rows)")
 
         return emof_csv_path
 

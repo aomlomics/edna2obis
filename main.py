@@ -6,6 +6,7 @@ Converts eDNA sequence data from FAIRe NOAA format to Darwin Core for OBIS and G
 
 import os
 import sys
+import csv
 from pathlib import Path
 import yaml
 import traceback
@@ -28,6 +29,7 @@ import io
 
 # Import custom modules from src-v3
 from html_reporter import HTMLReporter
+from run_performance_log import performance_log_for_config
 
 # FAIRe Excel wide sheets (sampleMetadata, experimentRunMetadata): rows 1–2 are preamble; row 3 is headers.
 _FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW = 2
@@ -180,6 +182,10 @@ def load_config(config_path="config.yaml"):
         
         # Output splitting by short_name (cruise/expedition)
         params['split_output_by_short_name'] = config.get('split_output_by_short_name', False)
+
+        params['include_performance_metrics_in_output'] = config.get(
+            'include_performance_metrics_in_output', False
+        )
         
         # --- NEW: Metadata format switcher ---
         params['metadata_format'] = config.get('metadata_format', 'NOAA').upper()
@@ -378,69 +384,91 @@ def split_output_files_by_short_name(params, data, reporter):
         if os.path.exists(emof_path):
             files_to_split.append(('eMoF.csv', 'eventID'))
         
-        # Process each short_name
+        short_name_dirs = {}
+        split_occurrence_path_for_eml_by_short_name = {}
         for short_name in unique_short_names:
-            reporter.add_text(f"<h4>Processing short_name: '{short_name}'</h4>")
-            
-            # Create subfolder
-            short_name_dir = os.path.join(output_dir, short_name)
+            short_name_clean = str(short_name).strip()
+            short_name_dir = os.path.join(output_dir, short_name_clean)
             os.makedirs(short_name_dir, exist_ok=True)
-            reporter.add_text(f"Created subfolder: {short_name_dir}")
-            
-            # Get eventIDs belonging to this short_name
+            short_name_dirs[short_name_clean] = short_name_dir
             event_ids_for_short_name = {
-                event_id for event_id, sn in event_to_short_name.items() 
-                if sn == short_name
+                event_id for event_id, sn in event_to_short_name.items()
+                if str(sn).strip() == short_name_clean
             }
+            reporter.add_text(f"<h4>Processing short_name: '{short_name_clean}'</h4>")
+            reporter.add_text(f"Created subfolder: {short_name_dir}")
             reporter.add_text(f"Found {len(event_ids_for_short_name)} eventID(s) for this short_name.")
-            
-            # Filter and save each file
-            filtered_occurrence_df_for_eml = None
-            split_occurrence_path_for_eml = None
-            for filename, filter_column in files_to_split:
-                source_path = os.path.join(output_dir, filename)
-                
-                if not os.path.exists(source_path):
-                    reporter.add_text(f"  Skipping {filename}: file not found")
-                    continue
-                
-                try:
-                    df = pd.read_csv(source_path, low_memory=False)
 
-                    # Prefer filtering by occurrenceID mapping when available (robust even if eventID/lib_id repeats across cruises)
-                    filtered_df = None
-                    if occurrence_to_short_name and 'occurrenceID' in df.columns:
-                        df['occurrenceID'] = df['occurrenceID'].astype(str).str.strip()
-                        filtered_df = df[df['occurrenceID'].map(occurrence_to_short_name).astype(str).str.strip() == str(short_name).strip()]
-                    # Next best: filter by parentEventID using short_name -> samp_name set (works for occurrence_core & dna_derived_extension)
-                    elif 'parentEventID' in df.columns and str(short_name).strip() in short_to_samp_names:
-                        df['parentEventID'] = df['parentEventID'].astype(str).str.strip()
-                        filtered_df = df[df['parentEventID'].isin(short_to_samp_names.get(str(short_name).strip(), set()))]
-                    # Fallback: filter by eventID (may be ambiguous if lib_id values are reused)
-                    else:
-                        if filter_column not in df.columns:
+        for filename, filter_column in files_to_split:
+            source_path = os.path.join(output_dir, filename)
+            if not os.path.exists(source_path):
+                reporter.add_text(f"  Skipping {filename}: file not found")
+                continue
+            try:
+                base_name, ext = os.path.splitext(filename)
+                output_paths = {
+                    sn: os.path.join(short_name_dirs[sn], f"{base_name}_{sn}{ext}")
+                    for sn in short_name_dirs
+                }
+                row_counts = {sn: 0 for sn in short_name_dirs}
+                total_rows = 0
+                writers = {}
+                files = {}
+                try:
+                    with open(source_path, 'r', newline='', encoding='utf-8-sig') as src_f:
+                        reader = csv.DictReader(src_f)
+                        fieldnames = [str(c).lstrip('\ufeff') if c is not None else '' for c in (reader.fieldnames or [])]
+                        reader.fieldnames = fieldnames
+
+                        if occurrence_to_short_name and 'occurrenceID' in fieldnames:
+                            key_mode = 'occurrenceID'
+                        elif 'parentEventID' in fieldnames:
+                            key_mode = 'parentEventID'
+                        elif filter_column in fieldnames:
+                            key_mode = filter_column
+                        else:
                             reporter.add_warning(f"  Skipping {filename}: no usable split key found (expected '{filter_column}', 'parentEventID', or 'occurrenceID').")
                             continue
-                        df[filter_column] = df[filter_column].astype(str).str.strip()
-                        filtered_df = df[df[filter_column].isin(event_ids_for_short_name)]
-                    
-                    # Generate output filename with short_name suffix
-                    base_name, ext = os.path.splitext(filename)
-                    output_filename = f"{base_name}_{short_name}{ext}"
-                    output_path = os.path.join(short_name_dir, output_filename)
-                    
-                    # Save filtered file
-                    filtered_df.to_csv(output_path, index=False, encoding='utf-8-sig')
-                    
-                    reporter.add_text(f"  {output_filename}: {len(filtered_df):,} rows (from {len(df):,} total)")
 
-                    # Cache the filtered occurrence core for split EML generation
+                        for sn in short_name_dirs:
+                            f_out = open(output_paths[sn], 'w', newline='', encoding='utf-8-sig')
+                            files[sn] = f_out
+                            w = csv.DictWriter(f_out, fieldnames=fieldnames)
+                            w.writeheader()
+                            writers[sn] = w
+
+                        for row in reader:
+                            total_rows += 1
+                            if key_mode == 'occurrenceID':
+                                key = str(row.get('occurrenceID', '')).strip()
+                                short_name = occurrence_to_short_name.get(key, '')
+                            elif key_mode == 'parentEventID':
+                                key = str(row.get('parentEventID', '')).strip()
+                                short_name = samp_to_short_name.get(key, '')
+                            else:
+                                key = str(row.get(filter_column, '')).strip()
+                                short_name = event_to_short_name.get(key, '')
+                            short_name_clean = str(short_name).strip()
+                            if short_name_clean in writers:
+                                writers[short_name_clean].writerow(row)
+                                row_counts[short_name_clean] += 1
+                finally:
+                    for f_out in files.values():
+                        f_out.close()
+
+                for sn in short_name_dirs:
+                    output_filename = os.path.basename(output_paths[sn])
+                    reporter.add_text(f"  {output_filename}: {row_counts[sn]:,} rows (from {total_rows:,} total)")
                     if filename == f'occurrence_core_{api_choice}.csv':
-                        filtered_occurrence_df_for_eml = filtered_df.copy()
-                        split_occurrence_path_for_eml = output_path
-                    
-                except Exception as e:
-                    reporter.add_warning(f"  Error processing {filename}: {str(e)}")
+                        split_occurrence_path_for_eml_by_short_name[sn] = output_paths[sn]
+            except Exception as e:
+                reporter.add_warning(f"  Error processing {filename}: {str(e)}")
+
+        for short_name in unique_short_names:
+            short_name_clean = str(short_name).strip()
+            short_name_dir = short_name_dirs[short_name_clean]
+            split_occurrence_path_for_eml = split_occurrence_path_for_eml_by_short_name.get(short_name_clean)
+            filtered_occurrence_df_for_eml = None
 
             # Create split EML file (optional) using the filtered occurrence core for accurate coverage calculations
             if params.get('eml_enabled', False):
@@ -456,7 +484,7 @@ def split_output_files_by_short_name(params, data, reporter):
 
                 if filtered_occurrence_df_for_eml is None or filtered_occurrence_df_for_eml.empty:
                     reporter.add_warning(
-                        f"  Skipping split EML for short_name '{short_name}': no occurrence rows after filtering."
+                        f"  Skipping split EML for short_name '{short_name_clean}': no occurrence rows after filtering."
                     )
                 else:
                     reporter.add_text("  Creating split EML (eml.xml) for this short_name...")
@@ -470,17 +498,17 @@ def split_output_files_by_short_name(params, data, reporter):
                         eml_path = create_eml_file(params_for_eml, data_for_eml, reporter)
                         reporter.add_text(f"  Split EML saved to: {eml_path}")
                     except Exception as e:
-                        reporter.add_warning(f"  Split EML creation failed for short_name '{short_name}': {e}")
+                        reporter.add_warning(f"  Split EML creation failed for short_name '{short_name_clean}': {e}")
             else:
                 reporter.add_text("  Skipping split EML creation per config (eml_enabled=false)")
 
             # Create Darwin Core Archive meta.xml for this short_name folder (submission-ready)
             try:
-                core_fn = f"occurrence_core_{api_choice}_{short_name}.csv"
-                ext_fns = [f"dna_derived_extension_{short_name}.csv"]
-                emof_candidate = os.path.join(short_name_dir, f"eMoF_{short_name}.csv")
+                core_fn = f"occurrence_core_{api_choice}_{short_name_clean}.csv"
+                ext_fns = [f"dna_derived_extension_{short_name_clean}.csv"]
+                emof_candidate = os.path.join(short_name_dir, f"eMoF_{short_name_clean}.csv")
                 if os.path.exists(emof_candidate):
-                    ext_fns.append(f"eMoF_{short_name}.csv")
+                    ext_fns.append(f"eMoF_{short_name_clean}.csv")
                 create_meta_xml(
                     output_dir=short_name_dir,
                     core_filename=core_fn,
@@ -489,7 +517,7 @@ def split_output_files_by_short_name(params, data, reporter):
                     reporter=reporter,
                 )
             except Exception as e:
-                reporter.add_warning(f"  meta.xml creation failed for short_name '{short_name}': {e}")
+                reporter.add_warning(f"  meta.xml creation failed for short_name '{short_name_clean}': {e}")
         
         reporter.add_success(f"Successfully split output files into {len(unique_short_names)} subfolder(s).")
         
@@ -1539,7 +1567,12 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     report_path = os.path.join(output_dir, report_filename)
     reporter = HTMLReporter(report_path, run_name)
-    
+    perf_log = performance_log_for_config(
+        bool(params.get('include_performance_metrics_in_output', False)),
+        output_dir,
+        run_name,
+    )
+
     try:
         reporter.add_section("Data Cleaning", level=1)
         reporter.add_text_with_submission_logos("Starting initial data cleaning of eDNA metadata and raw data from FAIRe NOAA format to Darwin Core for OBIS and GBIF submission")
@@ -1576,44 +1609,56 @@ def main():
         
         # Set up pandas display options
         setup_pandas_display()
-        
+        perf_log.set_pre_pipeline_metrics(params)
+
         # Load project data
         console.print("Loading project data and metadata...")
-        data = load_project_data(params, reporter)
-        
+        with perf_log.step("load_project_data"):
+            data = load_project_data(params, reporter)
+
         # Load ASV data
         console.print("Loading ASV data...")
-        raw_data_tables = load_asv_data(params, reporter)
-        
+        with perf_log.step("load_asv_data"):
+            raw_data_tables = load_asv_data(params, reporter)
+
         # Remove control samples
         console.print("Removing control samples...")
-        data, raw_data_tables = remove_control_samples(data, raw_data_tables, params, reporter)
-        
+        with perf_log.step("remove_control_samples"):
+            data, raw_data_tables = remove_control_samples(data, raw_data_tables, params, reporter)
+
         # Drop columns with all NAs
         console.print("Dropping columns with all NAs...")
-        data = drop_all_na_columns(data, reporter)
-        
+        with perf_log.step("drop_all_na_columns"):
+            data = drop_all_na_columns(data, reporter)
+
         # Drop NA rows of each analysisMetadata sheet
         console.print("Dropping empty analysis metadata rows...")
-        data = drop_empty_analysis_rows(data, reporter)
-        
+        with perf_log.step("drop_empty_analysis_rows"):
+            data = drop_empty_analysis_rows(data, reporter)
+
         # Optional: drop columns with some missing values (quiet)
-        data = drop_some_na_columns(data, reporter)
-        
+        with perf_log.step("drop_some_na_columns"):
+            data = drop_some_na_columns(data, reporter)
+
+        perf_log.set_post_prep_table_metrics(params, raw_data_tables)
+
         # Load Darwin Core mappings
         console.print("Loading Darwin Core mappings...")
-        dwc_data, checklist_df = load_darwin_core_mappings(params, reporter)
-        
+        with perf_log.step("load_darwin_core_mappings"):
+            dwc_data, checklist_df = load_darwin_core_mappings(params, reporter)
+
         # Create occurrence core
         console.print("Creating Occurrence Core...")
-        occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
+        with perf_log.step("create_occurrence_core"):
+            occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
         
         # Perform taxonomic assignment
         console.print("[bold]Starting Taxonomic Assignment...[/]")
-        with console.status("Running Taxonomic Assignment...", spinner="dots"):
-            # Suppress logs/errors but leave stdout for spinner
-            with silence_output():
-                assign_taxonomy(params, data, raw_data_tables, reporter)
+        with perf_log.step("assign_taxonomy"):
+            with console.status("Running Taxonomic Assignment...", spinner="dots"):
+                # Suppress logs/errors but leave stdout for spinner
+                with silence_output():
+                    assign_taxonomy(params, data, raw_data_tables, reporter)
         console.print("[green]Finished Taxonomic Assignment.[/]")
         if params.get('taxonomic_api_source') == 'WoRMS':
             stats = params.get('worms_walkup_stats')
@@ -1629,161 +1674,170 @@ def main():
                     f"max_step_used={stats.get('max_step_used')}, "
                     f"no_acceptable_term_found={stats.get('no_acceptable_term_found')}"
                 )
-        
-        # Create taxa assignment info file
-        from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
-        with silence_output():
-            create_taxa_assignment_info(params, reporter)
-        
-        # After creating the GBIF info file, remove any duplicate rows
-        if params.get('taxonomic_api_source') == 'GBIF':
-            from taxonomic_assignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
-            with silence_output():
-                remove_duplicates_from_gbif_taxa_info(params, reporter)
 
-            from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
+        with perf_log.step("taxa_assignment_postprocess"):
+            # Create taxa assignment info file
+            from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
             with silence_output():
-                mark_selected_gbif_matches(params, reporter)
+                create_taxa_assignment_info(params, reporter)
 
-        elif params.get('taxonomic_api_source') == 'WoRMS':
-            from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
-            # Suppress internal prints while keeping spinner visible (spinner already ended here)
-            with silence_output():
-                mark_selected_worms_matches(params, reporter)
-            
-        # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.xlsx)
-        api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
-        final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
-        try:
-            if os.path.exists(final_occurrence_path):
-                # Read the file, remove match_type_debug column, and save back
-                final_df = pd.read_csv(final_occurrence_path)
-                if 'match_type_debug' in final_df.columns:
-                    final_df = final_df.drop(columns=['match_type_debug'])
-                    final_df.to_csv(final_occurrence_path, index=False, na_rep='')
-                    reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.xlsx)")
-        except Exception as e:
-            reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
-        
-        # Delete intermediate occurrence.csv file
-        intermediate_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), 'occurrence.csv')
-        try:
-            if os.path.exists(intermediate_occurrence_path):
-                os.remove(intermediate_occurrence_path)
-                reporter.add_text(f"Deleted intermediate file: {intermediate_occurrence_path}")
-        except Exception as e:
-            reporter.add_text(f"Warning: Could not delete intermediate occurrence.csv: {e}")
-        
+            # After creating the GBIF info file, remove any duplicate rows
+            if params.get('taxonomic_api_source') == 'GBIF':
+                from taxonomic_assignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
+                with silence_output():
+                    remove_duplicates_from_gbif_taxa_info(params, reporter)
+
+                from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
+                with silence_output():
+                    mark_selected_gbif_matches(params, reporter)
+
+            elif params.get('taxonomic_api_source') == 'WoRMS':
+                from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
+                # Suppress internal prints while keeping spinner visible (spinner already ended here)
+                with silence_output():
+                    mark_selected_worms_matches(params, reporter)
+
+        with perf_log.step("occurrence_core_postprocess"):
+            # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.xlsx)
+            api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
+            final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
+            try:
+                if os.path.exists(final_occurrence_path):
+                    # Read the file, remove match_type_debug column, and save back
+                    final_df = pd.read_csv(final_occurrence_path)
+                    if 'match_type_debug' in final_df.columns:
+                        final_df = final_df.drop(columns=['match_type_debug'])
+                        final_df.to_csv(final_occurrence_path, index=False, na_rep='')
+                        reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.xlsx)")
+            except Exception as e:
+                reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
+
+            # Delete intermediate occurrence.csv file
+            intermediate_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), 'occurrence.csv')
+            try:
+                if os.path.exists(intermediate_occurrence_path):
+                    os.remove(intermediate_occurrence_path)
+                    reporter.add_text(f"Deleted intermediate file: {intermediate_occurrence_path}")
+            except Exception as e:
+                reporter.add_text(f"Warning: Could not delete intermediate occurrence.csv: {e}")
+
         # Create DNA derived extension
         console.print("Creating DNA derived extension...")
-        with silence_output():
-            create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter)
+        with perf_log.step("create_dna_derived_extension"):
+            with silence_output():
+                create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurrence_core, all_processed_occurrence_dfs, checklist_df, reporter)
         
         # Create eMoF file (optional)
         if params.get('emof_enabled', True):
             console.print("Creating eMoF (extendedMeasurementOrFact)...")
-            try:
-                with silence_output():
-                    emof_path = create_emof_table(params, occurrence_core, data, reporter)
-                reporter.add_text(f"eMoF saved to: {emof_path}")
-            except Exception as e:
-                reporter.add_warning(f"eMoF creation failed: {e}")
+            with perf_log.step("create_emof_table"):
+                try:
+                    with silence_output():
+                        emof_path = create_emof_table(params, occurrence_core, data, reporter)
+                    reporter.add_text(f"eMoF saved to: {emof_path}")
+                except Exception as e:
+                    reporter.add_warning(f"eMoF creation failed: {e}")
         else:
-            reporter.add_text("Skipping eMoF creation per config (emof_enabled=false)")
-        
+            with perf_log.step("create_emof_table_skipped"):
+                reporter.add_text("Skipping eMoF creation per config (emof_enabled=false)")
+
         # Create EML file (optional)
         if params.get('eml_enabled', False):
             console.print("Creating EML (Ecological Metadata Language) file...")
-            try:
-                from create_EML.EML_builder import create_eml_file
-                with silence_output():
-                    eml_path = create_eml_file(params, data, reporter)
-                reporter.add_text(f"EML saved to: {eml_path}")
-            except Exception as e:
-                reporter.add_warning(f"EML creation failed: {e}")
+            with perf_log.step("create_eml_file"):
+                try:
+                    from create_EML.EML_builder import create_eml_file
+                    with silence_output():
+                        eml_path = create_eml_file(params, data, reporter)
+                    reporter.add_text(f"EML saved to: {eml_path}")
+                except Exception as e:
+                    reporter.add_warning(f"EML creation failed: {e}")
         else:
-            reporter.add_text("Skipping EML creation per config (eml_enabled=false)")
+            with perf_log.step("create_eml_file_skipped"):
+                reporter.add_text("Skipping EML creation per config (eml_enabled=false)")
         
         # --- Final File Validation ---
-        reporter.add_section("Final File Validation", level=3)
-        output_dir = params.get('output_dir', 'processed-v3/')
-        api_choice = params.get("taxonomic_api_source", "worms")
-        
-        files_to_validate = [
-            f'occurrence_core_{api_choice.lower()}.csv',
-            f'taxa_assignment_INFO_{api_choice}.xlsx',
-            'dna_derived_extension.csv'
-        ]
-        if params.get('emof_enabled', True):
-            files_to_validate.append('eMoF.csv')
-        if params.get('eml_enabled', False):
-            files_to_validate.append('eml.xml')
-        if not params.get('split_output_by_short_name', False):
-            files_to_validate.append('meta.xml')
+        with perf_log.step("final_output_validation"):
+            reporter.add_section("Final File Validation", level=3)
+            output_dir = params.get('output_dir', 'processed-v3/')
+            api_choice = params.get("taxonomic_api_source", "worms")
 
-        all_empty_columns_summary = []
-        removed_columns_summary = []
-        for filename in files_to_validate:
-            filepath = os.path.join(output_dir, filename)
-            if os.path.exists(filepath):
-                try:
-                    if filename.lower().endswith('.xml'):
-                        # Validate XML structure instead of reading as CSV
-                        ET.parse(filepath)
-                    elif filename.lower().endswith('.xlsx'):
-                        from taxonomic_assignment.taxa_assignment_info_export import (
-                            read_taxa_assignment_info_dataframe,
-                            write_taxa_assignment_info_xlsx,
-                        )
-                        df = read_taxa_assignment_info_dataframe(filepath)
-                        empty_columns = [col for col in df.columns if df[col].isna().all()]
-                        if empty_columns:
-                            for col in empty_columns:
-                                reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
-                                all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
-                        if empty_columns:
-                            df.drop(columns=empty_columns, inplace=True)
-                            write_taxa_assignment_info_xlsx(df, filepath)
-                            for col in empty_columns:
-                                removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
-                    else:
-                        sep = '\t' if filename.lower().endswith('.tsv') else ','
-                        df = pd.read_csv(filepath, sep=sep, low_memory=False)
-                        
-                        # Existing empty column check (for reporting)
-                        empty_columns = [col for col in df.columns if df[col].isna().all()]
-                        if empty_columns:
-                            for col in empty_columns:
-                                reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
-                                all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
-                        
-                        # --- NEW: Remove empty columns and overwrite file ---
-                        if empty_columns:
-                            df.drop(columns=empty_columns, inplace=True)
-                            df.to_csv(filepath, index=False, sep=sep, encoding='utf-8-sig')
-                            for col in empty_columns:
-                                removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
+            files_to_validate = [
+                f'occurrence_core_{api_choice.lower()}.csv',
+                f'taxa_assignment_INFO_{api_choice}.xlsx',
+                'dna_derived_extension.csv'
+            ]
+            if params.get('emof_enabled', True):
+                files_to_validate.append('eMoF.csv')
+            if params.get('eml_enabled', False):
+                files_to_validate.append('eml.xml')
+            if not params.get('split_output_by_short_name', False):
+                files_to_validate.append('meta.xml')
 
-                except Exception as e:
-                    reporter.add_warning(f"Could not validate or clean file '{filename}': {e}")
-        
-        if not all_empty_columns_summary:
-            reporter.add_success("Validation complete: No empty columns found in final output files.")
-        else:
-            # This report section now serves as a pre-cleanup warning
-            reporter.add_list(all_empty_columns_summary, "<h4>Summary of All Empty Columns Found (and subsequently removed):</h4>")
+            all_empty_columns_summary = []
+            removed_columns_summary = []
+            for filename in files_to_validate:
+                filepath = os.path.join(output_dir, filename)
+                if os.path.exists(filepath):
+                    try:
+                        if filename.lower().endswith('.xml'):
+                            # Validate XML structure instead of reading as CSV
+                            ET.parse(filepath)
+                        elif filename.lower().endswith('.xlsx'):
+                            from taxonomic_assignment.taxa_assignment_info_export import (
+                                read_taxa_assignment_info_dataframe,
+                                write_taxa_assignment_info_xlsx,
+                            )
+                            df = read_taxa_assignment_info_dataframe(filepath)
+                            empty_columns = [col for col in df.columns if df[col].isna().all()]
+                            if empty_columns:
+                                for col in empty_columns:
+                                    reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
+                                    all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+                            if empty_columns:
+                                df.drop(columns=empty_columns, inplace=True)
+                                write_taxa_assignment_info_xlsx(df, filepath)
+                                for col in empty_columns:
+                                    removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
+                        else:
+                            sep = '\t' if filename.lower().endswith('.tsv') else ','
+                            df = pd.read_csv(filepath, sep=sep, low_memory=False)
 
-        # --- Report on removed columns ---
-        if removed_columns_summary:
-            reporter.add_section("Empty Column Cleanup", level=3)
-            reporter.add_success("Removed completely empty columns from the final output files.")
-            reporter.add_list(removed_columns_summary, "<h4>Summary of Removed Columns:</h4>")
+                            # Existing empty column check (for reporting)
+                            empty_columns = [col for col in df.columns if df[col].isna().all()]
+                            if empty_columns:
+                                for col in empty_columns:
+                                    reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
+                                    all_empty_columns_summary.append(f"File: <code>{filename}</code>, Column: <code>{col}</code>")
+
+                            # --- NEW: Remove empty columns and overwrite file ---
+                            if empty_columns:
+                                df.drop(columns=empty_columns, inplace=True)
+                                df.to_csv(filepath, index=False, sep=sep, encoding='utf-8-sig')
+                                for col in empty_columns:
+                                    removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
+
+                    except Exception as e:
+                        reporter.add_warning(f"Could not validate or clean file '{filename}': {e}")
+
+            if not all_empty_columns_summary:
+                reporter.add_success("Validation complete: No empty columns found in final output files.")
+            else:
+                # This report section now serves as a pre-cleanup warning
+                reporter.add_list(all_empty_columns_summary, "<h4>Summary of All Empty Columns Found (and subsequently removed):</h4>")
+
+            # --- Report on removed columns ---
+            if removed_columns_summary:
+                reporter.add_section("Empty Column Cleanup", level=3)
+                reporter.add_success("Removed completely empty columns from the final output files.")
+                reporter.add_list(removed_columns_summary, "<h4>Summary of Removed Columns:</h4>")
 
         # --- Split output files by short_name (cruise/expedition) if enabled ---
         if params.get('split_output_by_short_name', False):
             console.print("Splitting output files by short_name (cruise/expedition)...")
             try:
-                split_output_files_by_short_name(params, data, reporter)
+                with perf_log.step("split_output_files_by_short_name"):
+                    split_output_files_by_short_name(params, data, reporter)
                 console.print("[green]Output files split successfully![/]")
             except Exception as e:
                 console.print(f"[bold red]Failed to split output files: {e}[/]")
@@ -1791,23 +1845,29 @@ def main():
                 # Re-raise to stop the pipeline since user explicitly requested splitting
                 raise
         else:
-            console.print("Skipping output file splitting (split_output_by_short_name=false)")
-            reporter.add_text("Skipping output file splitting (split_output_by_short_name=false)")
-            # Create Darwin Core Archive meta.xml in the run output folder (submission-ready)
-            try:
-                core_fn = f"occurrence_core_{api_choice.lower()}.csv"
-                ext_fns = ["dna_derived_extension.csv"]
-                if params.get("emof_enabled", True) and os.path.exists(os.path.join(output_dir, "eMoF.csv")):
-                    ext_fns.append("eMoF.csv")
-                create_meta_xml(
-                    output_dir=output_dir,
-                    core_filename=core_fn,
-                    extension_filenames=ext_fns,
-                    metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
-                    reporter=reporter,
-                )
-            except Exception as e:
-                reporter.add_warning(f"meta.xml creation failed: {e}")
+            with perf_log.step("create_meta_xml"):
+                console.print("Skipping output file splitting (split_output_by_short_name=false)")
+                reporter.add_text("Skipping output file splitting (split_output_by_short_name=false)")
+                # Create Darwin Core Archive meta.xml in the run output folder (submission-ready)
+                try:
+                    core_fn = f"occurrence_core_{api_choice.lower()}.csv"
+                    ext_fns = ["dna_derived_extension.csv"]
+                    if params.get("emof_enabled", True) and os.path.exists(os.path.join(output_dir, "eMoF.csv")):
+                        ext_fns.append("eMoF.csv")
+                    create_meta_xml(
+                        output_dir=output_dir,
+                        core_filename=core_fn,
+                        extension_filenames=ext_fns,
+                        metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
+                        reporter=reporter,
+                    )
+                except Exception as e:
+                    reporter.add_warning(f"meta.xml creation failed: {e}")
+
+        perf_log.set_output_file_metrics(params)
+        perf_path = perf_log.write(success=True)
+        if perf_path:
+            console.print(f"Run performance log: {perf_path}")
 
         # --- Final Status Check ---
         # If any warnings were logged during the run, set the final status to WARNING
@@ -1875,6 +1935,13 @@ def main():
         import traceback
         reporter.add_text(traceback.format_exc())
         reporter.set_status("FAILED", error_msg)
+        try:
+            perf_log.set_output_file_metrics(params)
+        except Exception:
+            pass
+        perf_path = perf_log.write(success=False, error_message=str(e))
+        if perf_path:
+            console.print(f"Run performance log: {perf_path}")
         raise
     
     finally:

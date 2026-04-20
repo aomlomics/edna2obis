@@ -10,7 +10,7 @@
 # If left blank or set to 'config.yaml', this file will be used.
 run_config_path: "config.yaml"
 metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
-edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
+edna2obis_run_name: "EXAMPLE_OUTPUT_NOAA_OER_OKEANOS" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
 
 # ================================STEP 2========================================
@@ -26,25 +26,40 @@ projectMetadata: "projectMetadata"
 excel_file: "raw-v3/clement_testing/FAIRe-NOAA_noaa-oer-okeanos.xlsx"
 
 # When combined_metadata_file: false = separate TSV files (one path per sheet)
-sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
-experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
-projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
+sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/FAIRe_FAIRe-NOAA_noaa-oer-okeanos-sampleMetadata.tsv"
+experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/FAIRe_FAIRe-NOAA_noaa-oer-okeanos-experimentRunMetadata.tsv"
+projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/FAIRe_FAIRe-NOAA_noaa-oer-okeanos-projectMetadata.tsv"
 
 # ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 # For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
 # If your metadata sheets are all in the same Excel file, you do NOT need to include 'analysisMetadata_file' for each run.
 datafiles:
-  rosel-ctd-mifish-addMFtrawlJfish-241001:
-    assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-  rosel-ctd-riaz-addMFtrawlJfish-241001:
-    assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+  OKEX2107part_18S_naive_bayes_pr2_v5.0.0_18Sv4_20251113:
+    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2107/03_OKEX2107part_18S_naive-bayes_pr2_v5.0.0_20251113-filtered_asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2107/02_OKEX2107part_18S_18Sv4_20251112-filtered_table.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2107/analysisMetadata_OKEX2107part_18S_naive-bayes_pr2_v5.0.0_20251113.tsv"
+  EX2206_18S_naive_bayes_pr2_v5.0.0_18Sv4_20251113:
+    assay_name: "Eukarya-18S-V4-Stoeck-Piredda"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2206/03_EX2206_18S_naive-bayes_pr2_v5.0.0_20251113-filtered_asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2206/02_EX2206_18S_18Sv4_20251112-filtered_table.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2206/analysisMetadata_EX2206_18S_naive-bayes_pr2_v5.0.0_20251113.tsv"
+  OKEX2203_CTD_COI_naive_bayes_rcrux_CO1_no_NA_insect_amphib_uniq_20250626:
+    assay_name: "Metazoa-COI-Leray-Geller"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2203/03_OKEX2203_CTD_COI_merged_rcrux_CO1_no_NA_insect_amphib_uniq-filtered_asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2203/02_OKEX2203_CTD_COI_20250505-filtered_table.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2203/analysisMetadata_OKEX2203_CTD_COI_merged_rcrux_CO1_no_NA_insect_amphib_uniq_20250514.tsv"
+  OKEX2301_ROV-D2_12S_naive_bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103:
+    assay_name: "Fish-12S-MiFish-U-Miya"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/03_OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103-filtered_asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/02_OKEX2301_ROV-D2_12S_20251103-filtered_table.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/analysisMetadata_OKEX2301_ROV-D2_12S_naive-bayes_rc_12S_efc_KSfilt-addSI-addMF-derepU_20251103.tsv"
+  OKEX2301_ROV-D2_18S_naive_bayes_rcrux-18Sv9_20251113:
+    assay_name: "Eukarya-18S-V9-Lane-Medlin"
+    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/03_OKEX2301_ROV-D2_18S_naive-bayes_rcrux-18Sv9_20251113-filtered_asv_taxa_features.tsv"
+    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/02_OKEX2301_ROV-D2_18S_18Sv9_20251112-filtered_table.tsv"
+    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_large/Cruise_OKEX2301/analysisMetadata_OKEX2301_ROV-D2_18S_naive-bayes_rcrux-18Sv9_20251113.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
@@ -118,7 +133,7 @@ worms_consider_unaccepted_for_selection: false
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
 # so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
-worms_return_higher_classification: true
+worms_return_higher_classification: false
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -143,13 +158,13 @@ output_dir: "processed-v3/"
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
+emof_template_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: false
-eml_config_path: "raw-v3/EML_config.yaml"
+eml_enabled: true
+eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)
@@ -173,3 +188,6 @@ eml_config_path: "raw-v3/EML_config.yaml"
 # When split_output_by_short_name is false, occurrenceID always uses project_id for that segment
 # (short_name is not used in occurrenceID).
 split_output_by_short_name: true
+
+# When true, writes a plain-text run timing / size report next to other outputs (edna2obis_run_performance_*.txt).
+include_performance_metrics_in_output: false
