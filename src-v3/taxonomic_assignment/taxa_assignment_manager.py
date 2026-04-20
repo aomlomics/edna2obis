@@ -176,6 +176,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                         params_dict=params,
                         n_proc=params.get('worms_n_proc', 0)
                     )
+                if params.get('worms_n_proc_effective', 0) >= 8:
+                    reporter.add_warning(
+                        f"WoRMS used {params['worms_n_proc_effective']} parallel workers — may hit API rate limits or errors."
+                    )
                 matched_df = worms_results['main_df']
                 # Store the detailed info df in params to pass it to the next function
                 params['taxa_info_df'] = worms_results['info_df']

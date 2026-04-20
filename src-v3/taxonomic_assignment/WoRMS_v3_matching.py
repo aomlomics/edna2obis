@@ -572,11 +572,13 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     }
 
     if n_proc == 0:
-        n_proc = min(3, mp.cpu_count())
+        n_proc = min(10, mp.cpu_count())
     else:
-        n_proc = min(n_proc, 3)
-    
-    logging.info(f"Using {n_proc} processes for WoRMS matching (max 3 recommended)")
+        n_proc = min(int(n_proc), 10)
+    params_dict['worms_n_proc_effective'] = n_proc
+    logging.info(f"Using {n_proc} processes for WoRMS matching (capped at 10)")
+    if n_proc >= 8:
+        logging.warning("WoRMS: %s parallel workers — may hit API rate limits or errors", n_proc)
 
     df_to_process = occurrence_df.copy()
     # Safe string conversion (avoids Mac/pandas dtype 'str' error)

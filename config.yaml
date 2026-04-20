@@ -140,8 +140,8 @@ use_local_reference_database: false  # or false
 local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
 
 # Optional parameters (will use defaults if not specified)
-# Number of processes for matching (0 means use all available CPUs)
-worms_n_proc: 0
+# Number of processes for matching (maximum is 10. Performanmce improvement is negligible beyond 8)
+worms_n_proc: 4
 gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
@@ -157,13 +157,13 @@ output_dir: "processed-v3/"
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
-emof_enabled: true
+emof_enabled: false
 emof_template_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: true
+eml_enabled: false
 eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_config.yaml"
 
 # ================================STEP 10========================================
@@ -187,7 +187,7 @@ eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_c
 # segment of occurrenceID aligned with your project namespace when splitting is enabled.
 # When split_output_by_short_name is false, occurrenceID always uses project_id for that segment
 # (short_name is not used in occurrenceID).
-split_output_by_short_name: true
+split_output_by_short_name: false
 
 # When true, writes a plain-text run timing / size report next to other outputs (edna2obis_run_performance_*.txt).
-include_performance_metrics_in_output: false
+include_performance_metrics_in_output: true

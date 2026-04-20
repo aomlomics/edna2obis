@@ -125,8 +125,8 @@ use_local_reference_database: false  # or false
 local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
 
 # Optional parameters (will use defaults if not specified)
-# Number of processes for matching (0 means use all available CPUs)
-worms_n_proc: 0
+# Number of processes for matching (maximum is 10. Performanmce improvement is negligible beyond 8)
+worms_n_proc: 4
 gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
