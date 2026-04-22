@@ -239,6 +239,10 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
             for analysis_run_name, analysis_df in analysis_runs.items():
                 reporter.add_text(f"Processing Analysis Run: {analysis_run_name}")
                 try:
+                    # --- Find the correct raw data for this run ---
+                    # For NOAA mode, analysis_run_name comes from the Excel sheet.
+                    # For GENERIC mode, analysis_run_name is the key from config.yaml.
+                    # raw_data_tables is always keyed by the name from config.yaml.
                     raw_data_key = analysis_run_name
                     if params.get('metadata_format') == 'NOAA':
                         # NOAA (Excel/TSV) mode can have multiple analyses sharing the same assay_name.
@@ -294,7 +298,9 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     if 'featureid' in current_abundance_df_raw.columns:
                         current_abundance_df_raw['featureid'] = current_abundance_df_raw['featureid'].astype(str).str.strip()
 
-                    tax_source_faire_terms = {'featureid'}
+                    # --- NEW, MAPPER-DRIVEN LOGIC ---
+                    # 1. Identify all faire_terms sourced from 'taxonomy' and create a rename map
+                    tax_source_faire_terms = {'featureid'}  # Always include featureid
                     rename_map_for_tax = {}
                     
                     DWC_RANKS_ORDER = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'scientificName']
@@ -317,7 +323,9 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     current_tax_df_processed = current_tax_df_raw[final_cols_to_keep].copy()
 
                     current_tax_df_processed.rename(columns=rename_map_for_tax, inplace=True)
-
+                    
+                    # --- STEP 2: Melt Abundance and Merge with Taxonomy ---
+                    # Abundance table columns may be lib_id or (legacy) samp_name
                     current_assay_occ_melted = pd.melt(
                         current_abundance_df_raw, id_vars=['featureid'],
                         var_name='lib_id', value_name='organismQuantity'
@@ -393,6 +401,8 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                             current_assay_occurrence_intermediate_df['verbatimIdentification'] = \
                                 current_assay_occurrence_intermediate_df['verbatimIdentification'].fillna(joined_series)
 
+
+                    # --- STEP 3: Initialize ALL DwC Fields from the mapper ---
                     for col in DESIRED_OCCURRENCE_COLUMNS_IN_ORDER:
                         if col not in current_assay_occurrence_intermediate_df.columns:
                              current_assay_occurrence_intermediate_df[col] = pd.NA
@@ -408,10 +418,12 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     current_assay_occurrence_intermediate_df['license'] = project_license
                     current_assay_occurrence_intermediate_df['institutionID'] = project_institution_id
 
+                    # --- STEP 4: Assign Project-Level Metadata ---
                     current_assay_occurrence_intermediate_df['recordedBy'] = project_recorded_by
                     current_assay_occurrence_intermediate_df['datasetID'] = project_dataset_id
 
-                    # In NOAA mode, analysis_run_name (from analysisMetadata D4 / TSV) is NOT the config key,
+                    # --- STEP 5: Merge `experimentRunMetadata` first (on lib_id) to get samp_name and ERM fields ---
+                    # IMPORTANT: In NOAA mode, analysis_run_name (from analysisMetadata D4 / TSV) is NOT the config key,
                     # so using it to look up params['datafiles'][analysis_run_name] is unreliable.
                     # We are already iterating within a specific assay_name group, so treat that as authoritative here.
                     final_assay_name = str(assay_name).strip() if assay_name is not None else None
@@ -483,6 +495,8 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                     else:
                         reporter.add_warning(f"  Warning: 'experimentRunMetadata' is empty or not found. Cannot merge for ERM fields for run {analysis_run_name}.")
 
+                    # --- STEP 5b: Merge `sampleMetadata` (on samp_name from ERM) and map FAIRe terms to DwC terms ---
+                    # --- STEP 5b: Merge `sampleMetadata` (on samp_name from ERM) and map FAIRe terms to DwC terms ---
                     if 'sampleMetadata' in data and not data['sampleMetadata'].empty:
                         sm_df_to_merge = data['sampleMetadata'].copy()
                         sm_df_to_merge['samp_name'] = sm_df_to_merge['samp_name'].astype(str).str.strip()
