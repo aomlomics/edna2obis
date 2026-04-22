@@ -9,10 +9,8 @@ import sys
 import os
 import pickle
 
-# Set up logging to provide clear progress updates
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Standard Darwin Core ranks used for structuring the output
 DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
 
 # Ordered WoRMS lineage fields used to build Darwin Core's `higherClassification`.
@@ -367,25 +365,20 @@ def parse_semicolon_taxonomy(tax_string):
     """
     if pd.isna(tax_string) or not str(tax_string).strip():
         return []
-    
-    # Fast string cleaning with chained replacements
+
     cleaned_string = str(tax_string).replace('_', ' ').replace('-', ' ').replace('/', ' ')
-    
-    # Split and clean in one pass
+
     cleaned_names = []
     for name in cleaned_string.split(';'):
         name = name.strip()
         if not name or name.lower() == 'unassigned':
             continue
-            
-        # Fast cleaning without regex
+
         name = name.replace(' sp.', '').replace(' spp.', '')
-        
-        # Remove numbers - only use regex once per name if needed
+
         if any(char.isdigit() for char in name):
             name = re.sub(r'\d+', '', name)
-        
-        # Collapse multiple spaces - only if needed
+
         if '  ' in name:
             name = re.sub(r'\s+', ' ', name)
         

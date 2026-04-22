@@ -16,8 +16,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
     try:
         reporter.add_section("Creating DNA Derived Extension")
 
-        # --- Load Mapper Config (MOVED TO TOP) ---
-        # This must be loaded first to drive all subsequent logic
         import yaml
         with open('data_mapper.yaml', 'r', encoding='utf-8') as f:
             full_mapper = yaml.safe_load(f)
@@ -27,9 +25,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         dna_derived_map_config = full_mapper.get(dna_derived_key, {})
         DESIRED_DNA_DERIVED_COLUMNS = list(dna_derived_map_config.keys())
 
-        # --- START FROM OCCURRENCE CORE ---
-        # DNA derived extension should have ONE ROW PER OCCURRENCE (one-to-one with occurrence core)
-        # NOT one row per unique ASV!
         reporter.add_text("Building DNA derived extension from occurrence core (one row per occurrence)...")
         
         # Determine which ID field to use (GBIF uses taxonID, WoRMS uses scientificNameID)
@@ -50,8 +45,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         reporter.add_text(f"Starting with {len(dna_derived_base)} occurrence records.")
         
-        # The dataframe is now passed in with all necessary columns from the occurrence_builder's
-        # pass-through logic. We no longer need to perform complex merges here.
         dna_derived_df_final = dna_derived_base.copy()
 
         # Bring through pass-through fields preserved in the occurrence core
@@ -176,7 +169,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         reporter.add_text(f"Shape after all merges: {dna_derived_df_final.shape}")
         
-        # --- STEP W: Merge Metadata using eventID (REVISED LOGIC) ---
         reporter.add_section("Merging Sample and Experiment Metadata", level=3)
         try:
             # 1. Check for necessary dataframes
@@ -345,13 +337,8 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             import traceback
             reporter.add_warning(f"Traceback: {traceback.format_exc()}")
 
-        # --- STEP X: Handle Units (Safe and non-destructive) ---
         reporter.add_text("Applying specific unit logic...")
-        
-        # This logic runs after the main data merge. It proactively looks for original
-        # unit columns (e.g., 'samp_size_unit') and prepares them for combination.
-        # It does NOT rely on the data_mapper.yaml to load these, making it robust.
-        
+
         # 1) concentrationUnit: Stays as a separate column.
         if 'concentration_unit' in dna_derived_df_final.columns:
             dna_derived_df_final['concentrationUnit'] = dna_derived_df_final['concentration_unit'].fillna('ng/µl')
@@ -385,7 +372,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             dna_derived_df_final['samp_size_unit'] = ''
             reporter.add_warning("'samp_size_unit' column not found in metadata. Units for 'samp_size' will be empty.")
             
-        # --- Combine value and unit columns ---
         reporter.add_text("Combining specified value and unit fields...")
         
         # Define which value/unit pairs to combine
@@ -415,7 +401,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
             dna_derived_df_final.drop(columns=cols_to_drop_after_combine, inplace=True)
             reporter.add_text(f"Dropped combined unit columns: {cols_to_drop_after_combine}")
     
-        # --- STEP Y: Populate fields from projectMetadata & analysisMetadata (REWRITTEN) ---
         reporter.add_text("Processing project and analysis metadata fields...")
         
         # Helper: resolve actual column names in a source DataFrame for given faire_terms
@@ -540,7 +525,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                 dna_derived_df_final[dwc_term] = values_to_apply
                 reporter.add_text(f"Populated '{dwc_term}' from analysisMetadata (faire_term: '{faire_term}')")
         
-        # --- SPECIAL LOGIC: Construct pcr_primer_reference ---
+        # pcr_primer_reference from primer names + links when present
         reporter.add_text("Constructing 'pcr_primer_reference' field...")
         fwd_series = get_meta_value_series('pcr_primer_reference_forward', data['projectMetadata'], dna_derived_df_final['assay_name'])
         rev_series = get_meta_value_series('pcr_primer_reference_reverse', data['projectMetadata'], dna_derived_df_final['assay_name'])
@@ -554,7 +539,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         dna_derived_df_final['pcr_primer_reference'] = [combine_references(f, r) for f, r in zip(fwd_series, rev_series)]
         
-        # --- SPECIAL LOGIC: Concatenate otu_db and otu_db_custom ---
+        # otu_db + otu_db_custom (same rule as occurrence core)
         reporter.add_text("Constructing 'otu_db' field from 'otu_db' and 'otu_db_custom'...")
         try:
             # First, ensure 'otu_db' is populated if it's in the mapper
@@ -588,7 +573,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         except Exception as e:
             reporter.add_warning(f"Could not combine otu_db fields: {e}")
         
-        # --- SPECIAL LOGIC: Construct adapters field ---
+        # adapters field from forward/reverse when present
         reporter.add_text("Constructing 'adapters' field...")
         try:
             fwd_series = get_meta_value_series('adapter_forward', data['projectMetadata'], dna_derived_df_final['assay_name'])
@@ -607,7 +592,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         except Exception as e:
             reporter.add_warning(f"Could not construct adapters field: {e}")
         
-        # --- FINAL STEP: Select and Order Columns ---
         
         # Now apply the mapper to select and rename columns from the merged data
         reporter.add_text("Applying Darwin Core mappings...")
@@ -624,7 +608,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         
         final_df.rename(columns=rename_map, inplace=True)
         
-        # --- Ensure we have all required columns and order them correctly ---
         # The mapper is the AUTHORITATIVE source. Only include what's in the mapper, in that exact order.
         final_ordered_columns = []
         for col in DESIRED_DNA_DERIVED_COLUMNS:
@@ -650,7 +633,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         final_columns_that_exist = [col for col in final_ordered_columns if col in final_df.columns]
         dna_derived_extension = final_df[final_columns_that_exist]
         
-        # --- FINAL DE-DUPLICATION ---
         # Drop any fully duplicate rows that might have been created during merges
         initial_rows = len(dna_derived_extension)
         # Avoid silent data loss: only remove fully identical rows.
