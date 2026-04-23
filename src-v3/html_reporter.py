@@ -156,11 +156,14 @@ class HTMLReporter:
                     else:
                         df = pd.read_csv(filepath)
                     
+                    # Re-create the HTML content for this section, just like in add_dataframe
+                    # This assumes the title is in an h4 tag from the original add_dataframe call
                     title_html = section['content'].split("</h4>")[0] + "</h4>"
                     
                     new_content = title_html
                     new_content += f"<p><strong>Shape:</strong> {df.shape[0]:,} rows × {df.shape[1]} columns</p>"
                     
+                    # Always limit to 20 rows maximum for display
                     if len(df) > 20:
                         df_display = df.head(20)
                         table_html = df_display.to_html(classes="table table-striped", escape=False)
@@ -171,6 +174,7 @@ class HTMLReporter:
                     scroll_hint = '<p><small><em>Tip: Scroll horizontally if table extends beyond view</em></small></p>' if df.shape[1] > 6 else ''
                     new_content += f'<div class="table-container">{table_html}</div>{scroll_hint}'
                     
+                    # Update the section's content in place
                     section['content'] = new_content
                     print(f"Successfully updated report section for '{title_identifier}'.")
                     found_and_updated = True

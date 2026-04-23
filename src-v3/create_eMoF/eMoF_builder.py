@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import os
 import csv
+import heapq
+import tempfile
 from typing import Dict, List, Tuple
 
 import pandas as pd
@@ -51,6 +53,88 @@ def _normalize_str(val) -> str:
 
 def _case_insensitive_equal(a, b) -> bool:
     return _normalize_str(a).lower() == _normalize_str(b).lower()
+
+# Legacy function, not used anymore. Still remains here just in case we need it later.
+def _external_sort_emof_csv(path: str, chunk_size: int = 200000) -> None:
+    temp_chunk_paths: List[str] = []
+    temp_readers = []
+    temp_handles = []
+
+    def sort_key(row: Dict[str, object]) -> Tuple[str, str, str]:
+        return (
+            str(row.get('occurrenceID', '')),
+            str(row.get('measurementType', '')),
+            str(row.get('measurementValue', '')),
+        )
+
+    try:
+        with open(path, 'r', newline='', encoding='utf-8-sig') as src_f:
+            reader = csv.DictReader(src_f)
+            fieldnames = list(reader.fieldnames or EMOF_OUTPUT_COLUMNS_IN_ORDER)
+
+            chunk: List[Dict[str, object]] = []
+            for row in reader:
+                chunk.append(row)
+                if len(chunk) >= chunk_size:
+                    chunk.sort(key=sort_key)
+                    with tempfile.NamedTemporaryFile('w', delete=False, newline='', encoding='utf-8', suffix='.tmp', dir=os.path.dirname(path)) as tf:
+                        w = csv.DictWriter(tf, fieldnames=fieldnames)
+                        w.writeheader()
+                        w.writerows(chunk)
+                        temp_chunk_paths.append(tf.name)
+                    chunk = []
+
+            if chunk:
+                chunk.sort(key=sort_key)
+                with tempfile.NamedTemporaryFile('w', delete=False, newline='', encoding='utf-8', suffix='.tmp', dir=os.path.dirname(path)) as tf:
+                    w = csv.DictWriter(tf, fieldnames=fieldnames)
+                    w.writeheader()
+                    w.writerows(chunk)
+                    temp_chunk_paths.append(tf.name)
+
+        if not temp_chunk_paths:
+            return
+
+        out_sorted = f"{path}.sorted"
+        heap = []
+
+        for idx, p in enumerate(temp_chunk_paths):
+            h = open(p, 'r', newline='', encoding='utf-8')
+            temp_handles.append(h)
+            r = csv.DictReader(h)
+            temp_readers.append(r)
+            first = next(r, None)
+            if first is not None:
+                heapq.heappush(heap, (sort_key(first), idx, first))
+
+        with open(out_sorted, 'w', newline='', encoding='utf-8-sig') as out_f:
+            w = csv.DictWriter(out_f, fieldnames=fieldnames)
+            w.writeheader()
+            while heap:
+                _, idx, row = heapq.heappop(heap)
+                w.writerow(row)
+                nxt = next(temp_readers[idx], None)
+                if nxt is not None:
+                    heapq.heappush(heap, (sort_key(nxt), idx, nxt))
+
+        os.replace(out_sorted, path)
+    finally:
+        for h in temp_handles:
+            try:
+                h.close()
+            except Exception:
+                pass
+        for p in temp_chunk_paths:
+            try:
+                os.remove(p)
+            except Exception:
+                pass
+        sorted_tmp = f"{path}.sorted"
+        if os.path.exists(sorted_tmp):
+            try:
+                os.remove(sorted_tmp)
+            except Exception:
+                pass
 
 
 def _load_final_occurrence(params, reporter) -> pd.DataFrame:
@@ -226,6 +310,55 @@ def _prepare_join_frame_for_occurrence_measurement(
         out[unit_col] = join_df[unit_col]
 
     return out
+
+
+# COMMENTED OUT: Event-based eMoF function (not used since GBIF requires occurrence-based)
+# def _prepare_join_frame_for_measurement(
+#     meas_type: str,
+#     events_df: pd.DataFrame,
+#     source_name: str,
+#     source_df: pd.DataFrame,
+#     reporter,
+# ) -> pd.DataFrame:
+#     """Build a per-measurementType join frame limited to included events.
+# 
+#     Returns columns: eventID, value (the measurementType value), optional unit column (<meas_type>_unit) if present.
+#     """
+#     # Build the base join between events and the source sheet
+#     if source_name == 'sampleMetadata':
+#         if 'samp_name' not in source_df.columns:
+#             reporter.add_error("sampleMetadata missing required column 'samp_name'.")
+#             raise ValueError("sampleMetadata missing 'samp_name'")
+#         join_df = events_df.merge(
+#             source_df,
+#             left_on='samp_name',
+#             right_on='samp_name',
+#             how='left',
+#         )
+#     elif source_name == 'experimentRunMetadata':
+#         # events_df has eventID (lib_id); join directly to experimentRunMetadata on lib_id
+#         if 'lib_id' not in source_df.columns:
+#             reporter.add_error("experimentRunMetadata missing required column 'lib_id'.")
+#             raise ValueError("experimentRunMetadata missing 'lib_id'")
+#         join_df = events_df.merge(
+#             source_df,
+#             left_on='eventID',
+#             right_on='lib_id',
+#             how='left',
+#         )
+#     else:
+#         raise ValueError(f"Unknown source sheet '{source_name}'")
+# 
+#     # Prepare the minimal output
+#     out = pd.DataFrame()
+#     out['eventID'] = join_df['eventID']
+#     out['value'] = join_df[meas_type] if meas_type in join_df.columns else pd.NA
+# 
+#     unit_col = f"{meas_type}_unit"
+#     if unit_col in join_df.columns:
+#         out[unit_col] = join_df[unit_col]
+# 
+#     return out
 
 
 def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.DataFrame], reporter) -> str:

@@ -9,8 +9,10 @@ import sys
 import os
 import pickle
 
+# Set up logging to provide clear progress updates
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+# Standard Darwin Core ranks used for structuring the output
 DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species']
 
 # Ordered WoRMS lineage fields used to build Darwin Core's `higherClassification`.
@@ -45,6 +47,9 @@ WORMS_HIGHER_CLASSIFICATION_RANKS = [
     'species',
     'subspecies'
 ]
+
+# Parallel WoRMS classification fetches for higherClassification (I/O bound; cap limits API load).
+_HIGHER_CLASSIFICATION_MAX_WORKERS = 6
 
 
 def _format_environment(record):
@@ -217,7 +222,7 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
     cache = _load_higher_classification_cache(output_dir)
     ids_to_fetch = [scientific_name_id for scientific_name_id in unique_scientific_name_ids if scientific_name_id not in cache]
 
-    fetch_n_proc = min(max(int(n_proc or 1), 1), 3)
+    fetch_n_proc = min(max(int(n_proc or 1), 1), _HIGHER_CLASSIFICATION_MAX_WORKERS)
     if ids_to_fetch:
         logging.info(f"Fetching higherClassification for {len(ids_to_fetch)} uncached WoRMS taxa.")
 
@@ -365,20 +370,25 @@ def parse_semicolon_taxonomy(tax_string):
     """
     if pd.isna(tax_string) or not str(tax_string).strip():
         return []
-
+    
+    # Fast string cleaning with chained replacements
     cleaned_string = str(tax_string).replace('_', ' ').replace('-', ' ').replace('/', ' ')
-
+    
+    # Split and clean in one pass
     cleaned_names = []
     for name in cleaned_string.split(';'):
         name = name.strip()
         if not name or name.lower() == 'unassigned':
             continue
-
+            
+        # Fast cleaning without regex
         name = name.replace(' sp.', '').replace(' spp.', '')
-
+        
+        # Remove numbers - only use regex once per name if needed
         if any(char.isdigit() for char in name):
             name = re.sub(r'\d+', '', name)
-
+        
+        # Collapse multiple spaces - only if needed
         if '  ' in name:
             name = re.sub(r'\s+', ' ', name)
         
@@ -874,13 +884,16 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         results_df = pd.DataFrame(mapped_results.to_list(), index=df_to_process.index)
     info_df = pd.DataFrame(info_records)
 
+    params_dict.pop('worms_higher_classification_seconds', None)
     if worms_return_higher_classification:
+        hc_t0 = time.perf_counter()
         _enrich_higher_classification_dataframes(
             source_df=results_df,
             target_dataframes=[results_df, info_df],
             output_dir=params_dict.get('output_dir', '.'),
-            n_proc=n_proc
+            n_proc=n_proc,
         )
+        params_dict['worms_higher_classification_seconds'] = time.perf_counter() - hc_t0
 
     if not results_df.empty:
         for col in results_df.columns:

@@ -123,6 +123,12 @@ class RunPerformanceLog:
     def set_output_file_metrics(self, params: dict[str, Any]) -> None:
         out = params.get("output_dir", "processed-v3/")
         api = str(params.get("taxonomic_api_source", "WoRMS")).lower()
+        hc_seconds = params.get("worms_higher_classification_seconds")
+        if hc_seconds is not None:
+            try:
+                self.metrics["worms_higher_classification_seconds"] = float(hc_seconds)
+            except (TypeError, ValueError):
+                pass
         paths = {
             "occurrence_core": os.path.join(out, f"occurrence_core_{api}.csv"),
             "dna_derived_extension": os.path.join(out, "dna_derived_extension.csv"),
@@ -171,6 +177,11 @@ class RunPerformanceLog:
             lines.append(
                 f"sum_step_seconds\t{sum(s for _, s in self.steps):.4f}  (excludes gaps between steps and startup before first timed block)"
             )
+        hc_seconds = self.metrics.get("worms_higher_classification_seconds")
+        if isinstance(hc_seconds, (int, float)) and hc_seconds >= 0:
+            lines.append(
+                f"worms_higher_classification\t{hc_seconds:.4f}  (subset of assign_taxonomy when enabled)"
+            )
         lines.append("")
         lines.append("--- size_metrics ---")
         for k in sorted(self.metrics.keys()):
@@ -214,6 +225,15 @@ class RunPerformanceLog:
         _rate(
             "assign_taxonomy_per_1000_taxonomy_rows",
             step_map.get("assign_taxonomy", 0),
+            tax_rows / 1000.0,
+            "1k_taxonomy_rows",
+        )
+        hc_rate_seconds = m.get("worms_higher_classification_seconds", 0)
+        if not isinstance(hc_rate_seconds, (int, float)):
+            hc_rate_seconds = 0
+        _rate(
+            "worms_higher_classification_per_1000_taxonomy_rows",
+            hc_rate_seconds,
             tax_rows / 1000.0,
             "1k_taxonomy_rows",
         )
