@@ -484,11 +484,16 @@ def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict)
         ]
     else:
         final_column_order = [
-            'verbatimIdentification', 'cleanedTaxonomy', 'selected_match', 'environment',
+            'verbatimIdentification', 'cleanedTaxonomy', 'selected_match',
+            'ambiguous', 'replaced_unaccepted', 'unaccepted_match',
+            'ranks_matched', 'ranks_provided', 'assignment_score', 'environment',
             'scientificName', 'confidence', 'taxonRank', 'taxonID',
             'kingdom', 'phylum', 'class', 'order', 'family', 'genus',
             'match_type_debug', 'nameAccordingTo'
         ]
+        if params.get('gbif_return_higher_classification', False):
+            insert_after = final_column_order.index('taxonID') + 1
+            final_column_order.insert(insert_after, 'higherClassification')
 
     for col in final_column_order:
         if col not in taxa_info.columns:
@@ -511,8 +516,7 @@ def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict)
 def create_taxa_assignment_info(params, reporter):
     """
     Create a taxa_assignment_INFO.xlsx file (sheet taxa_assignment_INFO).
-    For WoRMS, this now includes all ambiguous matches and an 'ambiguous' flag.
-    For GBIF, it retains the original behavior of one row per unique verbatimIdentification.
+    For WoRMS and GBIF, this includes detailed candidate rows and an 'ambiguous' flag when available.
     """
     try:
         reporter.add_section("Creating Taxa Assignment Info File")
@@ -577,14 +581,14 @@ def create_taxa_assignment_info(params, reporter):
             "<li><b>selected_match:</b> (WoRMS and GBIF) <strong>Primary column to use when reading this file:</strong> True on the one row per <code>verbatimIdentification</code> that was chosen for the final occurrence file (or, for taxassign-only runs, the row that <em>would</em> be chosen in the full pipeline). Other rows are alternate candidates for review.</li>"
             "<li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li>"
             "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
-            "<li><b>ambiguous:</b> (WoRMS only) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
-            "<li><b>replaced_unaccepted:</b> (WoRMS only) True when WoRMS resolved an unaccepted name to its accepted valid name.</li>"
-            "<li><b>unaccepted_match:</b> (WoRMS only) True when this row is the unaccepted (queried) taxon shown so you can compare its assignment score to the accepted name. Whether it can be selected for the occurrence core is controlled by worms_consider_unaccepted_for_selection in config.</li>"
-            "<li><b>higherClassification:</b> (WoRMS only, optional) Pipe-separated higher-taxon lineage from WoRMS, used to preserve intermediate ranks without creating many sparse columns.</li>"
-            "<li><b>ranks_matched:</b> (WoRMS only) Count of verbatim lineage tokens found in the matched classification.</li>"
-            "<li><b>ranks_provided:</b> (WoRMS only) Total number of verbatim lineage tokens considered for scoring.</li>"
-            "<li><b>assignment_score:</b> (WoRMS only) Ratio = ranks_matched / ranks_provided.</li>"
-            "<li><b>environment:</b> (WoRMS only) Semicolon-separated WoRMS habitat labels for the selected match, such as marine or freshwater. Blank means WoRMS did not provide habitat data.</li>"
+            "<li><b>ambiguous:</b> (WoRMS and GBIF) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
+            "<li><b>replaced_unaccepted:</b> (WoRMS and GBIF) True when the service resolved an unaccepted or synonym name to its accepted valid name.</li>"
+            "<li><b>unaccepted_match:</b> (WoRMS and GBIF) True when this row is the unaccepted/synonym queried taxon shown for comparison with the accepted-name row.</li>"
+            "<li><b>higherClassification:</b> (WoRMS and GBIF) Pipe-separated higher-taxon lineage, used to preserve intermediate ranks without creating many sparse columns.</li>"
+            "<li><b>ranks_matched:</b> (WoRMS and GBIF) Count of verbatim lineage tokens found in the matched classification.</li>"
+            "<li><b>ranks_provided:</b> (WoRMS and GBIF) Total number of verbatim lineage tokens considered for scoring.</li>"
+            "<li><b>assignment_score:</b> (WoRMS and GBIF) Ratio = ranks_matched / ranks_provided. For GBIF, config option gbif_use_assignment_score_for_selection controls whether this score affects selected_match.</li>"
+            "<li><b>environment:</b> (WoRMS and GBIF when available) Semicolon-separated habitat labels, such as marine or freshwater. Blank means the service did not provide habitat data.</li>"
             "<li><b>consistency_check:</b> (GBIF only) A check to ensure the kingdom of the match is consistent with the kingdom in the verbatim string. Helps identify homonym errors.</li>"
             "</ul>"
         )

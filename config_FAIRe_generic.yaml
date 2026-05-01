@@ -86,6 +86,14 @@ taxonomic_api_source: "GBIF"
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.
 gbif_match_limit: 3
 
+# GBIF only: when true, use assignment_score (lineage consistency) before GBIF confidence when choosing selected_match.
+# When false, GBIF keeps the existing confidence-first selection behavior while still reporting assignment_score.
+gbif_use_assignment_score_for_selection: false
+
+# GBIF only: when true, adds Darwin Core's higherClassification column to taxa_assignment_INFO_GBIF
+# by calling GBIF's parents endpoint. Leave false unless you need the full lineage because it adds API calls.
+gbif_return_higher_classification: false
+
 # ================================STEP 7========================================
 # Define which assays should not consider 'species' rank in their taxonomic assignment.
 # This is because certain assays (for example, 16S) species' level assignments are not useful / correct.

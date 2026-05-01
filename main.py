@@ -166,6 +166,8 @@ def load_config(config_path="config.yaml"):
         params['worms_n_proc'] = config.get('worms_n_proc', 0)
         params['gbif_n_proc'] = config.get('gbif_n_proc', 0)
         params['gbif_match_limit'] = config.get('gbif_match_limit', 3)
+        params['gbif_use_assignment_score_for_selection'] = config.get('gbif_use_assignment_score_for_selection', False)
+        params['gbif_return_higher_classification'] = config.get('gbif_return_higher_classification', False)
         params['output_dir'] = config.get('output_dir', "processed-v3/")
         
         # eMoF options

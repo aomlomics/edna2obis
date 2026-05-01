@@ -28,6 +28,8 @@ TAXONOMY_CONFIG_KEYS = (
     'taxonomic_api_source',
     'assays_to_skip_species_match',
     'gbif_match_limit',
+    'gbif_use_assignment_score_for_selection',
+    'gbif_return_higher_classification',
     'worms_n_proc',
     'gbif_n_proc',
     'use_local_reference_database',

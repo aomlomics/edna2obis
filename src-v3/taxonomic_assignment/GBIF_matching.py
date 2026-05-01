@@ -12,6 +12,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 # --- Constants ---
 AMBIGUOUS_KINGDOMS = ['bacteria', 'plantae', 'fungi', 'animalia', 'archaea', 'protista', 'chromista']
+DWC_RANKS_STD = ['kingdom', 'phylum', 'class', 'order', 'family', 'genus']
+UNACCEPTED_GBIF_STATUSES = {
+    'SYNONYM',
+    'HETEROTYPIC_SYNONYM',
+    'HOMOTYPIC_SYNONYM',
+    'INTERMEDIATE_RANK_SYNONYM',
+    'PROPARTE_SYNONYM',
+    'MISAPPLIED',
+    'DETERMINATION_SYNONYM',
+}
 
 def parse_semicolon_taxonomy(tax_string):
     """
@@ -43,13 +53,141 @@ def parse_semicolon_taxonomy(tax_string):
     return cleaned_parts
 
 # --- Helper Functions ---
-def _build_result_dict(gbif_result, match_type='UNKNOWN'):
+def _normalize_taxon_token(value):
+    if value is None or pd.isna(value):
+        return ''
+    text = str(value).strip().lower()
+    text = re.sub(r'\s+', ' ', text)
+    return text
+
+
+def _compute_lineage_consistency(parsed_names, candidate_match):
+    if not parsed_names or not isinstance(candidate_match, dict):
+        return 0.0, 0, 0
+
+    ignore = {'eukaryota'}
+    verbatim_tokens = []
+    for token in parsed_names:
+        normalized = _normalize_taxon_token(token)
+        if normalized and normalized not in ignore:
+            verbatim_tokens.append(normalized)
+
+    verbatim_set = set(verbatim_tokens)
+    if not verbatim_set:
+        return 0.0, 0, 0
+
+    candidate_vals = set()
+    scientific_name = _normalize_taxon_token(candidate_match.get('scientificName'))
+    if scientific_name:
+        candidate_vals.add(scientific_name)
+
+    for rank in DWC_RANKS_STD:
+        value = _normalize_taxon_token(candidate_match.get(rank))
+        if value:
+            candidate_vals.add(value)
+
+    if not candidate_vals:
+        return 0.0, 0, len(verbatim_set)
+
+    matched_count = len(verbatim_set.intersection(candidate_vals))
+    total_count = len(verbatim_set)
+    return matched_count / max(1, total_count), matched_count, total_count
+
+
+def _extract_usage_key(record):
+    if not isinstance(record, dict):
+        return None
+    return record.get('usageKey') or record.get('key') or record.get('nubKey')
+
+
+def _extract_accepted_usage_key(record):
+    if not isinstance(record, dict):
+        return None
+    return (
+        record.get('acceptedUsageKey')
+        or record.get('acceptedKey')
+        or record.get('acceptedTaxonKey')
+    )
+
+
+def _gbif_status(record):
+    if not isinstance(record, dict):
+        return ''
+    return str(record.get('taxonomicStatus') or record.get('status') or '').strip().upper()
+
+
+def _format_environment(record):
+    if not isinstance(record, dict):
+        return None
+
+    habitat = record.get('habitat')
+    if not habitat:
+        return None
+    if isinstance(habitat, (list, tuple, set)):
+        values = [str(value).strip().lower() for value in habitat if str(value).strip()]
+        return ';'.join(values) if values else None
+    return str(habitat).strip().lower() or None
+
+
+def _format_higher_classification(parents):
+    if not parents:
+        return None
+
+    names = []
+    if isinstance(parents, dict):
+        parents = parents.get('results') or parents.get('parents') or []
+
+    for parent in parents:
+        if not isinstance(parent, dict):
+            continue
+        name = parent.get('canonicalName') or parent.get('scientificName')
+        if name:
+            names.append(str(name).strip())
+
+    return '|'.join([name for name in names if name]) or None
+
+
+def _get_usage_context(usage_key, usage_context_cache, include_higher_classification=False):
+    if not usage_key:
+        return {'environment': None, 'higherClassification': None}
+
+    cache_key = (str(usage_key), bool(include_higher_classification))
+    if cache_key in usage_context_cache:
+        return usage_context_cache[cache_key]
+
+    context = {'environment': None, 'higherClassification': None}
+    try:
+        usage_record = species.name_usage(key=usage_key)
+        context['environment'] = _format_environment(usage_record)
+    except Exception as e_usage:
+        logging.warning(f"GBIF API call (name_usage) for key '{usage_key}' failed with error: {e_usage}")
+
+    if include_higher_classification:
+        try:
+            parents = species.name_usage(key=usage_key, data='parents')
+            context['higherClassification'] = _format_higher_classification(parents)
+        except Exception as e_parents:
+            logging.warning(f"GBIF API call (parents) for key '{usage_key}' failed with error: {e_parents}")
+
+    usage_context_cache[cache_key] = context
+    return context
+
+
+def _build_result_dict(
+    gbif_result,
+    match_type='UNKNOWN',
+    replaced_unaccepted=False,
+    unaccepted_match=False,
+    usage_context=None,
+):
     """Helper to build the final dictionary from a GBIF result."""
-    rank = gbif_result.get('rank', '').lower()
+    rank = str(gbif_result.get('rank') or '').lower()
+    usage_key = _extract_usage_key(gbif_result)
+    usage_context = usage_context or {}
     
     return {
         'scientificName': gbif_result.get('scientificName'),
-        'taxonID': f"gbif:{gbif_result['usageKey']}",
+        'taxonID': f"gbif:{usage_key}" if usage_key else None,
         'kingdom': gbif_result.get('kingdom'),
         'phylum': gbif_result.get('phylum'),
         'class': gbif_result.get('class'),
@@ -59,15 +197,47 @@ def _build_result_dict(gbif_result, match_type='UNKNOWN'):
         'taxonRank': rank,
         'confidence': gbif_result.get('confidence'),
         'nameAccordingTo': 'GBIF',
-        'match_type_debug': f"GBIF_{gbif_result.get('matchType', match_type)}"
+        'match_type_debug': f"GBIF_{gbif_result.get('matchType', match_type)}",
+        'replaced_unaccepted': replaced_unaccepted,
+        'unaccepted_match': unaccepted_match,
+        'environment': usage_context.get('environment') or _format_environment(gbif_result),
+        'higherClassification': usage_context.get('higherClassification'),
     }
+
+
+def _score_and_tag_match(match_dict, cleaned_parts, cleaned_taxonomy):
+    match_dict['cleanedTaxonomy'] = cleaned_taxonomy
+    score, matched_count, total_count = _compute_lineage_consistency(cleaned_parts, match_dict)
+    match_dict['assignment_score'] = score
+    match_dict['ranks_matched'] = matched_count
+    match_dict['ranks_provided'] = total_count
+    return match_dict
+
+
+def _selection_sort_key(match_dict, use_assignment_score):
+    confidence = match_dict.get('confidence')
+    confidence = confidence if confidence is not None else -1
+    score = match_dict.get('assignment_score')
+    score = score if score is not None else -1
+    ranks_matched = match_dict.get('ranks_matched')
+    ranks_matched = ranks_matched if ranks_matched is not None else -1
+
+    if use_assignment_score:
+        return (score, ranks_matched, confidence)
+    return (confidence, score, ranks_matched)
+
+
+def _coerce_bool(value):
+    if isinstance(value, str):
+        return value.strip().lower() in {'1', 'true', 'yes', 'y'}
+    return bool(value)
 
 def _gbif_worker(args):
     """
     Worker function to find ALL accepted matches for a taxon string.
     This function implements a tenacious "species-first", context-aware strategy.
     """
-    lookup_key, skip_species, gbif_limit = args
+    lookup_key, skip_species, gbif_limit, include_higher_classification = args
     
     if not isinstance(lookup_key, str) or not lookup_key.strip():
         return args, []
@@ -76,8 +246,6 @@ def _gbif_worker(args):
     if not cleaned_parts:
         return args, []
         
-    expected_kingdom = cleaned_parts[0] if cleaned_parts else None
-
     if skip_species and len(cleaned_parts) >= 6:
         cleaned_parts = cleaned_parts[:-1]
         if not cleaned_parts:
@@ -85,7 +253,7 @@ def _gbif_worker(args):
     
     cleaned_taxonomy = ';'.join(cleaned_parts)
     
-    all_accepted_matches = []
+    usage_context_cache = {}
     
     # Walk up the taxonomy from most specific to least specific
     for taxon_to_search in reversed(cleaned_parts):
@@ -93,6 +261,51 @@ def _gbif_worker(args):
             continue
             
         try:
+            accepted_by_taxon_id = {}
+            unaccepted_rows = []
+
+            def add_accepted_match(record, match_type='LOOKUP_ACCEPTED', replaced_unaccepted=False):
+                usage_key = _extract_usage_key(record)
+                usage_context = _get_usage_context(
+                    usage_key,
+                    usage_context_cache,
+                    include_higher_classification=include_higher_classification,
+                )
+                match_dict = _build_result_dict(
+                    record,
+                    match_type=match_type,
+                    replaced_unaccepted=replaced_unaccepted,
+                    unaccepted_match=False,
+                    usage_context=usage_context,
+                )
+                match_dict = _score_and_tag_match(match_dict, cleaned_parts, cleaned_taxonomy)
+
+                existing = accepted_by_taxon_id.get(match_dict['taxonID'])
+                if existing:
+                    existing['replaced_unaccepted'] = existing.get('replaced_unaccepted') or replaced_unaccepted
+                    if existing.get('confidence') is None and match_dict.get('confidence') is not None:
+                        existing['confidence'] = match_dict['confidence']
+                    return
+
+                accepted_by_taxon_id[match_dict['taxonID']] = match_dict
+
+            def add_unaccepted_match(record, status):
+                usage_key = _extract_usage_key(record)
+                usage_context = _get_usage_context(
+                    usage_key,
+                    usage_context_cache,
+                    include_higher_classification=include_higher_classification,
+                )
+                match_dict = _build_result_dict(
+                    record,
+                    match_type=f'LOOKUP_{status or "UNACCEPTED"}',
+                    replaced_unaccepted=False,
+                    unaccepted_match=True,
+                    usage_context=usage_context,
+                )
+                match_dict = _score_and_tag_match(match_dict, cleaned_parts, cleaned_taxonomy)
+                unaccepted_rows.append(match_dict)
+
             # For single-word kingdom names, specify the rank to avoid homonyms. (stick bug named 'Bacteria')
             api_params = {'q': taxon_to_search, 'status': 'ACCEPTED', 'limit': gbif_limit, 'higherTaxonKey': None}
             if len(cleaned_parts) == 1 and taxon_to_search.lower() in AMBIGUOUS_KINGDOMS:
@@ -109,23 +322,52 @@ def _gbif_worker(args):
                         try:
                             full_record = species.name_backbone(name=record['scientificName'], rank=record.get('rank'), strict=True)
                             if full_record.get('usageKey'):
-                                match_dict = _build_result_dict(full_record, match_type='LOOKUP_ACCEPTED')
-                                match_dict['cleanedTaxonomy'] = cleaned_taxonomy
-                                all_accepted_matches.append(match_dict)
+                                add_accepted_match(full_record, match_type='LOOKUP_ACCEPTED')
                         except Exception as e_backbone:
                             logging.warning(f"GBIF API call (name_backbone) for '{record.get('scientificName')}' failed with error: {e_backbone}")
                             continue
-                
-                # If we found any matches, we stop the walk-up, as we've matched the most specific term possible.
-                if all_accepted_matches:
-                    return args, all_accepted_matches
+
+            # A second lookup without the ACCEPTED filter exposes synonym/unaccepted rows for review.
+            all_status_params = {'q': taxon_to_search, 'limit': gbif_limit, 'higherTaxonKey': None}
+            if len(cleaned_parts) == 1 and taxon_to_search.lower() in AMBIGUOUS_KINGDOMS:
+                all_status_params['rank'] = 'kingdom'
+
+            all_status_data = species.name_lookup(**all_status_params)
+            if all_status_data and all_status_data.get('results'):
+                for record in all_status_data['results']:
+                    if not record.get('key'):
+                        continue
+
+                    status = _gbif_status(record)
+                    if status not in UNACCEPTED_GBIF_STATUSES:
+                        continue
+
+                    add_unaccepted_match(record, status)
+
+                    accepted_key = _extract_accepted_usage_key(record)
+                    if accepted_key:
+                        try:
+                            accepted_record = species.name_usage(key=accepted_key)
+                            if accepted_record:
+                                add_accepted_match(
+                                    accepted_record,
+                                    match_type=f'LOOKUP_REPLACED_{status}',
+                                    replaced_unaccepted=True,
+                                )
+                        except Exception as e_accepted:
+                            logging.warning(f"GBIF API call (accepted usage) for key '{accepted_key}' failed with error: {e_accepted}")
+
+            # If we found any matches, stop the walk-up at the most specific usable term.
+            all_matches = list(accepted_by_taxon_id.values()) + unaccepted_rows
+            if all_matches:
+                return args, all_matches
                     
         except Exception as e:
             print(f"FAIL: General error during name_lookup for '{taxon_to_search}': {e}")
             logging.warning(f"GBIF API call (walk-up/name_lookup) for '{taxon_to_search}' failed with error: {e}")
             continue
 
-    return args, all_accepted_matches
+    return args, []
 
 
 def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
@@ -139,10 +381,16 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         return {'main_df': occurrence_df, 'info_df': pd.DataFrame()}
 
     gbif_limit = params_dict.get('gbif_match_limit', 3)
+    use_assignment_score_for_selection = _coerce_bool(
+        params_dict.get('gbif_use_assignment_score_for_selection', False)
+    )
+    include_higher_classification = _coerce_bool(
+        params_dict.get('gbif_return_higher_classification', False)
+    )
 
     output_dir = params_dict.get('output_dir', '.')
     os.makedirs(output_dir, exist_ok=True)
-    cache_file = os.path.join(output_dir, 'gbif_matches_cache.pkl')
+    cache_file = os.path.join(output_dir, 'gbif_matches_cache_v2.pkl')
     
     # --- Load existing cache if it exists ---
     try:
@@ -159,7 +407,18 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     occurrence_df['skip_species_flag'] = occurrence_df['assay_name'].isin(assays_to_skip_species)
     occurrence_df['gbif_limit'] = gbif_limit # Add the limit to the dataframe for the worker
-    unique_lookups = [tuple(row) for row in occurrence_df[['verbatimIdentification', 'skip_species_flag', 'gbif_limit']].drop_duplicates().to_numpy()]
+    occurrence_df['gbif_return_higher_classification'] = include_higher_classification
+    unique_lookups = [
+        tuple(row)
+        for row in occurrence_df[
+            [
+                'verbatimIdentification',
+                'skip_species_flag',
+                'gbif_limit',
+                'gbif_return_higher_classification',
+            ]
+        ].drop_duplicates().to_numpy()
+    ]
     
     # --- Identify which lookups are new and need to be fetched ---
     new_lookups = [lookup for lookup in unique_lookups if lookup not in cache]
@@ -201,12 +460,15 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     incertae_sedis_record = {
         'scientificName': 'incertae sedis', 'taxonID': None, 'kingdom': None, 'phylum': None,
         'class': None, 'order': None, 'family': None, 'genus': None, 'taxonRank': None,
-        'confidence': None, 'nameAccordingTo': 'GBIF'
+        'confidence': None, 'nameAccordingTo': 'GBIF', 'environment': pd.NA,
+        'higherClassification': pd.NA, 'replaced_unaccepted': False,
+        'unaccepted_match': False, 'assignment_score': pd.NA,
+        'ranks_matched': pd.NA, 'ranks_provided': pd.NA
     }
 
     # Map results back to the original dataframe structure
-    for verbatim_id, skip_flag, limit in unique_lookups:
-        key = (verbatim_id, skip_flag, limit)
+    for verbatim_id, skip_flag, limit, _include_higher_classification in unique_lookups:
+        key = (verbatim_id, skip_flag, limit, _include_higher_classification)
         matches = cache.get(key, [])
         
         cleaned_taxonomy = ''
@@ -227,8 +489,15 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             info_df_records.append(info_record)
         else:
             # Matches found, determine best one and add all to info
-            # Sort by confidence descending, highest first. NaNs (None) go last.
-            sorted_matches = sorted(matches, key=lambda x: x['confidence'] if x['confidence'] is not None else -1, reverse=True)
+            # Sort by confidence by default; optionally use lineage score first when configured.
+            selection_candidates = [match for match in matches if not match.get('unaccepted_match')]
+            if not selection_candidates:
+                selection_candidates = matches
+            sorted_matches = sorted(
+                selection_candidates,
+                key=lambda x: _selection_sort_key(x, use_assignment_score_for_selection),
+                reverse=True,
+            )
             best_match = sorted_matches[0]
             
             main_df_records.append({'verbatimIdentification': verbatim_id, 'skip_species_flag': skip_flag, **best_match})
@@ -246,7 +515,9 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     # Merge best match results back into the main occurrence DataFrame
     cols_to_drop = [
         'scientificName', 'taxonID', 'kingdom', 'phylum', 'class', 'order', 'family', 
-        'genus', 'taxonRank', 'confidence', 'nameAccordingTo', 'match_type_debug', 'cleanedTaxonomy'
+        'genus', 'taxonRank', 'confidence', 'nameAccordingTo', 'match_type_debug',
+        'cleanedTaxonomy', 'environment', 'higherClassification', 'replaced_unaccepted',
+        'unaccepted_match', 'assignment_score', 'ranks_matched', 'ranks_provided'
     ]
     occurrence_df_clean = occurrence_df.drop(columns=[col for col in cols_to_drop if col in occurrence_df.columns], errors='ignore')
     
@@ -257,6 +528,7 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     )
     
     final_df.drop(columns=['skip_species_flag'], inplace=True, errors='ignore')
+    final_df.drop(columns=['gbif_return_higher_classification'], inplace=True, errors='ignore')
     
     logging.info("GBIF matching and merging complete.")
     return {'main_df': final_df, 'info_df': info_df}
