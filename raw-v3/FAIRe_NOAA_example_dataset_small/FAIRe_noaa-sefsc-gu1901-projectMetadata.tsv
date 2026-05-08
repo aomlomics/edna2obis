@@ -4,8 +4,7 @@ R	Project	recordedByID	https://orcid.org/0000-0001-9824-879X | https://orcid.org
 M	Project	project_contact	lynsey.wilcox@noaa.gov		
 R	Project	institution	NOAA Southeast Fisheries Science Center		
 R	Project	institutionID	https://ror.org/0396y0w87		
-R	Project	project_name	Potential prey of Rice's whales based on seawater eDNA 2019		
-M	Project	short_name	noaa-sefsc-gu1901		
+R	Project	project_name	Potential prey of Rice's whales based on seawater eDNA 2019			
 M	Project	project_id	noaa-sefsc-gu1901		
 O	Project	parent_project_id			
 O	Project	study_factor	water column spatial series		
