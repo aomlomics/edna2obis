@@ -224,6 +224,8 @@ def run_taxassign(
                 results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
             if api == 'WoRMS' and int(params.get('worms_n_proc_effective') or 0) >= 8:
                 console.print('[yellow]WoRMS:[/] %s workers — may hit API rate limits.' % params['worms_n_proc_effective'])
+            if api == 'GBIF' and int(params.get('gbif_n_proc_effective') or 0) >= 8:
+                console.print('[yellow]GBIF:[/] %s workers — may hit API rate limits.' % params['gbif_n_proc_effective'])
             info_df = results.get('info_df', pd.DataFrame())
             main_df = results.get('main_df', pd.DataFrame())
 

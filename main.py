@@ -177,7 +177,7 @@ def load_config(config_path="config.yaml"):
         # EML options (metadata loaded separately from EML_config.yaml)
         params['eml_enabled'] = config.get('eml_enabled', False)
         params['eml_config_path'] = config.get('eml_config_path', 'EML_config.yaml')
-        
+        params['contacts_path'] = config.get('contacts_path', 'contacts.yaml')
         # Local reference database parameters  
         params['use_local_reference_database'] = config.get('use_local_reference_database', False)
         params['local_reference_database_path'] = config.get('local_reference_database_path', '')
@@ -494,6 +494,7 @@ def split_output_files_by_short_name(params, data, reporter):
                         from create_EML.EML_builder import create_eml_file
                         params_for_eml = dict(params)
                         params_for_eml['output_dir'] = short_name_dir
+                        params_for_eml['eml_short_name'] = short_name_clean
                         data_for_eml = dict(data)
                         # The EML builder will prefer this in-memory occurrence DataFrame and skip disk-loading.
                         data_for_eml['occurrence'] = filtered_occurrence_df_for_eml
@@ -1743,17 +1744,25 @@ def main():
             with perf_log.step("create_emof_table_skipped"):
                 reporter.add_text("Skipping eMoF creation per config (emof_enabled=false)")
 
-        # Create EML file (optional)
+        # Create EML file (optional). When splitting by short_name, EML is only written inside each
+        # cruise subfolder (with eml_short_name / alternateIdentifier); skip aggregate root eml.xml.
         if params.get('eml_enabled', False):
-            console.print("Creating EML (Ecological Metadata Language) file...")
-            with perf_log.step("create_eml_file"):
-                try:
-                    from create_EML.EML_builder import create_eml_file
-                    with silence_output():
-                        eml_path = create_eml_file(params, data, reporter)
-                    reporter.add_text(f"EML saved to: {eml_path}")
-                except Exception as e:
-                    reporter.add_warning(f"EML creation failed: {e}")
+            if params.get('split_output_by_short_name', False):
+                with perf_log.step("create_eml_file_skipped"):
+                    reporter.add_text(
+                        "Skipping root eml.xml because split_output_by_short_name is true — "
+                        "use the eml.xml inside each {short_name}/ folder for IPT."
+                    )
+            else:
+                console.print("Creating EML (Ecological Metadata Language) file...")
+                with perf_log.step("create_eml_file"):
+                    try:
+                        from create_EML.EML_builder import create_eml_file
+                        with silence_output():
+                            eml_path = create_eml_file(params, data, reporter)
+                        reporter.add_text(f"EML saved to: {eml_path}")
+                    except Exception as e:
+                        reporter.add_warning(f"EML creation failed: {e}")
         else:
             with perf_log.step("create_eml_file_skipped"):
                 reporter.add_text("Skipping EML creation per config (eml_enabled=false)")
@@ -1771,7 +1780,7 @@ def main():
             ]
             if params.get('emof_enabled', True):
                 files_to_validate.append('eMoF.csv')
-            if params.get('eml_enabled', False):
+            if params.get('eml_enabled', False) and not params.get('split_output_by_short_name', False):
                 files_to_validate.append('eml.xml')
             if not params.get('split_output_by_short_name', False):
                 files_to_validate.append('meta.xml')

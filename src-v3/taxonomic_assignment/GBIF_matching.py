@@ -1,14 +1,41 @@
 import pandas as pd
 from pygbif import species
 import os
+import sys
 import time
 import pickle
-from multiprocess import Pool, cpu_count
+import multiprocess as mp
 import logging
 import re
+import json
+import urllib.error
+import urllib.request
 
 # --- Setup logging ---
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+
+def _get_mp_context():
+    """
+    On macOS, forking can crash with Objective-C runtime errors. Using 'spawn' avoids fork()
+    and matches WoRMS matching behavior.
+    """
+    if sys.platform == 'darwin':
+        return mp.get_context('spawn')
+    return mp.get_context()
+
+
+def _resolve_gbif_n_proc(n_proc):
+    """Match WoRMS: 0 => min(10, cpu_count); explicit value capped at 10; always >= 1."""
+    try:
+        n_raw = int(n_proc) if n_proc is not None else 0
+    except (TypeError, ValueError):
+        n_raw = 0
+    cpus = mp.cpu_count() or 1
+    if n_raw <= 0:
+        return max(1, min(10, cpus))
+    return max(1, min(int(n_raw), 10))
+
 
 # --- Constants ---
 AMBIGUOUS_KINGDOMS = ['bacteria', 'plantae', 'fungi', 'animalia', 'archaea', 'protista', 'chromista']
@@ -129,6 +156,73 @@ def _format_environment(record):
     return str(habitat).strip().lower() or None
 
 
+GBIF_SPECIES_PROFILES_URL = 'https://api.gbif.org/v1/species/{key}/speciesProfiles'
+
+
+def _truthy_flag(value):
+    if value in (True, 1):
+        return True
+    if isinstance(value, str) and value.strip().lower() in {'1', 'true', 'yes', 'y'}:
+        return True
+    return False
+
+
+def _environment_from_species_profiles(usage_key):
+    """
+    GBIF habitat flags (marine / freshwater / terrestrial) come from the Species Profiles
+    extension, not from name_usage. Merge flags across all returned profiles (union).
+    """
+    if usage_key is None or (isinstance(usage_key, str) and not str(usage_key).strip()):
+        return None
+    try:
+        key_int = int(usage_key)
+    except (TypeError, ValueError):
+        return None
+
+    url = GBIF_SPECIES_PROFILES_URL.format(key=key_int)
+    req = urllib.request.Request(url, headers={'User-Agent': 'edna2obis (GBIF_matching)'})
+    try:
+        with urllib.request.urlopen(req, timeout=45) as resp:
+            payload = json.loads(resp.read().decode())
+    except urllib.error.HTTPError as e_http:
+        if e_http.code == 404:
+            return None
+        logging.warning(
+            "GBIF API (speciesProfiles) for key '%s' failed: HTTP %s",
+            usage_key,
+            e_http.code,
+        )
+        return None
+    except Exception as e_profiles:
+        logging.warning(
+            "GBIF API (speciesProfiles) for key '%s' failed with error: %s",
+            usage_key,
+            e_profiles,
+        )
+        return None
+
+    results = payload.get('results') or []
+    marine = freshwater = terrestrial = False
+    for prof in results:
+        if not isinstance(prof, dict):
+            continue
+        if _truthy_flag(prof.get('marine')):
+            marine = True
+        if _truthy_flag(prof.get('freshwater')):
+            freshwater = True
+        if _truthy_flag(prof.get('terrestrial')):
+            terrestrial = True
+
+    labels = []
+    if marine:
+        labels.append('marine')
+    if freshwater:
+        labels.append('freshwater')
+    if terrestrial:
+        labels.append('terrestrial')
+    return ';'.join(labels) if labels else None
+
+
 def _format_higher_classification(parents):
     if not parents:
         return None
@@ -156,11 +250,15 @@ def _get_usage_context(usage_key, usage_context_cache, include_higher_classifica
         return usage_context_cache[cache_key]
 
     context = {'environment': None, 'higherClassification': None}
+    usage_record = None
     try:
         usage_record = species.name_usage(key=usage_key)
-        context['environment'] = _format_environment(usage_record)
     except Exception as e_usage:
         logging.warning(f"GBIF API call (name_usage) for key '{usage_key}' failed with error: {e_usage}")
+
+    context['environment'] = _environment_from_species_profiles(usage_key)
+    if context['environment'] is None and isinstance(usage_record, dict):
+        context['environment'] = _format_environment(usage_record)
 
     if include_higher_classification:
         try:
@@ -380,6 +478,14 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
         logging.warning("Input DataFrame is empty. Skipping GBIF matching.")
         return {'main_df': occurrence_df, 'info_df': pd.DataFrame()}
 
+    n_proc = _resolve_gbif_n_proc(n_proc)
+    params_dict['gbif_n_proc_effective'] = n_proc
+    logging.info("Using %s processes for GBIF name matching (0 in config = auto, max 10)", n_proc)
+    if n_proc >= 8:
+        logging.warning(
+            "GBIF: %s parallel workers — may hit API rate limits or errors", n_proc
+        )
+
     gbif_limit = params_dict.get('gbif_match_limit', 3)
     use_assignment_score_for_selection = _coerce_bool(
         params_dict.get('gbif_use_assignment_score_for_selection', False)
@@ -390,7 +496,8 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
 
     output_dir = params_dict.get('output_dir', '.')
     os.makedirs(output_dir, exist_ok=True)
-    cache_file = os.path.join(output_dir, 'gbif_matches_cache_v2.pkl')
+    # v3: environment from GBIF speciesProfiles; bump file when match/env logic changes so stale cache is not reused.
+    cache_file = os.path.join(output_dir, 'gbif_matches_cache_v3.pkl')
     
     # --- Load existing cache if it exists ---
     try:
@@ -426,15 +533,13 @@ def get_gbif_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     logging.info(f"Found {len(unique_lookups)} unique taxonomic strings in this run. {len(new_lookups)} are new and will be fetched from the GBIF API.")
 
     if new_lookups:
-        if n_proc == 0:
-            n_proc = cpu_count()
-        
         total_lookups = len(new_lookups)
         logging.info(f"Starting parallel GBIF matching for {total_lookups} lookups with {n_proc} processes...")
         start_time = time.time()
         
         processed_count = 0
-        with Pool(processes=n_proc) as pool:
+        ctx = _get_mp_context()
+        with ctx.Pool(processes=n_proc) as pool:
             # Use imap_unordered to get results as they complete, allowing for progress reporting
             for key_tuple, result_list in pool.imap_unordered(_gbif_worker, new_lookups):
                 if key_tuple is not None:

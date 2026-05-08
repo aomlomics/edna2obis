@@ -192,6 +192,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     params_dict=params,
                     n_proc=params.get('gbif_n_proc', 0)
                 )
+                if params.get('gbif_n_proc_effective', 0) >= 8:
+                    reporter.add_warning(
+                        f"GBIF used {params['gbif_n_proc_effective']} parallel workers — may hit API rate limits or errors."
+                    )
                 matched_df = gbif_results['main_df']
                 params['taxa_info_df'] = gbif_results['info_df']
             else:

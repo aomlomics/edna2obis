@@ -1,0 +1,145 @@
+# =============================================================================
+# Reusable contacts for EML / GBIF IPT (edna2obis)
+# =============================================================================
+# Use IPT-style field names (givenName, surName, organizationName, …) or the
+# same nested keys as EML_config.yaml (individual_name.given_name, email, …).
+#
+# In any EML metadata block that describes a person, set:
+#   contact_ref: <key below>
+# Optional keys in that same block override the master record (e.g. role).
+#
+# You can also use a shorthand list of creators:
+#   creators: [ coclet_clement, thompson_luke ]
+# or
+#   contact: thompson_luke
+#
+# Resolve path: config key contacts_path (default contacts.yaml), searched
+# next to the EML yaml file, then the process working directory.
+# =============================================================================
+
+coclet_clement:
+  givenName: Clement
+  surName: Coclet
+  organizationName: NOAA Atlantic Oceanographic and Meteorological Laboratory
+  positionName: Research Scientist II
+  electronicMailAddress: clement.coclet@noaa.gov
+  address:
+    deliveryPoint: "4301 Rickenbacker Cswy"
+    city: Miami
+    administrativeArea: Florida
+    postalCode: "33149"
+    country: US
+  userId: https://orcid.org/0000-0002-6672-148X
+
+thompson_luke:
+  givenName: Luke
+  surName: Thompson
+  organizationName: NOAA Atlantic Oceanographic and Meteorological Laboratory
+  positionName: Research Professor
+  electronicMailAddress: luke.thompson@noaa.gov
+  onlineUrl: https://www.linkedin.com/in/luke-thompson-bb20074/
+  address:
+    deliveryPoint: "4301 Rickenbacker Cswy"
+    city: Miami
+    administrativeArea: Florida
+    postalCode: "33149"
+    country: US
+  userId: https://orcid.org/0000-0002-3911-1280
+
+miller_nicole:
+  givenName: Nicole
+  surName: Miller
+  organizationName: NOAA Ocean Exploration
+  positionName: NOAA Omics Coordinator
+  electronicMailAddress: nicole.miller@noaa.gov
+  address:
+    deliveryPoint: "1315 East-West Hwy"
+    city: Silver Spring
+    administrativeArea: Maryland
+    postalCode: "20910"
+    country: US
+  userId: https://orcid.org/0009-0002-8148-6323
+
+marranzino_ashley:
+  givenName: Ashley
+  surName: Marranzino
+  organizationName: NOAA Ocean Exploration
+  positionName: Project Scientist
+  electronicMailAddress: ashley.marranzino@noaa.gov
+  address:
+    deliveryPoint: "1315 East-West Hwy"
+    city: Silver Spring
+    administrativeArea: Maryland
+    postalCode: "20910"
+    country: US
+  userId: https://orcid.org/0000-0002-6451-1139
+
+green_jennifer:
+  givenName: Jennifer
+  surName: Green
+  organizationName: NOAA Ocean Exploration
+  positionName: Research Associate III
+  electronicMailAddress: jennifer.green@noaa.gov
+  address:
+    deliveryPoint: "1021 Balch Blvd Ste 1003"
+    city: Stennis Space Center
+    administrativeArea: Mississippi
+    postalCode: "39529"
+    country: US
+
+kline_logan:
+  givenName: Logan
+  surName: Kline
+  organizationName: NOAA Ocean Exploration
+  positionName: Operations Support Analyst
+  electronicMailAddress: logan.kline@noaa.gov
+  address:
+    deliveryPoint: "1315 East-West Hwy"
+    city: Silver Spring
+    administrativeArea: Maryland
+    postalCode: "20910"
+    country: US
+  userId: https://orcid.org/0000-0003-0257-9397
+
+collins_allen:
+  givenName: Allen
+  surName: Collins
+  organizationName: NOAA National Systematics Laboratory
+  positionName: Director and Research Zoologist
+  electronicMailAddress: allen.collins@noaa.gov
+  address:
+    deliveryPoint: MRC 163
+    city: Washington
+    administrativeArea: District of Columbia
+    postalCode: "20013-7012"
+    country: US
+  userId: https://orcid.org/0000-0002-3664-9691
+
+auscavitz_steven:
+  givenName: Steven
+  surName: Auscavitz
+  organizationName: Smithsonian National Museum of Natural History
+  positionName: Genomics Specialist
+  electronicMailAddress: auscavitchs@si.edu
+  address:
+    deliveryPoint: MRC 163
+    city: Washington
+    administrativeArea: District of Columbia
+    postalCode: "20013-7012"
+    country: US
+  userId: https://orcid.org/0000-0001-5777-4814
+
+harding_sammy:
+  givenName: Sammy
+  surName: Harding
+  userId: https://orcid.org/0009-0008-8885-6140
+
+willms_bayden:
+  givenName: Bayden
+  surName: Willms
+  userId: https://orcid.org/0009-0003-2751-7317
+
+silliman_katherine:
+  givenName: Katherine
+  surName: Silliman
+  userId: https://orcid.org/0000-0001-5964-3965
