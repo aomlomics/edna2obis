@@ -90,6 +90,87 @@ def read_text_file_cross_platform(filepath, sep='\t', **kwargs):
     # Feed to pandas via StringIO
     return pd.read_csv(io.StringIO(text), sep=sep, **kwargs)
 
+
+def read_metadata_tsv(filepath):
+    """Read FAIRe metadata TSVs, allowing extra empty trailing cells."""
+    with open(filepath, 'rb') as f:
+        content = f.read()
+
+    content = content.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        text = content.decode('latin-1')
+
+    rows = []
+    reader = csv.reader(io.StringIO(text), delimiter='\t')
+    for line_number, row in enumerate(reader, start=1):
+        if not row or (row[0].lstrip().startswith('#')):
+            continue
+
+        if not rows:
+            rows.append(row)
+            continue
+
+        expected_cols = len(rows[0])
+        if len(row) > expected_cols:
+            extra_values = row[expected_cols:]
+            if all(str(value).strip() == '' for value in extra_values):
+                row = row[:expected_cols]
+            else:
+                raise ValueError(
+                    f"Metadata TSV '{filepath}' has {len(row)} fields on line {line_number}, "
+                    f"but the header has {expected_cols}. Extra non-empty values: {extra_values}"
+                )
+        elif len(row) < expected_cols:
+            row = row + [''] * (expected_cols - len(row))
+
+        rows.append(row)
+
+    if not rows:
+        return pd.DataFrame()
+
+    df = pd.DataFrame(rows[1:], columns=rows[0])
+    return df.replace('', pd.NA)
+
+
+def normalize_analysis_metadata(analysis_df, source_label, reporter):
+    """Validate and normalize a NOAA-style analysisMetadata table."""
+    if 'term_name' not in analysis_df.columns:
+        reporter.add_warning(f"analysisMetadata '{source_label}' missing 'term_name' column. Found columns: {list(analysis_df.columns)}")
+        return None
+
+    value_col = None
+    for col in ['values', 'value', 'Values', 'Value']:
+        if col in analysis_df.columns:
+            value_col = col
+            break
+
+    if not value_col:
+        reporter.add_warning(f"analysisMetadata '{source_label}' missing 'values' column. Found columns: {list(analysis_df.columns)}")
+        return None
+
+    if value_col != 'values':
+        analysis_df = analysis_df.rename(columns={value_col: 'values'})
+
+    return analysis_df
+
+
+def get_analysis_metadata_value(analysis_df, term_name):
+    """Read a value from an analysisMetadata table by term_name."""
+    if analysis_df is None or 'term_name' not in analysis_df.columns or 'values' not in analysis_df.columns:
+        return None
+
+    term_values = analysis_df['term_name'].astype(str).str.strip()
+    matches = analysis_df.loc[term_values == term_name, 'values']
+    if matches.empty:
+        return None
+
+    value = matches.iloc[0]
+    if pd.isna(value) or str(value).strip() == "":
+        return None
+    return str(value).strip()
+
 # Import modules from subdirectories
 from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
@@ -582,8 +663,18 @@ def load_project_data(params, reporter):
                         keep_default_na=False,
                     )
 
-                    assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
-                    analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
+                    analysis_df = normalize_analysis_metadata(analysis_df, sheet_name, reporter)
+                    if analysis_df is None:
+                        continue
+
+                    assay_name = get_analysis_metadata_value(analysis_df, 'assay_name')
+                    analysis_run_name = get_analysis_metadata_value(analysis_df, 'analysis_run_name')
+                    if not assay_name or not analysis_run_name:
+                        reporter.add_warning(
+                            f"Skipping sheet '{sheet_name}': expected term_name rows for "
+                            "'assay_name' and 'analysis_run_name'."
+                        )
+                        continue
                     
                     reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
                     
@@ -670,7 +761,7 @@ def load_project_data(params, reporter):
             if params['metadata_format'] == 'NOAA':
                 analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
                 if analysis_sheets:
-                    data['analysisMetadata'] = pd.read_excel(
+                    first_analysis_df = pd.read_excel(
                         params['excel_file'],
                         analysis_sheets[0],
                         header=0,
@@ -678,6 +769,9 @@ def load_project_data(params, reporter):
                         na_values=[""],
                         keep_default_na=False,
                     )
+                    first_analysis_df = normalize_analysis_metadata(first_analysis_df, analysis_sheets[0], reporter)
+                    if first_analysis_df is not None:
+                        data['analysisMetadata'] = first_analysis_df
         
         else:
             # --- TSV FORMAT (new implementation) ---
@@ -689,17 +783,17 @@ def load_project_data(params, reporter):
             # Load projectMetadata
             project_meta_path = params['projectMetadata_file']
             reporter.add_text(f"Loading projectMetadata from: {project_meta_path}")
-            data['projectMetadata'] = pd.read_csv(project_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['projectMetadata'] = read_metadata_tsv(project_meta_path)
             
             # Load sampleMetadata
             sample_meta_path = params['sampleMetadata_file']
             reporter.add_text(f"Loading sampleMetadata from: {sample_meta_path}")
-            data['sampleMetadata'] = pd.read_csv(sample_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['sampleMetadata'] = read_metadata_tsv(sample_meta_path)
             
             # Load experimentRunMetadata
             exp_run_meta_path = params['experimentRunMetadata_file']
             reporter.add_text(f"Loading experimentRunMetadata from: {exp_run_meta_path}")
-            data['experimentRunMetadata'] = pd.read_csv(exp_run_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['experimentRunMetadata'] = read_metadata_tsv(exp_run_meta_path)
 
             # Normalize key identifier columns to prevent join/splitting mismatches like 123 vs 123.0
             # (common when numeric IDs are read as floats due to missing values)
@@ -738,27 +832,11 @@ def load_project_data(params, reporter):
                     reporter.add_text(f"Loading analysisMetadata for run '{run_name}' (assay: '{assay_name}') from: {analysis_meta_file}")
                     
                     # Read the TSV file - TSV format should have term_name and values columns
-                    analysis_df = pd.read_csv(analysis_meta_file, sep='\t', na_values=[""], comment="#", low_memory=False)
+                    analysis_df = read_metadata_tsv(analysis_meta_file)
                     
-                    # Validate expected columns exist
-                    if 'term_name' not in analysis_df.columns:
-                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'term_name' column. Found columns: {list(analysis_df.columns)}")
+                    analysis_df = normalize_analysis_metadata(analysis_df, analysis_meta_file, reporter)
+                    if analysis_df is None:
                         continue
-                    
-                    # The 'values' column might be named differently in TSV, check common names
-                    value_col = None
-                    for col in ['values', 'value', 'Values', 'Value']:
-                        if col in analysis_df.columns:
-                            value_col = col
-                            break
-                    
-                    if not value_col:
-                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'values' column. Found columns: {list(analysis_df.columns)}")
-                        continue
-                    
-                    # Rename to standard 'values' column name
-                    if value_col != 'values':
-                        analysis_df = analysis_df.rename(columns={value_col: 'values'})
                     
                     if assay_name not in analysis_data_by_assay:
                         analysis_data_by_assay[assay_name] = {}
