@@ -8,6 +8,11 @@ import webbrowser
 from pathlib import Path
 
 
+def _normalize_message_key(message):
+    """Normalize message text so exact repeats can be safely deduplicated."""
+    return str(message).strip()
+
+
 def _logo_src_for_html(repo_root: Path, report_filename: str, image_basename: str) -> str:
     """
     Relative URL from the report file to images/ so the HTML works when opened from any
@@ -32,6 +37,8 @@ class HTMLReporter:
         self.start_time = datetime.datetime.now()
         self.error_message = None
         self.warnings = [] # To track warning messages
+        self._seen_warning_keys = set()
+        self._seen_error_keys = set()
         
     def _get_status_color(self):
         if self.status == "SUCCESS":
@@ -107,6 +114,10 @@ class HTMLReporter:
     
     def add_warning(self, message):
         """Add a warning message and track it"""
+        warning_key = _normalize_message_key(message)
+        if warning_key in self._seen_warning_keys:
+            return
+        self._seen_warning_keys.add(warning_key)
         self.warnings.append(message)
         self.sections.append({
             'type': 'warning',
@@ -115,8 +126,12 @@ class HTMLReporter:
     
     def add_error(self, message):
         """Add an error message and automatically set report status to FAILED"""
-        self.error_message = message
         self.status = "FAILED"  # Automatically mark the report as failed
+        error_key = _normalize_message_key(message)
+        if error_key in self._seen_error_keys:
+            return
+        self._seen_error_keys.add(error_key)
+        self.error_message = message
         self.sections.append({
             'type': 'error',
             'content': f'<div class="alert alert-danger"><strong>ERROR:</strong> {message}</div>'
