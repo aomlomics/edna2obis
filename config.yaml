@@ -1,7 +1,5 @@
 # edna2obis Configuration File
-# This is an example of a config file for a FAIRe NOAA / ODE Formatted dataset
-# USERS: Please edit the config.yaml file, not this one. This is just a template.
-# Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
+# Here, you specify where all of your data is, and set all the other parameters including those related to the taxonomic assignment.
 
 # ================================STEP 1========================================
 # --- OPTIONAL: Specify a path to a different config file for the run ---
@@ -40,7 +38,7 @@ field_names_row_table: 1  # Row where abundance/occurrence table sample names ar
 # ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 # For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
-# If your metadata sheets are all in the same Excel file, you do NOT need to include 'analysisMetadata_file' for each run.
+# If your metadata sheets are all in the same Excel file (including the analysisMetadata), you do NOT need to include a 'analysisMetadata_file' filepath or sheetname for each run.
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
@@ -103,7 +101,7 @@ gbif_return_higher_classification: true
 
 # ================================STEP 7========================================
 # Define which assays should not consider 'species' rank in their taxonomic assignment.
-# This is because certain assays (for example, 16S) species' level assignments are not useful / correct.
+# This is because certain assays (for example, 16S) species' level assignments are not useful / correct (a bacteria is assigned as its host).
 # Additionally, for example, 18S species' level assignments are good, and we want them!
 # This should be the exact 'assay_name' value as found in your analysisMetadata sheets (cell D3)
 # and subsequently in the 'assay_name' column of the intermediate occurrence.csv
