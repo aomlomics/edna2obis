@@ -241,7 +241,10 @@ Example configuration for generic FAIRe format data:
 
 ### Prerequisites
 
-- [Conda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution) installed
+- Python 3.13 installed
+- Either:
+  - [Conda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/products/distribution), or
+  - Python `venv` + `pip`
 - [Git](https://git-scm.com/downloads) installed
 - At least 8GB RAM recommended
 - Internet connection required (for API calls to WoRMS/GBIF)
@@ -255,7 +258,11 @@ git clone https://github.com/aomlomics/edna2obis.git
 cd edna2obis
 ```
 
-#### 2. Create Conda Environment
+#### 2. Create Python Environment
+
+Choose one method:
+
+##### Option A: Conda
 
 ```bash
 # Create the environment from the environment.yml file
@@ -263,6 +270,20 @@ conda env create -f environment.yml
 
 # Activate the environment
 conda activate edna2obis
+```
+
+##### Option B: venv + pip
+
+```bash
+# Create and activate a virtual environment
+python -m venv .venv
+# Linux/macOS
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 #### 3. Edit the Configuration Files

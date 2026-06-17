@@ -1,0 +1,11 @@
+pandas
+numpy
+openpyxl
+pyworms
+multiprocess
+pygbif
+pytz
+pyyaml
+notebook
+rich
+pyfiglet
