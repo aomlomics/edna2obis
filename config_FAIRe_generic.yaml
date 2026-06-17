@@ -30,6 +30,13 @@ sampleMetadata_file: "path/to/sampleMetadata.tsv"
 experimentRunMetadata_file: "path/to/experimentRunMetadata.tsv"
 projectMetadata_file: "path/to/projectMetadata.tsv"
 
+# Input table layout (1-based)
+field_name_row: 3  # Row where sampleMetadata/experimentRunMetadata field names are.
+project_and_analysis_header_rows_to_skip: 0  # Rows to skip before projectMetadata/analysisMetadata field names.
+field_name_column: 3  # Column containing field names in projectMetadata/analysisMetadata (value is next column).
+field_names_row_asv: 1  # Row where ASV taxonomy file field names are.
+field_names_row_table: 1  # Row where abundance/occurrence table sample names are.
+
 # ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 # In GENERIC format, analysis settings live in projectMetadata, so do not add analysisMetadata_file here.

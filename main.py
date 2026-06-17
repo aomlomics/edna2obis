@@ -31,8 +31,7 @@ import io
 from html_reporter import HTMLReporter
 from run_performance_log import performance_log_for_config
 
-# FAIRe Excel wide sheets (sampleMetadata, experimentRunMetadata): rows 1–2 are preamble; row 3 is headers.
-_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW = 2
+# Default FAIRe Excel wide metadata layout: rows 1–2 are preamble; row 3 is headers.
 
 # Intentional missing-data placeholders (FAIRe / MIxS style). Report guidance; use exact wording in the sheet.
 _FAIRE_PLACEHOLDER_TERMS_ALL_FIELDS = [
@@ -90,6 +89,175 @@ def read_text_file_cross_platform(filepath, sep='\t', **kwargs):
     # Feed to pandas via StringIO
     return pd.read_csv(io.StringIO(text), sep=sep, **kwargs)
 
+
+def read_metadata_tsv(filepath, header_row_1_based=1, long_fieldnames_column_1_based=None):
+    """Read metadata TSVs with configurable header row or long-format key/value columns."""
+    try:
+        header_row_1_based = int(header_row_1_based)
+    except (TypeError, ValueError):
+        raise ValueError(f"header_row_1_based must be a positive integer for '{filepath}'")
+    if header_row_1_based < 1:
+        raise ValueError(f"header_row_1_based must be >= 1 for '{filepath}'")
+
+    if long_fieldnames_column_1_based is not None:
+        try:
+            long_fieldnames_column_1_based = int(long_fieldnames_column_1_based)
+        except (TypeError, ValueError):
+            raise ValueError(f"long_fieldnames_column_1_based must be a positive integer for '{filepath}'")
+        if long_fieldnames_column_1_based < 1:
+            raise ValueError(f"long_fieldnames_column_1_based must be >= 1 for '{filepath}'")
+
+    with open(filepath, 'rb') as f:
+        content = f.read()
+
+    content = content.replace(b'\r\n', b'\n').replace(b'\r', b'\n')
+    try:
+        text = content.decode('utf-8')
+    except UnicodeDecodeError:
+        text = content.decode('latin-1')
+
+    # Parse every physical line; header_row_1_based is the literal line number of the
+    # field-name row (preamble rows above it are simply everything before that line).
+    all_rows = list(csv.reader(io.StringIO(text), delimiter='\t'))
+    header_idx = header_row_1_based - 1
+
+    _LONG_TERM_LABELS = {'term_name', 'term name', 'field_name', 'field name'}
+    _LONG_VALUE_LABELS = {'values', 'value', 'field_value', 'field value'}
+
+    # --- LONG format: field names in one column, values in the next column ---
+    if long_fieldnames_column_1_based is not None:
+        field_idx = long_fieldnames_column_1_based - 1
+        value_idx = field_idx + 1
+        records = []
+        for offset, row in enumerate(all_rows[header_idx:]):
+            field_value = row[field_idx] if len(row) > field_idx else ""
+            data_value = row[value_idx] if len(row) > value_idx else ""
+            field_value_str = str(field_value).strip()
+            data_value_str = str(data_value).strip()
+
+            # Skip a field-name/value label row if it sits on the first read line.
+            if (
+                offset == 0
+                and field_value_str.lower() in _LONG_TERM_LABELS
+                and data_value_str.lower() in _LONG_VALUE_LABELS
+            ):
+                continue
+
+            if field_value_str:
+                records.append([field_value_str, data_value_str if data_value_str else pd.NA])
+
+        if not records:
+            return pd.DataFrame(columns=['term_name', 'values'])
+        return pd.DataFrame(records, columns=['term_name', 'values']).replace('', pd.NA)
+
+    # --- WIDE format: field names on header_row, data on the lines below ---
+    if header_idx >= len(all_rows):
+        raise ValueError(
+            f"Metadata TSV '{filepath}' has no row at field_name_row={header_row_1_based} "
+            f"(file only has {len(all_rows)} lines)."
+        )
+
+    header = all_rows[header_idx]
+    expected_cols = len(header)
+    data_rows = []
+    for line_number, row in enumerate(all_rows[header_idx + 1:], start=header_row_1_based + 1):
+        # Skip fully blank lines (avoids ghost rows from trailing newlines / CRLF issues).
+        if not row or all(str(cell).strip() == '' for cell in row):
+            continue
+
+        if len(row) > expected_cols:
+            extra_values = row[expected_cols:]
+            if all(str(value).strip() == '' for value in extra_values):
+                row = row[:expected_cols]
+            else:
+                raise ValueError(
+                    f"Metadata TSV '{filepath}' has {len(row)} fields on line {line_number}, "
+                    f"but the header has {expected_cols}. Extra non-empty values: {extra_values}"
+                )
+        elif len(row) < expected_cols:
+            row = row + [''] * (expected_cols - len(row))
+
+        data_rows.append(row)
+
+    return pd.DataFrame(data_rows, columns=header).replace('', pd.NA)
+
+
+def extract_long_format_pairs(raw_df, source_label, field_col_1_based=1, start_row_1_based=1):
+    """Extract long-format term/value pairs from adjacent columns."""
+    if raw_df is None or raw_df.empty:
+        return pd.DataFrame(columns=['term_name', 'values'])
+    if field_col_1_based < 1 or start_row_1_based < 1:
+        raise ValueError(
+            f"Invalid long-format settings for '{source_label}'. "
+            f"field_col_1_based={field_col_1_based}, start_row_1_based={start_row_1_based}"
+        )
+
+    field_idx = field_col_1_based - 1
+    value_idx = field_idx + 1
+    start_idx = start_row_1_based - 1
+    records = []
+
+    for row_idx in range(start_idx, len(raw_df)):
+        field_value = raw_df.iat[row_idx, field_idx] if raw_df.shape[1] > field_idx else pd.NA
+        data_value = raw_df.iat[row_idx, value_idx] if raw_df.shape[1] > value_idx else pd.NA
+
+        field_str = "" if pd.isna(field_value) else str(field_value).strip()
+        if not field_str:
+            continue
+
+        value_str = "" if pd.isna(data_value) else str(data_value).strip()
+        if (
+            row_idx == start_idx
+            and field_str.lower() in {'term_name', 'term name', 'field_name', 'field name'}
+            and value_str.lower() in {'values', 'value', 'field_value', 'field value'}
+        ):
+            continue
+
+        records.append({
+            'term_name': field_str,
+            'values': value_str if value_str else pd.NA
+        })
+
+    return pd.DataFrame(records, columns=['term_name', 'values'])
+
+
+def normalize_analysis_metadata(analysis_df, source_label, reporter):
+    """Validate and normalize a NOAA-style analysisMetadata table."""
+    if 'term_name' not in analysis_df.columns:
+        reporter.add_warning(f"analysisMetadata '{source_label}' missing 'term_name' column. Found columns: {list(analysis_df.columns)}")
+        return None
+
+    value_col = None
+    for col in ['values', 'value', 'Values', 'Value']:
+        if col in analysis_df.columns:
+            value_col = col
+            break
+
+    if not value_col:
+        reporter.add_warning(f"analysisMetadata '{source_label}' missing 'values' column. Found columns: {list(analysis_df.columns)}")
+        return None
+
+    if value_col != 'values':
+        analysis_df = analysis_df.rename(columns={value_col: 'values'})
+
+    return analysis_df
+
+
+def get_analysis_metadata_value(analysis_df, term_name):
+    """Read a value from an analysisMetadata table by term_name."""
+    if analysis_df is None or 'term_name' not in analysis_df.columns or 'values' not in analysis_df.columns:
+        return None
+
+    term_values = analysis_df['term_name'].astype(str).str.strip()
+    matches = analysis_df.loc[term_values == term_name, 'values']
+    if matches.empty:
+        return None
+
+    value = matches.iloc[0]
+    if pd.isna(value) or str(value).strip() == "":
+        return None
+    return str(value).strip()
+
 # Import modules from subdirectories
 from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
@@ -109,13 +277,76 @@ def load_config(config_path="config.yaml"):
             config = yaml.safe_load(f)
         
         params = {}
-        
+
+        def _read_positive_int_value(setting_name, raw_val):
+            try:
+                parsed = int(raw_val)
+            except (TypeError, ValueError):
+                raise ValueError(f"'{setting_name}' must be a positive integer. Got: {raw_val}")
+            if parsed < 1:
+                raise ValueError(f"'{setting_name}' must be >= 1. Got: {raw_val}")
+            return parsed
+
+        def _read_non_negative_int_value(setting_name, raw_val):
+            try:
+                parsed = int(raw_val)
+            except (TypeError, ValueError):
+                raise ValueError(f"'{setting_name}' must be a non-negative integer. Got: {raw_val}")
+            if parsed < 0:
+                raise ValueError(f"'{setting_name}' must be >= 0. Got: {raw_val}")
+            return parsed
+
         # Metadata source: one boolean chooses which paths to use.
         # true = read from single Excel file (excel_file + sheet names)
         # false = read from separate TSV files (sampleMetadata_file, experimentRunMetadata_file, projectMetadata_file)
         # You can have both sets of paths in the config; this parameter decides which is used.
         combined_metadata_file = config.get('combined_metadata_file', True)
         params['use_excel'] = bool(combined_metadata_file)
+        field_name_row_raw = config.get(
+            'field_name_row',
+            config.get(
+                'wide_fieldnames_row',
+                config.get('metadata_wide_fieldnames_row', 3 if params['use_excel'] else 1)
+            )
+        )
+        params['field_name_row'] = _read_positive_int_value('field_name_row', field_name_row_raw)
+
+        long_skip_raw = config.get('project_and_analysis_header_rows_to_skip')
+        if long_skip_raw is None:
+            long_skip_raw = config.get('long_rows_to_skip')
+        if long_skip_raw is None:
+            legacy_long_row = config.get('long_fieldnames_row')
+            if legacy_long_row is not None:
+                long_skip_raw = _read_positive_int_value('long_fieldnames_row', legacy_long_row) - 1
+            else:
+                long_skip_raw = 0
+        params['project_and_analysis_header_rows_to_skip'] = _read_non_negative_int_value(
+            'project_and_analysis_header_rows_to_skip',
+            long_skip_raw
+        )
+
+        field_name_column_raw = config.get(
+            'field_name_column',
+            config.get('long_field_name_column', config.get('long_fieldnames_column', 1))
+        )
+        params['field_name_column'] = _read_positive_int_value('field_name_column', field_name_column_raw)
+
+        raw_wide_row_raw = config.get(
+            'raw_wide_header_row',
+            config.get('raw_wide_fieldnames_row', 1)
+        )
+        if raw_wide_row_raw in [None, "", "auto", "AUTO", "Auto"]:
+            raw_wide_row_raw = 1
+        asv_row_raw = config.get('field_names_row_asv', raw_wide_row_raw)
+        table_row_raw = config.get('field_names_row_table', raw_wide_row_raw)
+        params['field_names_row_asv'] = _read_positive_int_value(
+            'field_names_row_asv',
+            asv_row_raw
+        )
+        params['field_names_row_table'] = _read_positive_int_value(
+            'field_names_row_table',
+            table_row_raw
+        )
         
         if params['use_excel']:
             params['excel_file'] = config.get('excel_file')
@@ -573,17 +804,32 @@ def load_project_data(params, reporter):
                 reporter.add_text(f"Found {len(analysis_sheets)} analysis metadata sheets: {', '.join(analysis_sheets)}")
 
                 for sheet_name in analysis_sheets:
-                    analysis_df = pd.read_excel(
+                    analysis_raw_df = pd.read_excel(
                         params['excel_file'],
                         sheet_name,
-                        header=0,
+                        header=None,
                         index_col=None,
                         na_values=[""],
                         keep_default_na=False,
                     )
+                    analysis_df = extract_long_format_pairs(
+                        analysis_raw_df,
+                        source_label=sheet_name,
+                        field_col_1_based=params.get('field_name_column', 1),
+                        start_row_1_based=params.get('project_and_analysis_header_rows_to_skip', 0) + 1
+                    )
+                    analysis_df = normalize_analysis_metadata(analysis_df, sheet_name, reporter)
+                    if analysis_df is None:
+                        continue
 
-                    assay_name = str(analysis_df.iloc[1, 3])  # Excel cell D3
-                    analysis_run_name = str(analysis_df.iloc[2, 3])  # Excel cell D4
+                    assay_name = get_analysis_metadata_value(analysis_df, 'assay_name')
+                    analysis_run_name = get_analysis_metadata_value(analysis_df, 'analysis_run_name')
+                    if not assay_name or not analysis_run_name:
+                        reporter.add_warning(
+                            f"Skipping sheet '{sheet_name}': expected term_name rows for "
+                            "'assay_name' and 'analysis_run_name'."
+                        )
+                        continue
                     
                     reporter.add_text(f"Processing sheet '{sheet_name}': assay '{assay_name}', run '{analysis_run_name}'")
                     
@@ -599,7 +845,7 @@ def load_project_data(params, reporter):
                 project_meta_df = pd.read_excel(
                     params['excel_file'],
                     params['projectMetadata'],
-                    header=0,
+                    header=params.get('project_and_analysis_header_rows_to_skip', 0),
                     index_col=None,
                     na_values=[""],
                     keep_default_na=False,
@@ -657,12 +903,17 @@ def load_project_data(params, reporter):
             sm_sheet = params['sampleMetadata']
             erm_sheet = params['experimentRunMetadata']
             data = {
-                'projectMetadata': pd.read_excel(excel_path, pm_sheet, header=0, **_xlsx_kw),
+                'projectMetadata': pd.read_excel(
+                    excel_path,
+                    pm_sheet,
+                    header=params.get('project_and_analysis_header_rows_to_skip', 0),
+                    **_xlsx_kw
+                ),
                 'sampleMetadata': pd.read_excel(
-                    excel_path, sm_sheet, header=_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW, **_xlsx_kw
+                    excel_path, sm_sheet, header=params['field_name_row'] - 1, **_xlsx_kw
                 ),
                 'experimentRunMetadata': pd.read_excel(
-                    excel_path, erm_sheet, header=_FAIRE_EXCEL_WIDE_SHEET_HEADER_ROW, **_xlsx_kw
+                    excel_path, erm_sheet, header=params['field_name_row'] - 1, **_xlsx_kw
                 ),
             }
             
@@ -670,14 +921,23 @@ def load_project_data(params, reporter):
             if params['metadata_format'] == 'NOAA':
                 analysis_sheets = [sheet for sheet in all_sheets if sheet.startswith('analysisMetadata')]
                 if analysis_sheets:
-                    data['analysisMetadata'] = pd.read_excel(
+                    first_analysis_raw_df = pd.read_excel(
                         params['excel_file'],
                         analysis_sheets[0],
-                        header=0,
+                        header=None,
                         index_col=None,
                         na_values=[""],
                         keep_default_na=False,
                     )
+                    first_analysis_df = extract_long_format_pairs(
+                        first_analysis_raw_df,
+                        source_label=analysis_sheets[0],
+                        field_col_1_based=params.get('field_name_column', 1),
+                        start_row_1_based=params.get('project_and_analysis_header_rows_to_skip', 0) + 1
+                    )
+                    first_analysis_df = normalize_analysis_metadata(first_analysis_df, analysis_sheets[0], reporter)
+                    if first_analysis_df is not None:
+                        data['analysisMetadata'] = first_analysis_df
         
         else:
             # --- TSV FORMAT (new implementation) ---
@@ -689,17 +949,26 @@ def load_project_data(params, reporter):
             # Load projectMetadata
             project_meta_path = params['projectMetadata_file']
             reporter.add_text(f"Loading projectMetadata from: {project_meta_path}")
-            data['projectMetadata'] = pd.read_csv(project_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['projectMetadata'] = read_metadata_tsv(
+                project_meta_path,
+                header_row_1_based=params.get('project_and_analysis_header_rows_to_skip', 0) + 1
+            )
             
             # Load sampleMetadata
             sample_meta_path = params['sampleMetadata_file']
             reporter.add_text(f"Loading sampleMetadata from: {sample_meta_path}")
-            data['sampleMetadata'] = pd.read_csv(sample_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['sampleMetadata'] = read_metadata_tsv(
+                sample_meta_path,
+                header_row_1_based=params.get('field_name_row', 1)
+            )
             
             # Load experimentRunMetadata
             exp_run_meta_path = params['experimentRunMetadata_file']
             reporter.add_text(f"Loading experimentRunMetadata from: {exp_run_meta_path}")
-            data['experimentRunMetadata'] = pd.read_csv(exp_run_meta_path, sep='\t', na_values=[""], comment="#", low_memory=False)
+            data['experimentRunMetadata'] = read_metadata_tsv(
+                exp_run_meta_path,
+                header_row_1_based=params.get('field_name_row', 1)
+            )
 
             # Normalize key identifier columns to prevent join/splitting mismatches like 123 vs 123.0
             # (common when numeric IDs are read as floats due to missing values)
@@ -738,27 +1007,15 @@ def load_project_data(params, reporter):
                     reporter.add_text(f"Loading analysisMetadata for run '{run_name}' (assay: '{assay_name}') from: {analysis_meta_file}")
                     
                     # Read the TSV file - TSV format should have term_name and values columns
-                    analysis_df = pd.read_csv(analysis_meta_file, sep='\t', na_values=[""], comment="#", low_memory=False)
+                    analysis_df = read_metadata_tsv(
+                        analysis_meta_file,
+                        header_row_1_based=params.get('project_and_analysis_header_rows_to_skip', 0) + 1,
+                        long_fieldnames_column_1_based=params.get('field_name_column', 1)
+                    )
                     
-                    # Validate expected columns exist
-                    if 'term_name' not in analysis_df.columns:
-                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'term_name' column. Found columns: {list(analysis_df.columns)}")
+                    analysis_df = normalize_analysis_metadata(analysis_df, analysis_meta_file, reporter)
+                    if analysis_df is None:
                         continue
-                    
-                    # The 'values' column might be named differently in TSV, check common names
-                    value_col = None
-                    for col in ['values', 'value', 'Values', 'Value']:
-                        if col in analysis_df.columns:
-                            value_col = col
-                            break
-                    
-                    if not value_col:
-                        reporter.add_warning(f"analysisMetadata file '{analysis_meta_file}' missing 'values' column. Found columns: {list(analysis_df.columns)}")
-                        continue
-                    
-                    # Rename to standard 'values' column name
-                    if value_col != 'values':
-                        analysis_df = analysis_df.rename(columns={value_col: 'values'})
                     
                     if assay_name not in analysis_data_by_assay:
                         analysis_data_by_assay[assay_name] = {}
@@ -862,6 +1119,8 @@ def load_asv_data(params, reporter):
                 try:
                     tax_df = pd.DataFrame()
                     file_extension = os.path.splitext(tax_path)[1].lower()
+                    configured_raw_header_row = params.get('field_names_row_asv')
+                    configured_raw_header_idx = configured_raw_header_row - 1
 
                     if file_extension == '.xlsx':
                         # Heuristic sheet detection: choose the sheet with expected taxonomy columns
@@ -876,7 +1135,7 @@ def load_asv_data(params, reporter):
                         }
                         best_sheet = None
                         best_score = -1
-                        best_header_row = 0
+                        best_header_row = configured_raw_header_idx
                         
                         # Find the best sheet by checking all candidate sheets
                         for sheet in candidate_sheets:
@@ -887,43 +1146,39 @@ def load_asv_data(params, reporter):
                                 tmp = pd.read_excel(tax_path, sheet_name=sheet, nrows=50, header=None)
                             except Exception:
                                 continue
-                            # Try to find a row that looks like a header
-                            for i in range(min(10, len(tmp))):
-                                row_vals = [str(v).lower().strip() for v in tmp.iloc[i].tolist()]
+                            if 0 <= configured_raw_header_idx < len(tmp):
+                                row_vals = [str(v).lower().strip() for v in tmp.iloc[configured_raw_header_idx].tolist()]
                                 row_set = set(row_vals)
                                 score = len(row_set & expected_cols)
-                                if ('seq_id' in row_vals or 'featureid' in row_vals or 'otu id' in row_vals or '#otuid' in row_vals) and score > best_score:
+                                if score > best_score:
                                     best_sheet = sheet
-                                    best_header_row = i
+                                    best_header_row = configured_raw_header_idx
                                     best_score = score
                         
                         # If no sheet was found, use the first sheet
                         if best_sheet is None:
                             best_sheet = candidate_sheets[0]
-                            best_header_row = 0
+                            best_header_row = configured_raw_header_idx
                         
                         # Read the Excel file with the determined sheet and header row
                         tax_df = pd.read_excel(tax_path, sheet_name=best_sheet, header=best_header_row)
                         # Drop any completely empty columns that may have been created by reading
                         tax_df = tax_df.loc[:, ~tax_df.columns.astype(str).str.match(r'^Unnamed', na=False)]
-                        reporter.add_text(f"Note: Reading '{tax_path}' sheet '{best_sheet}' with header at row index {best_header_row}. Auto-detected based on expected taxonomy columns.")
+                        reporter.add_text(
+                            f"Note: Reading '{tax_path}' sheet '{best_sheet}' using configured "
+                            f"field_names_row_asv={configured_raw_header_row}."
+                        )
                     
                     else:
                         # Logic for text-based files (.txt, .tsv, .csv)
                         # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
                         
-                        # Skip leading comment/blank lines (e.g. "# Constructed from biom file"); only skip if line looks like comment (no tab or contains "biom") so we don't skip a header like "#OTU ID\t...".
-                        skiprows = 0
-                        with open(tax_path, 'rb') as f:
-                            for line in f:
-                                line_clean = line.replace(b'\r', b'').decode('utf-8-sig', errors='ignore').strip()
-                                if not line_clean:
-                                    skiprows += 1
-                                elif line_clean.startswith('#') and ('\t' not in line_clean or 'biom' in line_clean.lower()):
-                                    skiprows += 1
-                                else:
-                                    break
+                        skiprows = configured_raw_header_idx
+                        reporter.add_text(
+                            f"Note: Using configured field_names_row_asv={configured_raw_header_row} "
+                            f"for taxonomy file '{tax_path}'."
+                        )
                         
                         # Load the data using cross-platform reader (handles CRLF/LF issues)
                         tax_df = read_text_file_cross_platform(
@@ -1022,27 +1277,26 @@ def load_asv_data(params, reporter):
                 try:
                     df_abundance = pd.DataFrame()
                     file_extension = os.path.splitext(abundance_path)[1].lower()
+                    configured_raw_header_row = params.get('field_names_row_table')
+                    configured_raw_header_idx = configured_raw_header_row - 1
 
                     if file_extension == '.xlsx':
-                        df_abundance = pd.read_excel(abundance_path, sheet_name=0)
-                        reporter.add_text(f"Note: Reading '{abundance_path}' as an Excel file. Assumes header is on the first row.")
+                        abundance_header = configured_raw_header_idx
+                        df_abundance = pd.read_excel(abundance_path, sheet_name=0, header=abundance_header)
+                        reporter.add_text(
+                            f"Note: Reading '{abundance_path}' as an Excel file using configured "
+                            f"field_names_row_table={configured_raw_header_row}."
+                        )
                     else:
                         # Logic for text-based files (.txt, .tsv, .csv)
                         # Use cross-platform reader that normalizes line endings (fixes Mac vs Windows issues)
                         separator = ',' if file_extension == '.csv' else '\t'
 
-                        # Skip leading comment lines (e.g. "# Constructed from biom file") without relying on exact text.
-                        # Only skip lines that look like comments (start with # and no tab, or contain "biom") so we don't skip a header like "#OTU ID\tSample1\t...".
-                        rows_to_skip = 0
-                        with open(abundance_path, 'rb') as f:
-                            for line in f:
-                                line_clean = line.replace(b'\r', b'').decode('utf-8', errors='ignore').strip()
-                                if not line_clean.startswith('#'):
-                                    break
-                                if '\t' not in line_clean or 'biom' in line_clean.lower():
-                                    rows_to_skip += 1
-                                else:
-                                    break
+                        rows_to_skip = configured_raw_header_idx
+                        reporter.add_text(
+                            f"Note: Using configured field_names_row_table={configured_raw_header_row} "
+                            f"for abundance file '{abundance_path}'."
+                        )
 
                         # Load the table using cross-platform reader (handles CRLF/LF issues)
                         df_abundance = read_text_file_cross_platform(

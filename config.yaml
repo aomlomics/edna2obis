@@ -30,6 +30,13 @@ sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-g
 experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
 projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
+# Input table layout (1-based)
+field_name_row: 3  # Row where sampleMetadata/experimentRunMetadata field names are.
+project_and_analysis_header_rows_to_skip: 0  # Rows to skip before projectMetadata/analysisMetadata field names.
+field_name_column: 3  # Column containing field names in projectMetadata/analysisMetadata (value is next column).
+field_names_row_asv: 1  # Row where ASV taxonomy file field names are.
+field_names_row_table: 1  # Row where abundance/occurrence table sample names are.
+
 # ================================STEP 3========================================
 # Assign pathnames for your raw data. Each analysis must have 2 raw data files associated with it.
 # For NOAA format with TSV analysisMetadata files, also include 'analysisMetadata_file' for each run.
@@ -80,7 +87,7 @@ locationID_components:
 # Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
 # Taxonomic Assignment Parameters:
 # taxonomic_api_source: "GBIF"
-taxonomic_api_source: "GBIF"
+taxonomic_api_source: "WoRMS"
 
 # Define the maximum number of matches to request from the GBIF API for each unique taxonomy string.
 # A higher number may provide more potential matches for review but will SIGNIFICANTLY increase processing time.
@@ -126,7 +133,7 @@ worms_consider_unaccepted_for_selection: false
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
 # so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
-worms_return_higher_classification: true
+worms_return_higher_classification: false
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -180,7 +187,7 @@ eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_c
 # segment of occurrenceID aligned with your project namespace when splitting is enabled.
 # When split_output_by_short_name is false, occurrenceID always uses project_id for that segment
 # (short_name is not used in occurrenceID).
-split_output_by_short_name: true
+split_output_by_short_name: false
 
 # When true, writes a plain-text run timing / size report next to other outputs (edna2obis_run_performance_*.txt).
-include_performance_metrics_in_output: true
+include_performance_metrics_in_output: false
