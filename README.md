@@ -31,14 +31,8 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 
 ### Tutorial
 
-<p>
-  <a href="https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11">
-    <img src="./images/youtube_icon.png" alt="Watch the edna2obis tutorial on YouTube" width="92" />
-  </a>
-  <br />
-  <strong>Need help running edna2obis?</strong><br />
-  <a href="https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11">Watch the step-by-step tutorial on YouTube</a>
-</p>
+**Need help running edna2obis?**  
+[![Watch tutorial on YouTube](https://img.shields.io/badge/YouTube-Watch%20the%20tutorial-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11)
 
 ### Example data abstract:
 
