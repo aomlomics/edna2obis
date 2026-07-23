@@ -33,7 +33,7 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 
 <p>
   <a href="https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11">
-    <img src="images/youtube_icon.png" alt="Watch the edna2obis tutorial on YouTube" width="92" />
+    <img src="./images/youtube_icon.png" alt="Watch the edna2obis tutorial on YouTube" width="92" />
   </a>
   <br />
   <strong>Need help running edna2obis?</strong><br />
