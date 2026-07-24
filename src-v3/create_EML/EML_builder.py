@@ -733,7 +733,7 @@ def _create_keywords_element(parent: ET.Element, keywords: List[Dict]) -> None:
 
 
 def _create_methods_element(parent: ET.Element, methods_config: Dict) -> None:
-    """Create methods element with sampling and quality control information"""
+    """Create methods element using IPT-safe methodStep + qualityControl only."""
     if not methods_config:
         return
         
@@ -756,23 +756,19 @@ def _create_methods_element(parent: ET.Element, methods_config: Dict) -> None:
         qc_desc = ET.SubElement(qc_elem, 'description')
         ET.SubElement(qc_desc, 'para').text = quality_control
 
-    # Sampling (GBIF IPT expects studyExtent/description/para, not description as plain text)
+    # IPT validators for this pipeline target can reject <sampling> under <methods>.
+    # Keep study/sampling narrative by appending extra methodStep entries instead.
     study_extent = str(_safe_get(methods_config, 'study_extent') or '').strip()
     sampling_desc = str(_safe_get(methods_config, 'sampling_description') or '').strip()
-    if not study_extent and sampling_desc:
-        study_extent = sampling_desc
+    if study_extent:
+        study_step = ET.SubElement(methods, 'methodStep')
+        study_desc = ET.SubElement(study_step, 'description')
+        ET.SubElement(study_desc, 'para').text = f"Study extent: {study_extent}"
 
-    if study_extent or sampling_desc:
-        sampling = ET.SubElement(methods, 'sampling')
-
-        if study_extent:
-            study_extent_elem = ET.SubElement(sampling, 'studyExtent')
-            desc_wrap = ET.SubElement(study_extent_elem, 'description')
-            ET.SubElement(desc_wrap, 'para').text = study_extent
-
-        if sampling_desc:
-            sampling_desc_elem = ET.SubElement(sampling, 'samplingDescription')
-            ET.SubElement(sampling_desc_elem, 'para').text = sampling_desc
+    if sampling_desc:
+        sampling_step = ET.SubElement(methods, 'methodStep')
+        sampling_step_desc = ET.SubElement(sampling_step, 'description')
+        ET.SubElement(sampling_step_desc, 'para').text = sampling_desc
 
 
 def _create_project_element(parent: ET.Element, project_config: Dict) -> None:
@@ -896,15 +892,19 @@ def _create_project_element(parent: ET.Element, project_config: Dict) -> None:
     # Study area description
     study_area = project_config.get('study_area_description', {})
     if isinstance(study_area, dict) and _non_empty_dict(study_area):
-        study_area_elem = ET.SubElement(project, 'studyAreaDescription')
-        descriptor = ET.SubElement(study_area_elem, 'descriptor')
-        descriptor.set('name', _safe_get(study_area, 'descriptor_name', 'generic') or 'generic')
-        descriptor.set(
-            'citableClassificationSystem',
-            str(_safe_get(study_area, 'citable_classification_system', 'false') or 'false').lower(),
-        )
-        descriptor_value = _safe_get(study_area, 'descriptor_value')
+        descriptor_value = str(_safe_get(study_area, 'descriptor_value') or '').strip()
+        if not descriptor_value:
+            # IPT schema requires descriptorValue when descriptor exists.
+            # Fall back to project geography when users keep template defaults.
+            descriptor_value = str(_safe_get(project_config, 'title') or '').strip()
         if descriptor_value:
+            study_area_elem = ET.SubElement(project, 'studyAreaDescription')
+            descriptor = ET.SubElement(study_area_elem, 'descriptor')
+            descriptor.set('name', _safe_get(study_area, 'descriptor_name', 'generic') or 'generic')
+            descriptor.set(
+                'citableClassificationSystem',
+                str(_safe_get(study_area, 'citable_classification_system', 'false') or 'false').lower(),
+            )
             ET.SubElement(descriptor, 'descriptorValue').text = descriptor_value
 
     # Design description

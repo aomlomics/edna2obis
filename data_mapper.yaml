@@ -54,7 +54,7 @@ dna_derived_extension:
   otu_class_appr: { faire_term: otu_clust_tool, source: analysisMetadata }
   otu_db: { faire_term: otu_db, source: analysisMetadata }
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Same text as occurrence core (merged from occurrence core)
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
   source_mat_id: { faire_term: materialSampleID, source: constructed }
   adapters: { faire_term: adapters, source: constructed }
 
@@ -140,7 +140,7 @@ generic_dna_derived_extension:
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
   otu_class_appr: { faire_term: otu_clust_tool, source: projectMetadata }
   otu_db: { faire_term: otu_db, source: projectMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Same text as occurrence core (merged from occurrence core)
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
   adapters: { faire_term: adapters, source: constructed }
 
 

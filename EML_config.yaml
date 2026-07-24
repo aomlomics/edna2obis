@@ -1,141 +1,49 @@
-# -----------------------------------------------------------------------------
-# EML (Ecological Metadata Language) Configuration  —  TEMPLATE
-# -----------------------------------------------------------------------------
-# Configure metadata for generating EML XML files for OBIS/GBIF submission.
-# Fill out as much information as possible for better dataset discoverability.
-#
-# ----- Quick guide  ----------------------------------------
-#
-# 1) Contact info — two supported styles:
-#    • From contacts.yaml: reads contact info from contacts.yaml (in the repo root).
-#      You can use the key (lastname_firstname) to pull that person's contact info, and you can list them: [lastname_firstname, last_name_firstname2]
-#      Keys are yours to choose; lastname_firstname is a readable convention only.
-#    • MANUAL: keep the nested blocks under eml_metadata (individual_name, email,
-#      organization_name, …) and fill in the info manually. No contacts file required.
-#
-# 2) Cruise splits (main config.yaml has split_output_by_short_name)
-#    • false — leave short_name: "" below. At the bottom of eml_metadata,
-#      keep per_short_name_overrides as {}.
-#    • true — one EML per cruise: leave short_name: "" below. At the bottom of
-#      eml_metadata, under per_short_name_overrides, add one block per cruise (see the
-#      commented example right above that key). The block’s top-level name must match the
-#      cruise id in your data. Under it, use the same field names as elsewhere here
-#      (title, abstract, geographic_coverage, …) — only include what changes per cruise.
-#    {short_name} in a URL is filled in for you when the run knows the id.
-#
-# 3) geographic_coverage.bounding_coordinates — OPTIONAL to hand-type west/east/north/south.
-#    If those four are empty AND occurrence rows have the columns named in latitude_field /
-#    longitude_field (default decimalLatitude / decimalLongitude), the generator computes
-#    the box from your data. If you fill any side manually, that side is kept (no overwrite).
-#    description / description_source_fields: placeholder description may be replaced from
-#    occurrence columns (e.g. locality, waterBody) when still generic — see that section.
-#
-# 4) Optional extras at the bottom — citation, bibliography, notes, collection metadata.
-#    Omit or leave blank when you do not use those IPT fields.
-#
-# Leaving a field blank (very common):
-#   Single-line / short text — use empty quotes:  key: ""
-#   Repeatable list — use an empty list and add nothing:  key: []  (no "-" lines until you have entries)
-#   Multi-line block (key: | …) — for "nothing extra," use  key: ""  on one line instead of |; if you keep |, the indented lines are the value (replace placeholder text when you fill it in)
-#   Nested blocks (address:, collection:) — leave each unused subfield as  ""
-#
-# YAML shapes used in this file (same rules are repeated next to each field):
-#   Nested block (e.g. address:) — fixed keys underneath; no "-" on those key lines.
-#   Repeatable list — starts as []. Each real item begins with "- " (dash space); commented examples show that shape.
-#   Live lists (keywords) — already written as "- item:" blocks; add more by copying a full block.
-#   Multi-line text — key: | then indented lines. Do not leave plain text lines under [].
-
 eml_metadata:
-  # ---------------------------------------------------------------------------
-  # Reusable contacts book (optional)
-  # ---------------------------------------------------------------------------
-  # If set, the generator loads this YAML and expands contact_ref / shorthand lists.
-  # Search order: directory of THIS config file, then process working directory.
-  # Top-level config can also set contacts_path (pipeline default: contacts.yaml in cwd).
-  # Omit entirely if you only use manual person blocks below.
-  # contacts_path: "contacts.yaml"
-
-  # ---------------------------------------------------------------------------
-  # Dataset identifiers and title
-  # ---------------------------------------------------------------------------
-  # IPT-style order is: alternateIdentifier(s), shortName, title, creators.
-  #
-  # Leave "" unless you set the package id here on purpose. Cruise splits: quick guide item 2.
   short_name: ""
   alternate_identifiers: []
-    # Optional extra identifiers. You can use {short_name} and {project_id} in strings.
-    # - "https://ipt-obis.gbif.us/resource?r={short_name}"
 
-  title: "Marine eDNA sequences from [LOCATION] [TIMEFRAME]"
-  title_source_field: "project_name"  # Optional projectMetadata field used when title has placeholders / is blank.
+  title: "Potential prey of Rice's whales from seawater eDNA metabarcoding (GU19-01)"
+  title_source_field: "project_name"
   abstract: |
-    Brief description of this dataset. IPT examples usually make this dataset/cruise-specific:
-    what was collected, where/when, how many samples, and which markers or assays were used.
+    This dataset contains marine environmental DNA (eDNA) metabarcoding occurrence records
+    generated from seawater samples collected during expedition GU19-01. The package includes
+    two fish-targeted 12S assays (MiFish and Riaz) and is intended to support biodiversity
+    characterization and potential prey investigations.
 
-  publication_date: "2024"  # YYYY or YYYY-MM-DD
-  language: "eng"  # IPT exports use eng. Use en only if your downstream validator expects ISO 639-1.
+  publication_date: "2026-07-23"
+  language: "eng"
 
-  # ---------------------------------------------------------------------------
-  # People and organizations
-  # ---------------------------------------------------------------------------
-  # creators → repeated <creator> nodes. contact → dataset contact. metadata_provider optional.
-  #
-  # — Reuse a contacts.yaml entry (recommended when the same people appear on many cruises) —
-  #   In contacts.yaml define a unique key (example: smith_jane) with givenName, surName,
-  #   organizationName, electronicMailAddress, … (IPT-style names) OR the same nested keys
-  #   as below (individual_name.given_name, email, …).
-  #   Then HERE use either:
-  #     creators:
-  #       - contact_ref: smith_jane
-  #       - contact_ref: doe_john
-  #     contact:
-  #       contact_ref: smith_jane
-  #   or shorthand:
-  #     creators: [smith_jane, doe_john]
-  #     contact: smith_jane
-  #   Extra keys on the same list item (e.g. role) merge on top of the book record.
-  #
-  # — OR manually fill in contact info following the structure below (no contacts.yaml file)
-  #
-  # ORCIDs: full https://orcid.org/… or bare ID; generator writes IPT userId.
   creators:
     - individual_name:
-        given_name: "Principal"
-        surname: "Investigator"
-      organization_name: "Your Institution"
-      position_name: ""
-      email: "pi@institution.edu"
-      phone: ""
-      address:
-        delivery_point: ""
-        city: ""
-        administrative_area: ""
-        postal_code: ""
-        country: ""
-      online_url: ""
-      user_id: ""  # ORCID, e.g. "https://orcid.org/0000-0000-0000-0000"
+        given_name: "Lynsey"
+        surname: "Wilcox Talbot"
+      organization_name: "NOAA Southeast Fisheries Science Center"
+      email: "lynsey.wilcox@noaa.gov"
+      user_id: "https://orcid.org/0000-0001-9824-879X"
+    - individual_name:
+        given_name: "Katherine"
+        surname: "Silliman"
+      organization_name: "NOAA Southeast Fisheries Science Center"
+      email: ""
+      user_id: "https://orcid.org/0000-0001-5964-3965"
 
-  # contact is the person users should email about the dataset.
   contact:
     individual_name:
-      given_name: "Your"
-      surname: "Contact"
-    organization_name: "Your Institution"
+      given_name: "Lynsey"
+      surname: "Wilcox Talbot"
+    organization_name: "NOAA Southeast Fisheries Science Center"
     position_name: ""
-    email: "your.email@institution.edu"
+    email: "lynsey.wilcox@noaa.gov"
     phone: ""
     address:
       delivery_point: ""
       city: ""
       administrative_area: ""
       postal_code: ""
-      country: ""
+      country: "US"
     online_url: ""
-    user_id: ""
+    user_id: "https://orcid.org/0000-0001-9824-879X"
 
-  # Optional metadata provider if different from creator/contact.
-  # May also be a reusable key:  metadata_provider: other_person_key
-  # or  metadata_provider: { contact_ref: other_person_key }
   metadata_provider:
     individual_name:
       given_name: ""
@@ -146,93 +54,58 @@ eml_metadata:
     user_id: ""
 
   associated_parties: []
-    # - individual_name:
-    #     given_name: "Collaborator"
-    #     surname: "Name"
-    #   organization_name: "Partner Institution"
-    #   email: "collab@example.org"
-    #   role: "content provider"
 
-  # ---------------------------------------------------------------------------
-  # Keywords
-  # ---------------------------------------------------------------------------
-  # Each item becomes one <keywordSet>. If thesaurus is blank/omitted, N/A is written.
   keywords:
     - keyword: "eDNA"
       thesaurus: "ASFA"
     - keyword: "metabarcoding"
       thesaurus: "ASFA"
-    - keyword: "marine biodiversity"
-      thesaurus: "ASFA"
-    - keyword: "environmental DNA"
-      thesaurus: "GCMD"
+    - keyword: "Rice's whale"
+    - keyword: "Actinopterygii"
     - keyword: "Occurrence"
       thesaurus: "GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml"
 
-  # ---------------------------------------------------------------------------
-  # Rights, license, and distribution
-  # ---------------------------------------------------------------------------
-  # license controls <intellectualRights>. CC0 writes the IPT-valid ulink/citetitle paragraph.
-  license: "CC0"  # Options: CC0, CC-BY, CC-BY-NC
+  license: "CC0"
   licensed:
     license_name: "Creative Commons Zero v1.0 Universal"
     url: "https://spdx.org/licenses/CC0-1.0.html"
     identifier: "CC0-1.0"
 
   distribution:
-    # Optional. These become <distribution scope="document"><online><url function="...">.
-    # Use {short_name} for split datasets.
-    information_url: ""
+    information_url: "https://github.com/aomlomics/rices-prey-edna"
     download_url: ""
     links: []
-      # - function: "information"
-      #   url: "https://example.org/project/{short_name}"
 
-  # ---------------------------------------------------------------------------
-  # Coverage
-  # ---------------------------------------------------------------------------
   geographic_coverage:
-    # Human-readable area. If this still looks like the placeholder below OR is empty,
-    # the generator may replace it from occurrence columns listed in description_source_fields.
-    description: "Geographic area description (e.g., 'Gulf of Mexico', 'North Atlantic')"
+    description: "Marine waters sampled during expedition GU19-01."
     description_source_fields:
       - "locality"
       - "waterBody"
     bounding_coordinates:
-      # You do NOT have to fill these if occurrence has lat/lon columns: leave "" and
-      # the generator fills min/max from latitude_field / longitude_field for any edge
-      # that is still empty. If you set a value here, it wins (not overwritten).
       west: ""
       east: ""
       north: ""
       south: ""
-    # Column names on the occurrence table used for auto bounding box (defaults fine for Darwin Core).
     latitude_field: "decimalLatitude"
     longitude_field: "decimalLongitude"
 
   temporal_coverage:
-    # begin_date/end_date are auto-calculated from occurrence eventDate when available.
     event_date_field: "eventDate"
     begin_date: ""
     end_date: ""
 
   taxonomic_coverage:
-    general_description: "Marine organisms identified through eDNA metabarcoding"
+    general_description: "Marine organisms identified through fish-targeted 12S eDNA metabarcoding assays."
     classifications: []
-      # - taxon_rank_name: "kingdom"
-      #   taxon_rank_value: "Animalia"
-      #   common_name: ""
     rank_fields:
       - "kingdom"
       - "phylum"
       - "class"
       - "order"
 
-  # ---------------------------------------------------------------------------
-  # Purpose, maintenance, and methods
-  # ---------------------------------------------------------------------------
   purpose: |
-    Why was this dataset collected? What questions or use cases does it support?
+    To characterize marine biodiversity and support interpretation of potential prey signals
+    relevant to Rice's whale studies using seawater eDNA metabarcoding data.
 
   maintenance:
     description: ""
@@ -241,79 +114,46 @@ eml_metadata:
   methods:
     method_steps:
       - description: |
-          Summarize the lab and bioinformatics workflow. IPT examples keep details here concise
-          and put field sampling details under sampling_description.
-
-    study_extent: |
-      Required by IPT. Describe the specific geographic/temporal scope of this dataset,
-      for example: "Gulf of Mexico from 2022-02-24 to 2022-03-02."
-
-    sampling_description: |
-      Detailed sampling description: platform, collection gear, sample volumes, filtration,
-      metadata capture, lab protocols, sequencing, and data processing.
-
+          DNA was extracted from seawater samples, amplified using fish-targeted 12S assays,
+          sequenced, and taxonomically assigned for occurrence record generation.
+      - description: |
+          Study extent: Expedition GU19-01. Seawater samples were collected during NOAA
+          expedition GU19-01 and processed through standard eDNA metabarcoding laboratory
+          and bioinformatics workflows.
+    study_extent: ""
+    sampling_description: ""
     quality_control: |
-      Describe field/lab/sequencing controls, filtering, contamination checks, and any
-      post-assignment cleanup.
+      Control samples and post-processing filters were applied according to project workflow.
 
-  # ---------------------------------------------------------------------------
-  # Project
-  # ---------------------------------------------------------------------------
   project:
-    id: ""  # Auto-filled from projectMetadata.project_id when available.
-    title: "Your Project Title"
-    title_source_field: "project_id"
+    id: "noaa-sefsc-gu1901"
+    title: "Potential prey of Rice's whales based on seawater eDNA 2019"
+    title_source_field: "project_name"
     project_description: |
-      Project-level description. This maps to <project><abstract><para>...</para></abstract>
-      to match IPT exports.
+      Potential prey of Rice's whales based on seawater eDNA from expedition GU19-01.
     funding: ""
     award:
       funder_name: ""
       award_number: ""
       title: ""
-    study_area_description:
-      descriptor_name: "generic"
-      citable_classification_system: false
-      descriptor_value: ""
-    design_description: ""
-    personnel: []
-      # IPT requires at least one project personnel. If this list is empty, the
-      # generator copies the first creator as a fallback.
-      # - individual_name:
-      #     given_name: "Project"
-      #     surname: "Person"
-      #   user_id: "https://orcid.org/0000-0000-0000-0000"
-      #   role: "processor"
+    study_area_description: {}
+    design_description: "Water column spatial series metabarcoding."
+    personnel:
+      - individual_name:
+          given_name: "Lynsey"
+          surname: "Wilcox Talbot"
+        user_id: "https://orcid.org/0000-0001-9824-879X"
+        role: "originator"
+      - individual_name:
+          given_name: "Katherine"
+          surname: "Silliman"
+        user_id: "https://orcid.org/0000-0001-5964-3965"
+        role: "processor"
 
-  # When split_output_by_short_name is false in main config.yaml, keep the next line as {}.
-  #
-  # When it is true: change `per_short_name_overrides: {}` to `per_short_name_overrides:`
-  # with no braces on that line; on the lines below, add each cruise id indented two
-  # spaces, then fields for that cruise indented two more spaces. Only one
-  # `per_short_name_overrides:` line in the file.
-  #
-  # Example — only the nested part is shown; the real `per_short_name_overrides:` line
-  # stays where it is below (drop the # and line up indents with this block):
-  #   short_name1:
-  #     title: "Dataset title for this cruise only"
-  #     abstract: |
-  #       Abstract text for this cruise only.
-  #   short_name2:
-  #     title: "Dataset title for the other cruise"
-  #     abstract: |
-  #       Abstract for the other cruise.
   per_short_name_overrides: {}
 
-  # ---------------------------------------------------------------------------
-  # Optional extras
-  # ---------------------------------------------------------------------------
-  # dataset_citation — suggested citation string if your archive asks for it.
-  # bibliography — list of plain reference strings (papers, reports).
-  # additional_info — free-form <additionalMetadata> / notes style content when supported.
-  # collection — physical specimen collection metadata (skip for occurrence-only IPT packages).
   dataset_citation: ""
   bibliography: []
-    # - "Smith, J. et al. (2020). Example paper. Journal. DOI: 10.1000/example"
   additional_info: ""
   collection:
     name: ""
