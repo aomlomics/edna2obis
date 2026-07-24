@@ -37,9 +37,16 @@ def create_meta_xml(
     extension_filenames=None,
     metadata_filename=None,
     reporter=None,
+    core_row_type="Occurrence",
+    core_id_term="occurrenceID",
 ):
     """
     Create a Darwin Core Archive meta.xml for the files in output_dir.
+
+    core_row_type / core_id_term parameterize the DwC-A core so the same builder
+    can emit either an Occurrence Core (defaults: "Occurrence" / "occurrenceID")
+    or an Event Core ("Event" / "eventID"). Defaults reproduce the historical
+    Occurrence-Core output exactly. The extension <coreid> links use core_id_term.
     """
     extension_filenames = extension_filenames or []
 
@@ -51,10 +58,10 @@ def create_meta_xml(
     if not core_header:
         raise ValueError(f"Core file has no header row: {core_path}")
 
-    if "occurrenceID" not in core_header:
-        raise ValueError(f"Core file missing required 'occurrenceID' column: {core_path}")
+    if core_id_term not in core_header:
+        raise ValueError(f"Core file missing required '{core_id_term}' column: {core_path}")
 
-    occ_id_idx = core_header.index("occurrenceID")
+    core_id_idx = core_header.index(core_id_term)
 
     archive_attrib = {
         "xmlns": _DWC_TEXT_NS,
@@ -77,12 +84,12 @@ def create_meta_xml(
             "linesTerminatedBy": "\\n",
             "fieldsEnclosedBy": '"',
             "ignoreHeaderLines": "1",
-            "rowType": _term_uri("Occurrence", _DWC_TERMS_NS),
+            "rowType": _term_uri(core_row_type, _DWC_TERMS_NS),
         },
     )
     files = SubElement(core, "files")
     SubElement(files, "location").text = core_filename
-    SubElement(core, "id", {"index": str(occ_id_idx)})
+    SubElement(core, "id", {"index": str(core_id_idx)})
 
     for idx, col in enumerate(core_header):
         SubElement(core, "field", {"index": str(idx), "term": _term_uri(col, _DWC_TERMS_NS)})
@@ -96,10 +103,10 @@ def create_meta_xml(
         if not ext_header:
             continue
 
-        if "occurrenceID" not in ext_header:
+        if core_id_term not in ext_header:
             continue
 
-        coreid_idx = ext_header.index("occurrenceID")
+        coreid_idx = ext_header.index(core_id_term)
 
         if ext_filename.lower().startswith("emof"):
             row_type = _term_uri("MeasurementOrFact", _DWC_TERMS_NS)

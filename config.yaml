@@ -8,8 +8,14 @@
 # If left blank or set to 'config.yaml', this file will be used.
 run_config_path: "config.yaml"
 metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
-edna2obis_run_name: "EXAMPLE_OUTPUT_FAIRE_NOAA_SMALL_GBIF" # This name will be used to name your config file (outputted for your convenience after your run is complete)
+edna2obis_run_name: "OBON_workshop_Rices_Whale_Prey" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa assignment INFO files.
+
+# --- Darwin Core CORE TYPE ---
+# Controls the structure of the Darwin Core Archive that edna2obis produces.
+#   "occurrence" (default) = Occurrence Core + DNA Derived extension (+ optional eMoF, EML) + meta.xml, (for all versions up to and including v3.1.0)
+#   "event"                = Event Core + Occurrence extension + DNA Derived extension (+ optional eMoF linked to events and occurrences, EML) + meta.xml
+dwc_core_type: "occurrence"
 
 # ================================STEP 2========================================
 # Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 
@@ -155,14 +161,14 @@ output_dir: "processed-v3/"
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
-emof_enabled: false
-emof_template_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_eMoF_Fields_edna2obis.tsv"
+emof_enabled: true
+emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: false
-eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_config.yaml"
+eml_enabled: true
+eml_config_path: "EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)
