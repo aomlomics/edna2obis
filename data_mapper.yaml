@@ -58,6 +58,34 @@ dna_derived_extension:
   source_mat_id: { faire_term: materialSampleID, source: constructed }
   adapters: { faire_term: adapters, source: constructed }
 
+# Event Core Mappings (only used when dwc_core_type: "event" in config.yaml)
+# https://rs.gbif.org/core/dwc_event_2024-02-19.xml
+# The Event Core is built from the finished Occurrence Core, so 'source: occurrence' means
+# "copy this column straight from the occurrence row". 'tier' says which event rows the field
+# belongs to: sample = the water-sample event, library = the sequencing-library event, both = all rows.
+event_core:
+  eventID: { tier: both, source: constructed }              # samp_name for sample rows, lib_id for library rows
+  parentEventID: { tier: both, source: constructed }        # blank for sample rows, samp_name for library rows
+  eventRemarks: { tier: both, source: constructed }         # "sample" or "library"
+  datasetID: { tier: sample, source: occurrence }
+  bibliographicCitation: { tier: sample, source: occurrence }
+  license: { tier: sample, source: occurrence }
+  institutionID: { tier: sample, source: occurrence }
+  locationID: { tier: sample, source: occurrence }
+  waterBody: { tier: sample, source: occurrence }
+  sampleSizeValue: { tier: sample, source: occurrence }
+  sampleSizeUnit: { tier: sample, source: occurrence }
+  recordedBy: { tier: sample, source: occurrence }
+  materialSampleID: { tier: both, source: occurrence }
+  eventDate: { tier: sample, source: occurrence }
+  minimumDepthInMeters: { tier: sample, source: occurrence }
+  maximumDepthInMeters: { tier: sample, source: occurrence }
+  locality: { tier: sample, source: occurrence }
+  decimalLatitude: { tier: sample, source: occurrence }
+  decimalLongitude: { tier: sample, source: occurrence }
+  geodeticDatum: { tier: sample, source: occurrence }
+  associatedSequences: { tier: library, source: occurrence }
+
 # Occurrence Core Mappings
 # https://rs.gbif.org/core/dwc_occurrence_2025-07-10.xml
 occurrence_core:

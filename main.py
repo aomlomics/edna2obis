@@ -264,6 +264,7 @@ from create_dna_derived_extension.extension_builder import create_dna_derived_ex
 from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
 from create_eMoF.eMoF_builder import create_emof_table
 from create_meta_xml.meta_xml_builder import create_meta_xml
+from create_event_core.event_builder import create_event_core
 # from create_EML.EML_builder import create_eml_file
 
 
@@ -415,6 +416,19 @@ def load_config(config_path="config.yaml"):
         
         # Output splitting by short_name (cruise/expedition)
         params['split_output_by_short_name'] = config.get('split_output_by_short_name', False)
+
+        # Darwin Core archive core type: "occurrence" (default, unchanged) or "event".
+        params['dwc_core_type'] = str(config.get('dwc_core_type', 'occurrence')).strip().lower()
+        if params['dwc_core_type'] not in ('occurrence', 'event'):
+            raise ValueError(
+                f"dwc_core_type must be 'occurrence' or 'event'. Got: {config.get('dwc_core_type')}"
+            )
+        # Per-cruise splitting isn't wired up for Event Core yet; fail early instead of building a broken archive.
+        if params['dwc_core_type'] == 'event' and params['split_output_by_short_name']:
+            raise ValueError(
+                "dwc_core_type: 'event' is not yet supported with split_output_by_short_name: true. "
+                "Set split_output_by_short_name: false to build an Event Core archive."
+            )
 
         params['include_performance_metrics_in_output'] = config.get(
             'include_performance_metrics_in_output', False
@@ -2115,17 +2129,35 @@ def main():
                 reporter.add_text("Skipping output file splitting (split_output_by_short_name=false)")
                 # Create Darwin Core Archive meta.xml in the run output folder (submission-ready)
                 try:
-                    core_fn = f"occurrence_core_{api_choice.lower()}.csv"
-                    ext_fns = ["dna_derived_extension.csv"]
-                    if params.get("emof_enabled", True) and os.path.exists(os.path.join(output_dir, "eMoF.csv")):
-                        ext_fns.append("eMoF.csv")
-                    create_meta_xml(
-                        output_dir=output_dir,
-                        core_filename=core_fn,
-                        extension_filenames=ext_fns,
-                        metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
-                        reporter=reporter,
-                    )
+                    occ_fn = f"occurrence_core_{api_choice.lower()}.csv"
+                    emof_present = params.get("emof_enabled", True) and os.path.exists(os.path.join(output_dir, "eMoF.csv"))
+                    metadata_fn = "eml.xml" if params.get("eml_enabled", False) else None
+                    if params.get("dwc_core_type", "occurrence") == "event":
+                        # Event Core: the Occurrence Core becomes an extension and event_core.csv is the core.
+                        create_event_core(params, reporter, occurrence_filename=occ_fn)
+                        ext_fns = [occ_fn, "dna_derived_extension.csv"]
+                        if emof_present:
+                            ext_fns.append("eMoF.csv")
+                        create_meta_xml(
+                            output_dir=output_dir,
+                            core_filename="event_core.csv",
+                            extension_filenames=ext_fns,
+                            metadata_filename=metadata_fn,
+                            reporter=reporter,
+                            core_row_type="Event",
+                            core_id_term="eventID",
+                        )
+                    else:
+                        ext_fns = ["dna_derived_extension.csv"]
+                        if emof_present:
+                            ext_fns.append("eMoF.csv")
+                        create_meta_xml(
+                            output_dir=output_dir,
+                            core_filename=occ_fn,
+                            extension_filenames=ext_fns,
+                            metadata_filename=metadata_fn,
+                            reporter=reporter,
+                        )
                 except Exception as e:
                     reporter.add_warning(f"meta.xml creation failed: {e}")
 

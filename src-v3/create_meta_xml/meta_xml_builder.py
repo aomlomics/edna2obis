@@ -114,6 +114,10 @@ def create_meta_xml(
         elif ext_filename.lower().startswith("dna_derived_extension"):
             row_type = _term_uri("DNADerivedData", _GBIF_TERMS_NS)
             default_ns = _GBIF_TERMS_NS
+        elif ext_filename.lower().startswith("occurrence"):
+            # Only reachable in Event Core mode, where the Occurrence Core becomes an extension.
+            row_type = _term_uri("Occurrence", _DWC_TERMS_NS)
+            default_ns = _DWC_TERMS_NS
         else:
             row_type = _term_uri("MeasurementOrFact", _DWC_TERMS_NS)
             default_ns = _DWC_TERMS_NS
