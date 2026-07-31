@@ -21,6 +21,29 @@
 #-----------------------------------------------#
 
 
+# eMoF source field aliases
+# These map eMoF template/source field names to fallback source columns used in metadata/output.
+# Format:
+#   template_or_verbatim_field_name:
+#     - first_fallback_column
+#     - second_fallback_column
+emof_source_aliases:
+  input_read_count:
+    - samp_size
+    - sampleSizeValue
+
+# eMoF linkage policy for Event Core mode.
+# Values:
+#   - event: emit one row per event (occurrenceID blank)
+#   - occurrence: emit one row per occurrence (occurrenceID populated)
+#   - auto: use source-based default (occurrence source -> occurrence rows, otherwise event rows)
+#
+# 'default' applies to template fields not listed explicitly.
+emof_measurement_linkage:
+  default: event
+  input_read_count: occurrence
+
+
 # DNA Derived Extension Mappings
 # https://rs.gbif.org/extension/gbif/1.0/dna_derived_data_2024-07-11.xml
 dna_derived_extension:
@@ -66,7 +89,7 @@ dna_derived_extension:
 event_core:
   eventID: { tier: both, source: constructed }              # samp_name for sample rows, lib_id for library rows
   parentEventID: { tier: both, source: constructed }        # blank for sample rows, samp_name for library rows
-  eventRemarks: { tier: both, source: constructed }         # "sample" or "library"
+  eventType: { tier: both, source: constructed }            # "sample" or "library"
   datasetID: { tier: sample, source: occurrence }
   bibliographicCitation: { tier: sample, source: occurrence }
   license: { tier: sample, source: occurrence }

@@ -15,7 +15,7 @@ edna2obis_run_name: "OBON_workshop_Rices_Whale_Prey" # This name will be used to
 # Controls the structure of the Darwin Core Archive that edna2obis produces.
 #   "occurrence" (default) = Occurrence Core + DNA Derived extension (+ optional eMoF, EML) + meta.xml, (for all versions up to and including v3.1.0)
 #   "event"                = Event Core + Occurrence extension + DNA Derived extension (+ optional eMoF linked to events and occurrences, EML) + meta.xml
-dwc_core_type: "occurrence"
+dwc_core_type: "event"
 
 # ================================STEP 2========================================
 # Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file. 

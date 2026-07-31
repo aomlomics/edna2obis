@@ -674,6 +674,17 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
                     f"This indicates non-unique occurrenceIDs upstream and will break GBIF/OBIS integrity."
                 )
                 raise ValueError("Duplicate occurrenceID values detected in DNA derived extension.")
+
+        if str(params.get('dwc_core_type', 'occurrence')).strip().lower() == 'event':
+            if 'eventID' not in dna_derived_extension.columns:
+                raise ValueError(
+                    "Event Core mode requires 'eventID' in dna_derived_extension.csv so rows can link to Event Core."
+                )
+            blank_event_ids = dna_derived_extension['eventID'].astype(str).str.strip().eq('').sum()
+            if blank_event_ids > 0:
+                raise ValueError(
+                    f"Event Core mode found {blank_event_ids} DNA extension row(s) with blank eventID."
+                )
         
         final_rows = len(dna_derived_extension)
         if initial_rows > final_rows:

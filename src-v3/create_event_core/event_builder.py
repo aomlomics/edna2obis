@@ -2,8 +2,8 @@
 Event Core builder for edna2obis.
 
 Builds a 2-tier Event Core from the finished Occurrence Core:
-  - Sample event:  eventID = samp_name,  parentEventID = "",         eventRemarks = "sample"
-  - Library event: eventID = lib_id,      parentEventID = samp_name,  eventRemarks = "library"
+  - Sample event:  eventID = samp_name,  parentEventID = "",         eventType = "sample"
+  - Library event: eventID = lib_id,      parentEventID = samp_name,  eventType = "library"
 
 We derive events straight from the Occurrence Core file, reusing the exact eventID
 (lib_id) and parentEventID (samp_name) values that ended up in the occurrence rows.
@@ -60,8 +60,8 @@ def create_event_core(params, reporter=None, occurrence_filename=None):
                 f"{missing_parent} had an empty parentEventID; those are skipped for the affected tier."
             )
 
-    # eventID/parentEventID/eventRemarks are set explicitly, everything else is pulled from the occurrence row.
-    id_like = {'eventID', 'parentEventID', 'eventRemarks'}
+    # eventID/parentEventID/eventType are set explicitly, everything else is pulled from the occurrence row.
+    id_like = {'eventID', 'parentEventID', 'eventType'}
     sample_value_cols = [c for c in columns if c not in id_like and tiers[c] in ('sample', 'both') and c in occ.columns]
     library_value_cols = [c for c in columns if c not in id_like and tiers[c] in ('library', 'both') and c in occ.columns]
 
@@ -69,14 +69,14 @@ def create_event_core(params, reporter=None, occurrence_filename=None):
     sample_df = work.groupby('parentEventID', sort=True)[sample_value_cols].first().reset_index()
     sample_df = sample_df.rename(columns={'parentEventID': 'eventID'})
     sample_df['parentEventID'] = ''
-    sample_df['eventRemarks'] = 'sample'
+    sample_df['eventType'] = 'sample'
 
     # Library events: one row per lib_id (the occurrence's eventID); parent is its samp_name.
     lib_pull = library_value_cols.copy()
     if 'parentEventID' not in lib_pull:
         lib_pull.append('parentEventID')
     library_df = work.groupby('eventID', sort=True)[lib_pull].first().reset_index()
-    library_df['eventRemarks'] = 'library'
+    library_df['eventType'] = 'library'
 
     # Line both tiers up on the same column order; anything a tier doesn't carry stays blank.
     sample_df = sample_df.reindex(columns=columns)
@@ -95,8 +95,8 @@ def create_event_core(params, reporter=None, occurrence_filename=None):
     out_path = os.path.join(output_dir, 'event_core.csv')
     event_core.to_csv(out_path, index=False, na_rep='')
     if reporter:
-        n_sample = int((event_core['eventRemarks'] == 'sample').sum())
-        n_library = int((event_core['eventRemarks'] == 'library').sum())
+        n_sample = int((event_core['eventType'] == 'sample').sum())
+        n_library = int((event_core['eventType'] == 'library').sum())
         reporter.add_text(
             f"Created Event Core: {n_sample} sample event(s) + {n_library} library event(s) -> {out_path}"
         )
