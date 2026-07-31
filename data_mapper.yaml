@@ -42,6 +42,10 @@ emof_source_aliases:
 emof_measurement_linkage:
   default: event
   input_read_count: occurrence
+  # salinity: occurrence
+  # temp: occurrence
+  # more_fields_to_link_to_occurrences : occurrence
+# everything else will be linked by Event in the eMoF
 
 
 # DNA Derived Extension Mappings
