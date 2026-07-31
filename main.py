@@ -423,12 +423,6 @@ def load_config(config_path="config.yaml"):
             raise ValueError(
                 f"dwc_core_type must be 'occurrence' or 'event'. Got: {config.get('dwc_core_type')}"
             )
-        # Per-cruise splitting isn't wired up for Event Core yet; fail early instead of building a broken archive.
-        if params['dwc_core_type'] == 'event' and params['split_output_by_short_name']:
-            raise ValueError(
-                "dwc_core_type: 'event' is not yet supported with split_output_by_short_name: true. "
-                "Set split_output_by_short_name: false to build an Event Core archive."
-            )
 
         params['include_performance_metrics_in_output'] = config.get(
             'include_performance_metrics_in_output', False
@@ -500,6 +494,55 @@ def save_config_for_run(params, reporter, config_path):
         return None
 
 
+def slim_occurrence_for_event_mode(params, reporter, occurrence_filename):
+    """
+    In Event Core mode, remove duplicate event/sample-level columns from the
+    Occurrence file (which becomes an extension) after Event Core has been built.
+    """
+    output_dir = params.get('output_dir', 'processed-v3/')
+    occ_path = os.path.join(output_dir, occurrence_filename)
+    if not os.path.exists(occ_path):
+        raise FileNotFoundError(f"Occurrence file not found for Event-mode slimming: {occ_path}")
+
+    with open('data_mapper.yaml', 'r', encoding='utf-8') as f:
+        mapper = yaml.safe_load(f) or {}
+
+    format_prefix = "generic_" if str(params.get('metadata_format', 'NOAA')).upper() == "GENERIC" else ""
+    occurrence_key = f"{format_prefix}occurrence_core"
+    event_key = f"{format_prefix}event_core"
+
+    occurrence_map = mapper.get(occurrence_key, {})
+    event_map = mapper.get(event_key) or mapper.get('event_core', {})
+
+    if not occurrence_map or not event_map:
+        reporter.add_warning(
+            "Skipping Event-mode occurrence slimming: missing occurrence_core/event_core mappings in data_mapper.yaml."
+        )
+        return
+
+    occ_df = pd.read_csv(occ_path, dtype=str, keep_default_na=False)
+    if occ_df.empty:
+        return
+
+    # Keep link keys so the occurrence extension remains easy to validate and split.
+    keep_overlap = {"eventID", "parentEventID"}
+    event_terms = set(event_map.keys())
+    overlap_to_drop = sorted((event_terms & set(occ_df.columns)) - keep_overlap)
+
+    if not overlap_to_drop:
+        reporter.add_text("Event-mode occurrence slimming: no overlapping event/sample columns found to remove.")
+        return
+
+    slimmed_df = occ_df.drop(columns=overlap_to_drop, errors='ignore')
+    slimmed_df.to_csv(occ_path, index=False, na_rep='')
+
+    reporter.add_text(
+        f"Event-mode occurrence slimming removed {len(overlap_to_drop)} duplicated event/sample column(s) "
+        f"from '{occurrence_filename}'."
+    )
+    reporter.add_list(overlap_to_drop, "Removed from occurrence extension:")
+
+
 def split_output_files_by_short_name(params, data, reporter):
     """
     Split output files into separate subfolders based on the 'short_name' column in sampleMetadata.
@@ -523,6 +566,7 @@ def split_output_files_by_short_name(params, data, reporter):
     try:
         output_dir = params.get('output_dir', 'processed-v3/')
         api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
+        core_type = str(params.get('dwc_core_type', 'occurrence')).strip().lower()
         
         # Check if short_name column exists in sampleMetadata
         if 'sampleMetadata' not in data or data['sampleMetadata'].empty:
@@ -582,6 +626,10 @@ def split_output_files_by_short_name(params, data, reporter):
                     samp_name = str(row['samp_name']).strip()
                     if samp_name in samp_to_short_name:
                         event_to_short_name[lib_id] = samp_to_short_name[samp_name]
+        # In Event Core mode, sample events use eventID=samp_name.
+        if core_type == 'event':
+            for samp_name, sn in samp_to_short_name.items():
+                event_to_short_name[str(samp_name).strip()] = str(sn).strip()
         
         reporter.add_text(f"Built eventID -> short_name lookup with {len(event_to_short_name)} entries.")
 
@@ -620,11 +668,23 @@ def split_output_files_by_short_name(params, data, reporter):
             reporter.add_warning(f"Could not load occurrence core for splitting diagnostics: {_occ_e}. Will fall back to eventID-based splitting.")
             occurrence_to_short_name = {}
         
+        # In Event Core mode, ensure event_core.csv exists before splitting.
+        if core_type == 'event':
+            try:
+                create_event_core(params, reporter, occurrence_filename=f'occurrence_core_{api_choice}.csv')
+                slim_occurrence_for_event_mode(params, reporter, occurrence_filename=f'occurrence_core_{api_choice}.csv')
+            except Exception as _event_core_err:
+                reporter.add_error(f"Failed to create Event Core before splitting: {_event_core_err}")
+                raise
+
         # Define files to split
-        files_to_split = [
+        files_to_split = []
+        if core_type == 'event':
+            files_to_split.append(('event_core.csv', 'eventID'))
+        files_to_split.extend([
             (f'occurrence_core_{api_choice}.csv', 'eventID'),
             ('dna_derived_extension.csv', 'eventID'),
-        ]
+        ])
         
         # Add eMoF if it exists
         emof_path = os.path.join(output_dir, 'eMoF.csv')
@@ -667,7 +727,13 @@ def split_output_files_by_short_name(params, data, reporter):
                         fieldnames = [str(c).lstrip('\ufeff') if c is not None else '' for c in (reader.fieldnames or [])]
                         reader.fieldnames = fieldnames
 
-                        if occurrence_to_short_name and 'occurrenceID' in fieldnames:
+                        if core_type == 'event' and filename == 'eMoF.csv' and 'eventID' in fieldnames:
+                            # Event Core eMoF can contain event-level rows with blank occurrenceID;
+                            # splitting by eventID preserves both event- and occurrence-linked rows.
+                            key_mode = 'eventID'
+                        elif core_type == 'event' and filename == 'event_core.csv' and 'eventID' in fieldnames:
+                            key_mode = 'eventID'
+                        elif occurrence_to_short_name and 'occurrenceID' in fieldnames:
                             key_mode = 'occurrenceID'
                         elif 'parentEventID' in fieldnames:
                             key_mode = 'parentEventID'
@@ -752,20 +818,71 @@ def split_output_files_by_short_name(params, data, reporter):
 
             # Create Darwin Core Archive meta.xml for this short_name folder (submission-ready)
             try:
-                core_fn = f"occurrence_core_{api_choice}_{short_name_clean}.csv"
-                ext_fns = [f"dna_derived_extension_{short_name_clean}.csv"]
+                if core_type == 'event':
+                    core_fn = f"event_core_{short_name_clean}.csv"
+                    ext_fns = [
+                        f"occurrence_core_{api_choice}_{short_name_clean}.csv",
+                        f"dna_derived_extension_{short_name_clean}.csv",
+                    ]
+                else:
+                    core_fn = f"occurrence_core_{api_choice}_{short_name_clean}.csv"
+                    ext_fns = [f"dna_derived_extension_{short_name_clean}.csv"]
                 emof_candidate = os.path.join(short_name_dir, f"eMoF_{short_name_clean}.csv")
                 if os.path.exists(emof_candidate):
                     ext_fns.append(f"eMoF_{short_name_clean}.csv")
-                create_meta_xml(
-                    output_dir=short_name_dir,
-                    core_filename=core_fn,
-                    extension_filenames=ext_fns,
-                    metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
-                    reporter=reporter,
-                )
+                if core_type == 'event':
+                    create_meta_xml(
+                        output_dir=short_name_dir,
+                        core_filename=core_fn,
+                        extension_filenames=ext_fns,
+                        metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
+                        reporter=reporter,
+                        core_row_type="Event",
+                        core_id_term="eventID",
+                    )
+                else:
+                    create_meta_xml(
+                        output_dir=short_name_dir,
+                        core_filename=core_fn,
+                        extension_filenames=ext_fns,
+                        metadata_filename="eml.xml" if params.get("eml_enabled", False) else None,
+                        reporter=reporter,
+                    )
             except Exception as e:
                 reporter.add_warning(f"  meta.xml creation failed for short_name '{short_name_clean}': {e}")
+
+            # Event Core split validation: extensions must only reference eventIDs in split Event Core.
+            if core_type == 'event':
+                try:
+                    event_core_split_path = os.path.join(short_name_dir, f"event_core_{short_name_clean}.csv")
+                    if not os.path.exists(event_core_split_path):
+                        reporter.add_warning(f"  Event Core split file missing for '{short_name_clean}', skipping orphan check.")
+                    else:
+                        ev_df = pd.read_csv(event_core_split_path, dtype=str, keep_default_na=False)
+                        event_ids = set(ev_df.get('eventID', pd.Series(dtype=str)).astype(str).str.strip())
+                        files_to_check = [
+                            os.path.join(short_name_dir, f"occurrence_core_{api_choice}_{short_name_clean}.csv"),
+                            os.path.join(short_name_dir, f"dna_derived_extension_{short_name_clean}.csv"),
+                            os.path.join(short_name_dir, f"eMoF_{short_name_clean}.csv"),
+                        ]
+                        orphan_total = 0
+                        for fp in files_to_check:
+                            if not os.path.exists(fp):
+                                continue
+                            cdf = pd.read_csv(fp, dtype=str, keep_default_na=False)
+                            if 'eventID' not in cdf.columns:
+                                continue
+                            ext_event_ids = cdf['eventID'].astype(str).str.strip()
+                            orphan_ct = int(((ext_event_ids != '') & (~ext_event_ids.isin(event_ids))).sum())
+                            orphan_total += orphan_ct
+                            if orphan_ct > 0:
+                                reporter.add_warning(
+                                    f"  Orphan check warning in '{os.path.basename(fp)}': {orphan_ct} row(s) reference eventID not in split Event Core."
+                                )
+                        if orphan_total == 0:
+                            reporter.add_text("  Event Core orphan check passed (no extension rows with missing core eventID).")
+                except Exception as _orphan_err:
+                    reporter.add_warning(f"  Could not run Event Core orphan check for '{short_name_clean}': {_orphan_err}")
         
         reporter.add_success(f"Successfully split output files into {len(unique_short_names)} subfolder(s).")
         
@@ -2135,6 +2252,7 @@ def main():
                     if params.get("dwc_core_type", "occurrence") == "event":
                         # Event Core: the Occurrence Core becomes an extension and event_core.csv is the core.
                         create_event_core(params, reporter, occurrence_filename=occ_fn)
+                        slim_occurrence_for_event_mode(params, reporter, occurrence_filename=occ_fn)
                         ext_fns = [occ_fn, "dna_derived_extension.csv"]
                         if emof_present:
                             ext_fns.append("eMoF.csv")
