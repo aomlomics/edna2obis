@@ -164,7 +164,7 @@ class HTMLReporter:
                 # Re-read the dataframe from the provided filepath
                 try:
                     if filepath.lower().endswith('.xlsx'):
-                        from taxonomic_assignment.taxa_assignment_info_export import SHEET_DATA
+                        from taxonomic_alignment.taxa_assignment_info_export import SHEET_DATA
                         df = pd.read_excel(
                             filepath, sheet_name=SHEET_DATA, engine='openpyxl'
                         )

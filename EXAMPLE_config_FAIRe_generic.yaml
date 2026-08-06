@@ -1,7 +1,7 @@
 # edna2obis Configuration File
 # This is an example of a config file for a GENERIC FAIRe dataset
 # USERS: Please edit the config.yaml file, not this one. This is just a template.
-# Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic assignment.
+# Here, you specify where all of your data is, set a few other parameters, and set parameters related to the taxonomic alignment.
 
 # ================================STEP 1========================================
 # --- OPTIONAL: Specify a path to a different config file for the run ---
@@ -11,7 +11,7 @@
 run_config_path: "config.yaml"
 metadata_format: "GENERIC"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
 edna2obis_run_name: "Whale_Prey_Taxa_Testing_20251015" # This name will be used to name your config file (outputted for your convenience after your run is complete)
-# This name will also be used to name your HTML report and Taxa assignment INFO files.
+# This name will also be used to name your HTML report and Taxa alignment INFO files.
 
 # ================================STEP 2========================================
 # Metadata source: true = You have one Excel file, with all your metadata as seperate sheets in the same Excel file.
@@ -80,12 +80,12 @@ locationID_components:
   - station_id
 
 # -----------------------------------------------------------------------------
-# Taxonomic Assignment Parameters
+# Taxonomic Alignment Parameters
 # -----------------------------------------------------------------------------
 
 # ================================STEP 6========================================
-# Specify which API you would like to use to assign taxonomy. Options are either WoRMS or GBIF
-# Taxonomic Assignment Parameters:
+# Specify which API you would like to use to align taxonomy. Options are either WoRMS or GBIF
+# Taxonomic Alignment Parameters:
 # taxonomic_api_source: "WoRMS"
 taxonomic_api_source: "GBIF"
 
@@ -97,18 +97,18 @@ gbif_match_limit: 3
 # When false, GBIF keeps the existing confidence-first selection behavior while still reporting assignment_score.
 gbif_use_assignment_score_for_selection: false
 
-# GBIF only: when true, adds Darwin Core's higherClassification column to taxa_assignment_INFO_GBIF
+# GBIF only: when true, adds Darwin Core's higherClassification column to taxa_alignment_INFO_GBIF
 # by calling GBIF's parents endpoint. Leave false unless you need the full lineage because it adds API calls.
 gbif_return_higher_classification: false
 
 # ================================STEP 7========================================
-# Define which assays should not consider 'species' rank in their taxonomic assignment.
+# Define which assays should not consider 'species' rank in their taxonomic alignment.
 # This is because certain assays (for example, 16S) species' level assignments are not useful / correct.
 # Additionally, for example, 18S species' level assignments are good, and we want them!
 # This should be the exact 'assay_name' value as found in your analysisMetadata sheets (cell D3)
 # and subsequently in the 'assay_name' column of the intermediate occurrence.csv
 assays_to_skip_species_match:
-  - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic assignment
+  - "ssu16sv4v5-emp"  # Example, replace with your actual assay names, comment out if you want species-level to be used in taxonomic alignment
   # - "another_16s_assay_name_if_any"
 
 # ================================STEP 8========================================
@@ -125,7 +125,7 @@ worms_max_walkup_steps: 6
 # When true, edna2obis requests all WoRMS matches, including non-marine taxa.
 worms_return_all_matches: false
 
-# When WoRMS resolves an unaccepted name to an accepted one, the unaccepted match is always shown as an extra row in taxa_assignment_INFO.
+# When WoRMS resolves an unaccepted name to an accepted one, the unaccepted match is always shown as an extra row in taxa_alignment_INFO.
 # If true, that unaccepted row's assignment score is considered when choosing the selected match for the occurrence core; if false (default), only accepted-name rows can be selected.
 worms_consider_unaccepted_for_selection: false
 
@@ -145,7 +145,7 @@ worms_n_proc: 0
 gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
-# Works on both WoRMS and GBIF taxonomic assignment options
+# Works on both WoRMS and GBIF taxonomic alignment options
 output_dir: "processed-v3/"
 
 # ================================STEP 9========================================
@@ -177,7 +177,7 @@ eml_config_path: "raw-v3/EML_config.yaml"
 #   - Creates subfolders: {output_dir}/{short_name}/
 #   - Saves filtered files with suffix: occurrence_core_{api}_{short_name}.csv
 #   - Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml
-#   - Does NOT split: HTML report, taxa_assignment_INFO
+#   - Does NOT split: HTML report, taxa_alignment_INFO
 #
 # IMPORTANT: If enabled, ALL samples in sampleMetadata MUST have a short_name value.
 #            Missing values will cause an error.

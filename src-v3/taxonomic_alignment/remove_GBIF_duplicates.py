@@ -9,7 +9,7 @@ from .taxa_assignment_info_export import (
 
 def remove_duplicates_from_gbif_taxa_info(params, reporter=None):
     """
-    Reads the taxa_assignment_INFO_GBIF.xlsx file, removes duplicate rows,
+    Reads the taxa_alignment_INFO_GBIF.xlsx file, removes duplicate rows,
     and overwrites the file with the deduplicated data.
     """
     try:
@@ -18,7 +18,7 @@ def remove_duplicates_from_gbif_taxa_info(params, reporter=None):
             return
 
         output_dir = params.get('output_dir', '../processed-v3/')
-        filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
+        filename = f"taxa_alignment_INFO_{api_choice}.xlsx"
         filepath = os.path.join(output_dir, filename)
 
         if not os.path.exists(filepath):
@@ -50,6 +50,6 @@ if __name__ == '__main__':
         'taxonomic_api_source': 'GBIF',
         'output_dir': '../../processed-v3/'
     }
-    # To test, you would need a sample 'taxa_assignment_INFO_GBIF.xlsx' in the 'processed-v3' directory.
+    # To test, you would need a sample 'taxa_alignment_INFO_GBIF.xlsx' in the 'processed-v3' directory.
     # remove_duplicates_from_gbif_taxa_info(mock_params)
     print("This script is intended to be called from the main edna2obis pipeline.")

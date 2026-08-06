@@ -836,7 +836,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                 
                 # Add important note about assay_name column
                 reporter.add_text("<h4>NOTE:</h4>")
-                reporter.add_text("The Occurrence Core at this step (before taxonomic assignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic assignment) but it is used by the taxonomic assignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.")
+                reporter.add_text("The Occurrence Core at this step (before taxonomic alignment through WoRMS or GBIF), contains an assay_name column. This will be removed from the final Occurrence Core (after taxonomic alignment) but it is used by the taxonomic alignment code to know which assay's data you want to remove the 'species' rank from consideration. This is because some assays, like 16S for example, return non-usable assignments at species level, while, for example, 18S species assignments ARE useful.")
                 
                 reporter.add_success(f"Successfully created occurrence core with {len(occ_all_final_output)} records")
                 

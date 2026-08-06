@@ -261,7 +261,7 @@ def get_analysis_metadata_value(analysis_df, term_name):
 # Import modules from subdirectories
 from create_occurrence_core.occurrence_builder import create_occurrence_core
 from create_dna_derived_extension.extension_builder import create_dna_derived_extension
-from taxonomic_assignment.taxa_assignment_manager import assign_taxonomy
+from taxonomic_alignment.taxa_assignment_manager import assign_taxonomy
 from create_eMoF.eMoF_builder import create_emof_table
 from create_meta_xml.meta_xml_builder import create_meta_xml
 from create_event_core.event_builder import create_event_core
@@ -555,7 +555,7 @@ def split_output_files_by_short_name(params, data, reporter):
         - Filtered files with suffix: occurrence_core_{api}_{short_name}.csv, etc.
     
     Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml, meta.xml
-    Does NOT split: HTML report, taxa_assignment_INFO, config file
+    Does NOT split: HTML report, taxa_alignment_INFO, config file
 
     Recommended: each short_name should start with project_id (projectMetadata project_id /
     Darwin Core datasetID) so occurrenceID prefixes stay namespaced. When splitting is disabled,
@@ -2040,14 +2040,14 @@ def main():
         with perf_log.step("create_occurrence_core"):
             occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
         
-        # Perform taxonomic assignment
-        console.print("[bold]Starting Taxonomic Assignment...[/]")
+        # Perform taxonomic alignment
+        console.print("[bold]Starting Taxonomic Alignment...[/]")
         with perf_log.step("assign_taxonomy"):
-            with console.status("Running Taxonomic Assignment...", spinner="dots"):
+            with console.status("Running Taxonomic Alignment...", spinner="dots"):
                 # Suppress logs/errors but leave stdout for spinner
                 with silence_output():
                     assign_taxonomy(params, data, raw_data_tables, reporter)
-        console.print("[green]Finished Taxonomic Assignment.[/]")
+        console.print("[green]Finished Taxonomic Alignment.[/]")
         if params.get('taxonomic_api_source') == 'WoRMS':
             stats = params.get('worms_walkup_stats')
             if isinstance(stats, dict) and stats:
@@ -2064,29 +2064,29 @@ def main():
                 )
 
         with perf_log.step("taxa_assignment_postprocess"):
-            # Create taxa assignment info file
-            from taxonomic_assignment.taxa_assignment_manager import create_taxa_assignment_info
+            # Create taxa alignment info file
+            from taxonomic_alignment.taxa_assignment_manager import create_taxa_assignment_info
             with silence_output():
                 create_taxa_assignment_info(params, reporter)
 
             # After creating the GBIF info file, remove any duplicate rows
             if params.get('taxonomic_api_source') == 'GBIF':
-                from taxonomic_assignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
+                from taxonomic_alignment.remove_GBIF_duplicates import remove_duplicates_from_gbif_taxa_info
                 with silence_output():
                     remove_duplicates_from_gbif_taxa_info(params, reporter)
 
-                from taxonomic_assignment.mark_selected_gbif_match import mark_selected_gbif_matches
+                from taxonomic_alignment.mark_selected_gbif_match import mark_selected_gbif_matches
                 with silence_output():
                     mark_selected_gbif_matches(params, reporter)
 
             elif params.get('taxonomic_api_source') == 'WoRMS':
-                from taxonomic_assignment.mark_selected_worms_match import mark_selected_worms_matches
+                from taxonomic_alignment.mark_selected_worms_match import mark_selected_worms_matches
                 # Suppress internal prints while keeping spinner visible (spinner already ended here)
                 with silence_output():
                     mark_selected_worms_matches(params, reporter)
 
         with perf_log.step("occurrence_core_postprocess"):
-            # Remove match_type_debug from final occurrence file (keep it only in taxa_assignment_INFO.xlsx)
+            # Remove match_type_debug from final occurrence file (keep it only in taxa_alignment_INFO.xlsx)
             api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
             final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
             try:
@@ -2096,7 +2096,7 @@ def main():
                     if 'match_type_debug' in final_df.columns:
                         final_df = final_df.drop(columns=['match_type_debug'])
                         final_df.to_csv(final_occurrence_path, index=False, na_rep='')
-                        reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_assignment_INFO.xlsx)")
+                        reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_alignment_INFO.xlsx)")
             except Exception as e:
                 reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
 
@@ -2160,7 +2160,7 @@ def main():
 
             files_to_validate = [
                 f'occurrence_core_{api_choice.lower()}.csv',
-                f'taxa_assignment_INFO_{api_choice}.xlsx',
+                f'taxa_alignment_INFO_{api_choice}.xlsx',
                 'dna_derived_extension.csv'
             ]
             if params.get('emof_enabled', True):
@@ -2180,7 +2180,7 @@ def main():
                             # Validate XML structure instead of reading as CSV
                             ET.parse(filepath)
                         elif filename.lower().endswith('.xlsx'):
-                            from taxonomic_assignment.taxa_assignment_info_export import (
+                            from taxonomic_alignment.taxa_assignment_info_export import (
                                 read_taxa_assignment_info_dataframe,
                                 write_taxa_assignment_info_xlsx,
                             )
@@ -2305,7 +2305,7 @@ def main():
         # Define the list of expected final files
         files = [
             f'occurrence_core_{api_choice.lower()}.csv', 
-            f'taxa_assignment_INFO_{api_choice}.xlsx',
+            f'taxa_alignment_INFO_{api_choice}.xlsx',
             'dna_derived_extension.csv'
         ]
         

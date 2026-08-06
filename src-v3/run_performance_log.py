@@ -134,7 +134,7 @@ class RunPerformanceLog:
             "dna_derived_extension": os.path.join(out, "dna_derived_extension.csv"),
             "eMoF": os.path.join(out, "eMoF.csv"),
             "taxa_xlsx": os.path.join(
-                out, f"taxa_assignment_INFO_{params.get('taxonomic_api_source', 'WoRMS')}.xlsx"
+                out, f"taxa_alignment_INFO_{params.get('taxonomic_api_source', 'WoRMS')}.xlsx"
             ),
         }
         snap: dict[str, Any] = {}
@@ -196,7 +196,7 @@ class RunPerformanceLog:
         lines.append("--- rough_scaling_notes ---")
         lines.append(
             "These are single-run linear proxies from THIS run only. Network/API steps (especially "
-            "taxonomic assignment) do not scale linearly with table row counts."
+            "taxonomic alignment) do not scale linearly with table row counts."
         )
         m = self.metrics
         tax_rows = m.get("sum_taxonomy_table_rows") or 0

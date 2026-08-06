@@ -12,13 +12,13 @@ if SRC_DIR not in sys.path:
 
 # CLI UI
 from cli_output.cli_ui import console, print_header, silence_output
-from taxonomic_assignment.taxa_assignment_manager import (
+from taxonomic_alignment.taxa_assignment_manager import (
     format_taxa_assignment_info_dataframe,
     load_pr2_worms_dict_into_params,
     limit_info_df_preserving_selected,
     mark_selected_match_from_main_dataframe,
 )
-from taxonomic_assignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
+from taxonomic_alignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
 
 # Default config next to this script (no path typing required for normal use)
 DEFAULT_CONFIG_PATH = os.path.join(THIS_DIR, 'config.yaml')
@@ -47,11 +47,11 @@ TAXONOMY_CONFIG_KEYS = (
 # CLI flags override these defaults. With --use-config, CLI flags also override the
 # matching keys from config.yaml (see --help epilog).
 DEFAULTS = {
-    'INPUT_PATH': 'raw-v3/taxassign_example_input.tsv',
+    'INPUT_PATH': 'raw-v3/taxalign_example_input.tsv',
     'API': 'GBIF',                  # 'GBIF' or 'WoRMS'
     'MATCH_LIMIT': 3,               # max matches per verbatimIdentification in output
     'OUTPUT_DIR': 'processed-v3',   # used if OUTPUT_PATH is empty
-    'OUTPUT_PATH': '',              # explicit path for taxa_assignment_INFO .xlsx; if empty, uses OUTPUT_DIR
+    'OUTPUT_PATH': '',              # explicit path for taxa_alignment_INFO .xlsx; if empty, uses OUTPUT_DIR
     'N_PROC': None,               # None = with --use-config use config worms_n_proc/gbif_n_proc; else 0
 }
 # ------------------------------
@@ -114,7 +114,7 @@ def _read_verbatim_input(path: str) -> pd.DataFrame:
 
     df = df.drop_duplicates(subset=['verbatimIdentification']).reset_index(drop=True)
 
-    df['assay_name'] = 'taxassign'
+    df['assay_name'] = 'taxalign'
 
     return df[['verbatimIdentification', 'assay_name']]
 
@@ -135,7 +135,7 @@ def _write_taxa_assignment_xlsx(df: pd.DataFrame, out_path: str) -> str:
     return out_path
 
 
-def run_taxassign(
+def run_taxalign(
     input_path: str,
     api_source: str | None = None,
     match_limit: int | None = None,
@@ -150,7 +150,7 @@ def run_taxassign(
     params: dict = {
         'assays_to_skip_species_match': [],
         'output_dir': out_dir,
-        'assay_rank_info': {'taxassign': {'max_depth': 99}},
+        'assay_rank_info': {'taxalign': {'max_depth': 99}},
     }
 
     if use_config:
@@ -179,7 +179,7 @@ def run_taxassign(
     params['taxonomic_api_source'] = api
     params['gbif_match_limit'] = gbif_lim
     params['output_dir'] = out_dir
-    params['assay_rank_info'] = {'taxassign': {'max_depth': 99}}
+    params['assay_rank_info'] = {'taxalign': {'max_depth': 99}}
 
     n_proc_use = _resolve_n_proc(api, n_proc, params, use_config)
 
@@ -213,14 +213,14 @@ def run_taxassign(
 
     df_in = _read_verbatim_input(input_path)
 
-    console.print('[bold]Starting Taxonomic Assignment...[/]')
-    with console.status('Running Taxonomic Assignment...', spinner='dots'):
+    console.print('[bold]Starting Taxonomic Alignment...[/]')
+    with console.status('Running Taxonomic Alignment...', spinner='dots'):
         with silence_output():
             if api == 'GBIF':
-                from taxonomic_assignment.GBIF_matching import get_gbif_match_for_dataframe
+                from taxonomic_alignment.GBIF_matching import get_gbif_match_for_dataframe
                 results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
             else:
-                from taxonomic_assignment.WoRMS_v3_matching import get_worms_match_for_dataframe
+                from taxonomic_alignment.WoRMS_v3_matching import get_worms_match_for_dataframe
                 results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
             if api == 'WoRMS' and int(params.get('worms_n_proc_effective') or 0) >= 8:
                 console.print('[yellow]WoRMS:[/] %s workers — may hit API rate limits.' % params['worms_n_proc_effective'])
@@ -229,7 +229,7 @@ def run_taxassign(
             info_df = results.get('info_df', pd.DataFrame())
             main_df = results.get('main_df', pd.DataFrame())
 
-    console.print('[green]Finished Taxonomic Assignment.[/]')
+    console.print('[green]Finished Taxonomic Alignment.[/]')
 
     if info_df is None or info_df.empty:
         info_df = pd.DataFrame({'verbatimIdentification': []})
@@ -244,7 +244,7 @@ def run_taxassign(
     out_df = format_taxa_assignment_info_dataframe(info_df_limited, params)
 
     if out_path is None or str(out_path).strip() == '':
-        out_path = os.path.join(out_dir, f'taxa_assignment_INFO_{api}.xlsx')
+        out_path = os.path.join(out_dir, f'taxa_alignment_INFO_{api}.xlsx')
 
     out_path = _write_taxa_assignment_xlsx(out_df, out_path)
 
@@ -252,24 +252,24 @@ def run_taxassign(
     return out_path
 
 
-class _TaxassignHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+class _TaxalignHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
     pass
 
 
 def main():
     print_header()
     parser = argparse.ArgumentParser(
-        prog='python taxassign.py',
+        prog='python taxalign.py',
         description=(
             'Match verbatimIdentification strings to WoRMS or GBIF. '
-            'Set your taxonomic assignment parameters for WoRMS/GBIF in config.yaml and add --use-config to use them. Use the flags below only when you want to override the parameters set in the config.yaml file.'
+            'Set your taxonomic alignment parameters for WoRMS/GBIF in config.yaml and add --use-config to use them. Use the flags below only when you want to override the parameters set in the config.yaml file.'
         ),
-        formatter_class=_TaxassignHelpFormatter,
+        formatter_class=_TaxalignHelpFormatter,
         epilog=(
             '-------------------------------------------------------------------------------\n'
             '  CONFIG  (--use-config)  vs  COMMAND LINE\n'
             '-------------------------------------------------------------------------------\n'
-            '  With --use-config, matcher tuning is read from config.yaml (next to taxassign.py).\n'
+            '  With --use-config, matcher tuning is read from config.yaml (next to taxalign.py).\n'
             '  Input and output paths are NEVER taken from config:\n'
             '    -i  --input     TSV/CSV of verbatimIdentification\n'
             '    -o  --output    Full path to one .xlsx file (not a folder). .csv is rewritten to .xlsx\n'
@@ -313,7 +313,7 @@ def main():
     parser.add_argument(
         '--outdir', default=DEFAULTS['OUTPUT_DIR'], metavar='DIR',
         help=(
-            f"Folder for output when -o is omitted (writes taxa_assignment_INFO_<API>.xlsx). Default: {DEFAULTS['OUTPUT_DIR']}. Not from config."
+            f"Folder for output when -o is omitted (writes taxa_alignment_INFO_<API>.xlsx). Default: {DEFAULTS['OUTPUT_DIR']}. Not from config."
         ),
     )
     parser.add_argument(
@@ -325,7 +325,7 @@ def main():
         help=(
             f'Read WoRMS/GBIF matcher options from config.yaml next to this script '
             f'({DEFAULT_CONFIG_PATH}). '
-            'Does not use config for input file path, pipeline data paths, or output folders. Config.yaml only provides taxonomic assignment options.'
+            'Does not use config for input file path, pipeline data paths, or output folders. Config.yaml only provides taxonomic alignment options.'
         ),
     )
 
@@ -337,7 +337,7 @@ def main():
             parser.error('--api: expected GBIF or WoRMS')
         args.api = _canonical_api_name(args.api)
 
-    run_taxassign(
+    run_taxalign(
         input_path=args.input,
         api_source=args.api,
         match_limit=args.limit,

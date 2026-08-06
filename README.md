@@ -20,13 +20,13 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 - Script architecture (single command) instead of a notebook workflow
 - Configuration-first setup (set parameters in files, not code)
 - **Support for both generic FAIRe and FAIRe NOAA formats** (compatible with [Ocean DNA Explorer](https://www.oceandnaexplorer.org/))
-- Improved taxonomic assignment performance and accuracy (with caching)
+- Improved taxonomic alignment performance and accuracy (with caching)
   - Choose [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs
   - Optionally skip species-level matching for selected assays
-  - `taxa_assignment_INFO_<API>.csv` with transparent candidate tracking (`selected_match` is the chosen row)
+  - `taxa_alignment_INFO_<API>.csv` with transparent candidate tracking (`selected_match` is the chosen row)
 - Run report generation via `edna2obis_report.html`
 - Optional generation of `eMoF.csv`, project-level `eml.xml`, and `meta.xml`
-- Taxonomy-only mode via `taxassign.py` (same `taxa_assignment_INFO_<API>.csv` style; filter `selected_match = True` for the carried-forward assignment)
+- Taxonomy-only mode via `taxalign.py` (same `taxa_alignment_INFO_<API>.csv` style; filter `selected_match = True` for the carried-forward alignment)
 
 
 ### Tutorial
@@ -201,7 +201,7 @@ edna2obis uses several configuration files to customize the conversion process. 
 The primary configuration file that controls the overall pipeline behavior:
 
 - **Data file paths**: Specify paths to your Excel metadata file and raw data files
-- **Taxonomic assignment**: Choose between "WoRMS" or "GBIF" APIs for taxonomic assignment
+- **Taxonomic alignment**: Choose between "WoRMS" or "GBIF" APIs for taxonomic alignment
 - **Output settings**: Configure output directory and file naming
 - **Custom field handling**: Configure how to process specific metadata fields
 - **Processing parameters**: Set parallel processing limits and caching options
@@ -323,57 +323,57 @@ The pipeline will:
 - Load and clean your metadata (according to OBIS/GBIF)
 - Align data to Darwin Core data standard
 - Generate an Occurrence Core
-- Perform taxonomic assignment via WoRMS or GBIF APIs
+- Perform taxonomic alignment via WoRMS or GBIF APIs
 - Generate a DNA Derived Extension
 - Optionally generate `eMoF.csv`
 - Generate Darwin Core Archive metadata files (`meta.xml` and optional `eml.xml`)
 - Create an HTML report with results from your run
-## Run taxonomic assignment only (taxassign.py)
+## Run taxonomic alignment only (taxalign.py)
 
-If you only want to assign taxonomy to a list of identifiers (without running the full edna2obis workflow), use `taxassign.py`.
+If you only want to align taxonomy for a list of identifiers (without running the full edna2obis workflow), use `taxalign.py`.
 
-- Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxassign_example_input.tsv`.
-- Output: `taxa_assignment_INFO_<API>.csv` (same column layout as the full pipeline; sheet `taxa_assignment_INFO` only). **Important: `selected_match`** is `True` on the row that would be chosen as the official assignment (equivalent to what goes to occurrence in the full pipeline). You may get multiple candidate rows per name; the rest are for review. Candidate count is controlled by `-n` (or by `gbif_match_limit` from `config.yaml` when using `--use-config`).
+- Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxalign_example_input.tsv`.
+- Output: `taxa_alignment_INFO_<API>.csv` (same column layout as the full pipeline; sheet `taxa_alignment_INFO` only). **Important: `selected_match`** is `True` on the row that would be chosen as the official alignment (equivalent to what goes to occurrence in the full pipeline). You may get multiple candidate rows per name; the rest are for review. Candidate count is controlled by `-n` (or by `gbif_match_limit` from `config.yaml` when using `--use-config`).
 
 Help:
 
 ```bash
-python taxassign.py --help
+python taxalign.py --help
 ```
 
 Examples:
 
 ```bash
-# Example input, default API and limits from taxassign.py, writes processed-v3/taxa_assignment_INFO_<API>.csv
-python taxassign.py
+# Example input, default API and limits from taxalign.py, writes processed-v3/taxa_alignment_INFO_<API>.csv
+python taxalign.py
 
 # Use WoRMS and a custom input
-python taxassign.py -i raw-v3/taxassign_example_input.tsv -a WoRMS
+python taxalign.py -i raw-v3/taxalign_example_input.tsv -a WoRMS
 
 # Up to 5 candidate rows per name
-python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -n 5
+python taxalign.py -i raw-v3/taxalign_example_input.tsv -a GBIF -n 5
 
 # Explicit output path
-python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF -o processed-v3/my_run.csv
+python taxalign.py -i raw-v3/taxalign_example_input.tsv -a GBIF -o processed-v3/my_run.csv
 
 # Matcher options from config.yaml
-python taxassign.py --use-config
+python taxalign.py --use-config
 
 # Parallelism
-python taxassign.py -i raw-v3/taxassign_example_input.tsv -a GBIF --n-proc 3
+python taxalign.py -i raw-v3/taxalign_example_input.tsv -a GBIF --n-proc 3
 ```
 
 Options:
-- `-i, --input`: TSV/CSV with column `verbatimIdentification` (default: `raw-v3/taxassign_example_input.tsv`)
+- `-i, --input`: TSV/CSV with column `verbatimIdentification` (default: `raw-v3/taxalign_example_input.tsv`)
 - `-a, --api`: `GBIF` or `WoRMS` (omit with `--use-config` to use `taxonomic_api_source` from config)
 - `-n, --limit`: max candidate rows per name (omit with `--use-config` to use `gbif_match_limit` from config)
-- `-o, --output`: output `.csv` path (not a folder). If omitted, `{outdir}/taxa_assignment_INFO_<API>.csv`
+- `-o, --output`: output `.csv` path (not a folder). If omitted, `{outdir}/taxa_alignment_INFO_<API>.csv`
 - `--outdir`: directory when `-o` omitted (default: `processed-v3`)
-- `--use-config`: load matcher settings from `config.yaml` beside `taxassign.py`
+- `--use-config`: load matcher settings from `config.yaml` beside `taxalign.py`
 - `--n-proc`: parallel workers (optional)
 
 In-file defaults (no CLI needed):
-- You can also set defaults directly at the top of `taxassign.py` in the `DEFAULTS` block (input path, API, match limit, outdir/output, n-proc). Any CLI flags you pass will override those defaults.
+- You can also set defaults directly at the top of `taxalign.py` in the `DEFAULTS` block (input path, API, match limit, outdir/output, n-proc). Any CLI flags you pass will override those defaults.
 
 ## Output Files
 
@@ -382,7 +382,7 @@ The pipeline generates several files in your output directory:
 - `processed-v3/`
   - `edna2obis_report_worms.html` / `edna2obis_report_gbif.html` - Run report.
   - `occurrence_core_worms.csv` / `occurrence_core_gbif.csv` - Occurrence Core with assigned taxonomy.
-  - `taxa_assignment_INFO_worms.csv` / `taxa_assignment_INFO_GBIF.csv` - Candidate taxonomy matches; use **`selected_match`** for the chosen row.
+  - `taxa_alignment_INFO_worms.csv` / `taxa_alignment_INFO_GBIF.csv` - Candidate taxonomy matches; use **`selected_match`** for the chosen row.
   - `dna_derived_extension.csv` - DNA Derived Data extension.
   - `eMoF.csv` - Extended Measurement or Fact extension (if enabled).
   - `meta.xml` - Darwin Core Archive mapping metadata.
@@ -402,14 +402,18 @@ The pipeline generates several files in your output directory:
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2 | Niskin bottle | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45 | 1.57 | paired end | Illumina MiSeq [OBI_0002003] | https://doi.org/10.1002/edn3.70074 | 12S rRNA (SSU mitochondria) | V5-V6 | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F | MiFish-U-R2 | https://doi.org/10.1098/rsos.150088 | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175 | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | CACCGCGGTTATACGAGAGGCCTAAGTTGACAGACAACGGCGTAAAGAGTGGTTAAGGAAAAATTTATACTAAAGCCGAACATCCTCAAGACTGTCGTACGTTTCCGAGGATATGAAGTCCCCCTACGAAAGTGGCTTTAACTCCCCTGACCCCACGAAAGCTGTGAC | ng/µl | qiime2-2023.5; DADA2 1.26.0 |
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2 | Niskin bottle | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45 | 1.57 | paired end | Illumina MiSeq [OBI_0002003] | https://doi.org/10.1002/edn3.70074 | 12S rRNA (SSU mitochondria) | V5-V6 | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F | MiFish-U-R2 | https://doi.org/10.1098/rsos.150088 | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175 | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | CACCGCGGTTATACGATGAAGCCCAAGTTGTTAGCCTTCGGCGTAAAGAGTGGTTAGAGTACCCCAACAAAACTAAGGCCGAACACCTTCAGGGCAGTCATACGCTTTCGAAGGCATGAAGCACACCAACGAAAGTAGCCTTACCAGACTTGAACCCACGAAAGCTAAGAT | ng/µl | qiime2-2023.5; DADA2 1.26.0 |
 
-## Taxonomic Assignment Algorithms
+## Taxonomic Alignment Algorithms
+
+**FAQ: Why “alignment” and not “assignment”?**  
+Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Here we align those names to WoRMS/GBIF so the data can be submitted to OBIS/GBIF.
+
 ### WoRMS
 - Clean `verbatimIdentification`: split by `;`, replace `_ - /` with spaces, trim, remove trailing “sp.”/“spp.” and numbers, drop empty/“unassigned”.
 - If it exists as a species by AphiaID in the local reference database file provided (optionally), look up AphiaID directly and fill fields.
 - Otherwise, use WoRMS “Match Names”:
   - Start from the most specific level (ex: species) and move broader only if needed.
   - Keep only records with status “accepted” and add every accepted alternative to the review list.
-  - Use the most specific level that returns an accepted record for the assignment (ex: favors a genus assignment over a class assignment).
+  - Use the most specific level that returns an accepted record for the alignment (ex: favors a genus match over a class match).
 - If an assay is set to skip species, drop the last level before searching.
 - If nothing accepted, set `scientificName=incertae sedis` and clear ranks.
 - Fill: `scientificName`, `scientificNameID` (LSID), `taxonRank`, ranks (`kingdom … species`), `nameAccordingTo=WoRMS`, plus `cleanedTaxonomy` and `match_type_debug`.
@@ -434,11 +438,11 @@ The pipeline generates several files in your output directory:
 - `gbif_return_higher_classification`: GBIF only. If true, calls the parents endpoint and includes `higherClassification`
 - Local reference database (WoRMS only) for fast AphiaID lookups
 
-Also writes `taxa_assignment_INFO_<API>.csv` (sheet `taxa_assignment_INFO`). One row can appear per candidate match, not only the match used in the occurrence file.
+Also writes `taxa_alignment_INFO_<API>.csv` (sheet `taxa_alignment_INFO`). One row can appear per candidate match, not only the match used in the occurrence file.
 
-### taxa_assignment_INFO columns
+### taxa_alignment_INFO columns
 
-**Important column!** `selected_match` is True on the row the pipeline treats as the official assignment for each `verbatimIdentification` (the one reflected in the occurrence file). For `taxassign.py`-only runs, it is True on the row that *would* be chosen in the full pipeline. When you summarize results, **filter on `selected_match` = TRUE**; other assignment rows exist for transparency and QA.
+**Important column!** `selected_match` is True on the row the pipeline treats as the official alignment for each `verbatimIdentification` (the one reflected in the occurrence file). For `taxalign.py`-only runs, it is True on the row that *would* be chosen in the full pipeline. When you summarize results, **filter on `selected_match` = TRUE**; other alignment rows exist for transparency and QA.
 
 Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in the `.csv` file.
 
@@ -446,10 +450,10 @@ Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in
 |:--|:--|
 | verbatimIdentification | Original taxonomic string from your data before matching. |
 | cleanedTaxonomy | Normalized / cleaned version of verbatimIdentification (what is actually used for API lookup. |
-| selected_match | **Indicates the taxonomic assignment!** True only on the chosen assignment row for that `verbatimIdentification` (occurrence file in full pipeline; same rule for taxassign-only output). False on alternate candidate rows kept for review. |
-| ambiguous | WoRMS and GBIF. True when more than one candidate assignment was found for this verbatim string. |
+| selected_match | **Indicates the taxonomic alignment!** True only on the chosen alignment row for that `verbatimIdentification` (occurrence file in full pipeline; same rule for taxalign-only output). False on alternate candidate rows kept for review. |
+| ambiguous | WoRMS and GBIF. True when more than one candidate alignment was found for this verbatim string. |
 | replaced_unaccepted | WoRMS and GBIF. True when an unaccepted/synonym name was resolved to an accepted valid name. |
-| unaccepted_match | WoRMS and GBIF. True when the assignment in that row is an unaccepted/synonym name shown for comparison. |
+| unaccepted_match | WoRMS and GBIF. True when the alignment in that row is an unaccepted/synonym name shown for comparison. |
 | ranks_matched | WoRMS and GBIF. Number of taxonomic ranks given in your verbatimIdentification that matched the candidate classification. |
 | ranks_provided | WoRMS and GBIF. Number of taxonomic ranks given in your verbatimIdentification for that taxonomy. |
 | assignment_score | WoRMS and GBIF. Ratio of ranks_matched / ranks_provided. |

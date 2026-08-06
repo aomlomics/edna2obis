@@ -1,1 +1,0 @@
-# Taxonomic Assignment Module for edna2obis 

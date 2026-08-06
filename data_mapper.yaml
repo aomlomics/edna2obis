@@ -153,7 +153,7 @@ occurrence_core:
   decimalLongitude: { faire_term: decimalLongitude, source: sampleMetadata }
   geodeticDatum: { faire_term: verbatimSRS, source: sampleMetadata }
   identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
-  #nameAccordingTo: { faire_term: nameAccordingTo, source: constructed } # Constructed: according to your taxonomic assignment API choice (GBIF or WoRMS)
+  #nameAccordingTo: { faire_term: nameAccordingTo, source: constructed } # Constructed: according to your taxonomic alignment API choice (GBIF or WoRMS)
   associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }
 
 # -----------------------------------------------

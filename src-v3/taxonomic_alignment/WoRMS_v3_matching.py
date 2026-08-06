@@ -192,7 +192,7 @@ def _save_higher_classification_cache(output_dir, cache):
 def _enrich_higher_classification_dataframes(source_df, target_dataframes, output_dir='.', n_proc=1):
     """
     Populate higherClassification once per unique scientificNameID across the target outputs.
-    This keeps the final occurrence core and taxa assignment info file aligned.
+    This keeps the final occurrence core and taxa alignment info file aligned.
     """
     valid_targets = [
         df for df in target_dataframes
