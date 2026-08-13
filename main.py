@@ -555,7 +555,7 @@ def split_output_files_by_short_name(params, data, reporter):
         - Filtered files with suffix: occurrence_core_{api}_{short_name}.csv, etc.
     
     Splits: occurrence_core, dna_derived_extension, eMoF, eml.xml, meta.xml
-    Does NOT split: HTML report, taxa_alignment_INFO, config file
+    Does NOT split: HTML report, taxa_mapping_INFO, config file
 
     Recommended: each short_name should start with project_id (projectMetadata project_id /
     Darwin Core datasetID) so occurrenceID prefixes stay namespaced. When splitting is disabled,
@@ -2040,14 +2040,15 @@ def main():
         with perf_log.step("create_occurrence_core"):
             occurrence_core, all_processed_occurrence_dfs = create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter)
         
-        # Perform taxonomic alignment
-        console.print("[bold]Starting Taxonomic Alignment...[/]")
+        # Perform taxonomic mapping
+        api_for_mapping_msg = params.get('taxonomic_api_source', 'WoRMS')
+        console.print(f"[bold]Starting Taxonomic Mapping to {api_for_mapping_msg}...[/]")
         with perf_log.step("assign_taxonomy"):
-            with console.status("Running Taxonomic Alignment...", spinner="dots"):
+            with console.status(f"Running Taxonomic Mapping to {api_for_mapping_msg}...", spinner="dots"):
                 # Suppress logs/errors but leave stdout for spinner
                 with silence_output():
                     assign_taxonomy(params, data, raw_data_tables, reporter)
-        console.print("[green]Finished Taxonomic Alignment.[/]")
+        console.print(f"[green]Finished Taxonomic Mapping to {api_for_mapping_msg}.[/]")
         if params.get('taxonomic_api_source') == 'WoRMS':
             stats = params.get('worms_walkup_stats')
             if isinstance(stats, dict) and stats:
@@ -2064,7 +2065,7 @@ def main():
                 )
 
         with perf_log.step("taxa_assignment_postprocess"):
-            # Create taxa alignment info file
+            # Create taxa mapping info file
             from taxonomic_alignment.taxa_assignment_manager import create_taxa_assignment_info
             with silence_output():
                 create_taxa_assignment_info(params, reporter)
@@ -2086,7 +2087,7 @@ def main():
                     mark_selected_worms_matches(params, reporter)
 
         with perf_log.step("occurrence_core_postprocess"):
-            # Remove match_type_debug from final occurrence file (keep it only in taxa_alignment_INFO.xlsx)
+            # Remove match_type_debug from final occurrence file (keep it only in taxa_mapping_INFO.xlsx)
             api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
             final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
             try:
@@ -2096,7 +2097,7 @@ def main():
                     if 'match_type_debug' in final_df.columns:
                         final_df = final_df.drop(columns=['match_type_debug'])
                         final_df.to_csv(final_occurrence_path, index=False, na_rep='')
-                        reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_alignment_INFO.xlsx)")
+                        reporter.add_text("Removed match_type_debug from final occurrence file (kept in taxa_mapping_INFO.xlsx)")
             except Exception as e:
                 reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
 
@@ -2160,7 +2161,7 @@ def main():
 
             files_to_validate = [
                 f'occurrence_core_{api_choice.lower()}.csv',
-                f'taxa_alignment_INFO_{api_choice}.xlsx',
+                f'taxa_mapping_INFO_{api_choice}.xlsx',
                 'dna_derived_extension.csv'
             ]
             if params.get('emof_enabled', True):
@@ -2305,7 +2306,7 @@ def main():
         # Define the list of expected final files
         files = [
             f'occurrence_core_{api_choice.lower()}.csv', 
-            f'taxa_alignment_INFO_{api_choice}.xlsx',
+            f'taxa_mapping_INFO_{api_choice}.xlsx',
             'dna_derived_extension.csv'
         ]
         
