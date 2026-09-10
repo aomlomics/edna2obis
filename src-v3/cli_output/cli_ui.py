@@ -42,19 +42,19 @@ def print_usage() -> None:
         "Mode 1",
         "python main.py",
         "Main pipeline: Occurrence Core, DNA Derived Extension, optional eMoF, optional EML, "
-        "Taxa Assignment INFO, and HTML Report",
+        "Taxa Mapping INFO, and HTML Report",
     )
 
     # Mode 2: Taxonomy-only via CLI wrapper (do not call the script directly)
     table.add_row(
         "Mode 2",
-        "python taxassign.py --help",
+        "python taxamapper.py --help",
         "Taxonomy-only: Assign taxonomy via WoRMS/GBIF to a column of names",
     )
 
     console.print(table)
     console.print(
-        "For flags and examples, run `python taxassign.py --help`. See README for advanced configuration.",
+        "For flags and examples, run `python taxamapper.py --help`. See README for advanced configuration.",
         style="dim",
     )
 

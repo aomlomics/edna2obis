@@ -1,6 +1,6 @@
 """
-Column documentation and Excel I/O for taxa_assignment_INFO.
-Output is taxa_assignment_INFO_<API>.xlsx with sheet taxa_assignment_INFO.
+Column documentation and Excel I/O for taxa_mapping_INFO.
+Output is taxa_mapping_INFO_<API>.xlsx with sheet taxa_mapping_INFO.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import os
 import pandas as pd
 
-SHEET_DATA = "taxa_assignment_INFO"
+SHEET_DATA = "taxa_mapping_INFO"
 
 
 def read_taxa_assignment_info_dataframe(xlsx_path: str) -> pd.DataFrame:
@@ -16,7 +16,7 @@ def read_taxa_assignment_info_dataframe(xlsx_path: str) -> pd.DataFrame:
 
 
 def write_taxa_assignment_info_xlsx(df: pd.DataFrame, xlsx_path: str) -> str:
-    """Write .xlsx with sheet taxa_assignment_INFO. xlsx_path must end in .xlsx."""
+    """Write .xlsx with sheet taxa_mapping_INFO. xlsx_path must end in .xlsx."""
     parent = os.path.dirname(xlsx_path)
     if parent:
         os.makedirs(parent, exist_ok=True)

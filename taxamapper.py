@@ -47,11 +47,11 @@ TAXONOMY_CONFIG_KEYS = (
 # CLI flags override these defaults. With --use-config, CLI flags also override the
 # matching keys from config.yaml (see --help epilog).
 DEFAULTS = {
-    'INPUT_PATH': 'raw-v3/taxassign_example_input.tsv',
+    'INPUT_PATH': 'raw-v3/taxamapper_example_input.tsv',
     'API': 'GBIF',                  # 'GBIF' or 'WoRMS'
     'MATCH_LIMIT': 3,               # max matches per verbatimIdentification in output
     'OUTPUT_DIR': 'processed-v3',   # used if OUTPUT_PATH is empty
-    'OUTPUT_PATH': '',              # explicit path for taxa_assignment_INFO .xlsx; if empty, uses OUTPUT_DIR
+    'OUTPUT_PATH': '',              # explicit path for taxa_mapping_INFO .xlsx; if empty, uses OUTPUT_DIR
     'N_PROC': None,               # None = with --use-config use config worms_n_proc/gbif_n_proc; else 0
 }
 # ------------------------------
@@ -114,7 +114,7 @@ def _read_verbatim_input(path: str) -> pd.DataFrame:
 
     df = df.drop_duplicates(subset=['verbatimIdentification']).reset_index(drop=True)
 
-    df['assay_name'] = 'taxassign'
+    df['assay_name'] = 'taxamapper'
 
     return df[['verbatimIdentification', 'assay_name']]
 
@@ -135,7 +135,7 @@ def _write_taxa_assignment_xlsx(df: pd.DataFrame, out_path: str) -> str:
     return out_path
 
 
-def run_taxassign(
+def run_taxamapper(
     input_path: str,
     api_source: str | None = None,
     match_limit: int | None = None,
@@ -150,7 +150,7 @@ def run_taxassign(
     params: dict = {
         'assays_to_skip_species_match': [],
         'output_dir': out_dir,
-        'assay_rank_info': {'taxassign': {'max_depth': 99}},
+        'assay_rank_info': {'taxamapper': {'max_depth': 99}},
     }
 
     if use_config:
@@ -179,7 +179,7 @@ def run_taxassign(
     params['taxonomic_api_source'] = api
     params['gbif_match_limit'] = gbif_lim
     params['output_dir'] = out_dir
-    params['assay_rank_info'] = {'taxassign': {'max_depth': 99}}
+    params['assay_rank_info'] = {'taxamapper': {'max_depth': 99}}
 
     n_proc_use = _resolve_n_proc(api, n_proc, params, use_config)
 
@@ -212,8 +212,8 @@ def run_taxassign(
 
     df_in = _read_verbatim_input(input_path)
 
-    console.print('[bold]Starting Taxonomic Assignment...[/]')
-    with console.status('Running Taxonomic Assignment...', spinner='dots'):
+    console.print(f'[bold]Starting Taxonomic Mapping to {api}...[/]')
+    with console.status(f'Running Taxonomic Mapping to {api}...', spinner='dots'):
         with silence_output():
             if api == 'GBIF':
                 from taxonomic_assignment.GBIF_matching import get_gbif_match_for_dataframe
@@ -228,7 +228,7 @@ def run_taxassign(
             info_df = results.get('info_df', pd.DataFrame())
             main_df = results.get('main_df', pd.DataFrame())
 
-    console.print('[green]Finished Taxonomic Assignment.[/]')
+    console.print(f'[green]Finished Taxonomic Mapping to {api}.[/]')
 
     if info_df is None or info_df.empty:
         info_df = pd.DataFrame({'verbatimIdentification': []})
@@ -243,7 +243,7 @@ def run_taxassign(
     out_df = format_taxa_assignment_info_dataframe(info_df_limited, params)
 
     if out_path is None or str(out_path).strip() == '':
-        out_path = os.path.join(out_dir, f'taxa_assignment_INFO_{api}.xlsx')
+        out_path = os.path.join(out_dir, f'taxa_mapping_INFO_{api}.xlsx')
 
     out_path = _write_taxa_assignment_xlsx(out_df, out_path)
 
@@ -251,7 +251,7 @@ def run_taxassign(
     return out_path
 
 
-class _TaxassignHelpFormatter(argparse.RawDescriptionHelpFormatter):
+class _TaxamapperHelpFormatter(argparse.RawDescriptionHelpFormatter):
     # RawDescription keeps example indentation. Do not use ArgumentDefaultsHelpFormatter:
     # several flags use default=None as "not passed", which would print as (default: None).
     pass
@@ -260,7 +260,7 @@ class _TaxassignHelpFormatter(argparse.RawDescriptionHelpFormatter):
 def main():
     print_header()
     parser = argparse.ArgumentParser(
-        prog='python taxassign.py',
+        prog='python taxamapper.py',
         description=(
             'Match verbatimIdentification names to WoRMS or GBIF.\n'
             '\n'
@@ -274,20 +274,20 @@ def main():
             'File paths are always flags (-i / -o / --outdir), never config.yaml.\n'
             '\n'
             'examples:\n'
-            '  python taxassign.py -i names.tsv\n'
-            '      Built-in defaults. Writes processed-v3/taxa_assignment_INFO_GBIF.xlsx\n'
+            '  python taxamapper.py -i names.tsv\n'
+            '      Built-in defaults. Writes processed-v3/taxa_mapping_INFO_GBIF.xlsx\n'
             '\n'
-            '  python taxassign.py --use-config -i names.tsv\n'
+            '  python taxamapper.py --use-config -i names.tsv\n'
             '      Same WoRMS/GBIF knobs as the full pipeline. You still pass -i;\n'
             '      config.yaml is not used for input or output paths.\n'
             '\n'
-            '  python taxassign.py --use-config -i names.tsv -a GBIF\n'
+            '  python taxamapper.py --use-config -i names.tsv -a GBIF\n'
             '      Config settings, except API is GBIF (overrides taxonomic_api_source).\n'
             '\n'
-            '  python taxassign.py -i names.tsv -a WoRMS -n 5 -o processed-v3/my_taxa.xlsx\n'
+            '  python taxamapper.py -i names.tsv -a WoRMS -n 5 -o processed-v3/my_taxa.xlsx\n'
             '      All settings from flags; config.yaml is ignored.'
         ),
-        formatter_class=_TaxassignHelpFormatter,
+        formatter_class=_TaxamapperHelpFormatter,
         epilog=(
             '--use-config reads taxonomic keys from config.yaml next to this script:\n'
             '  taxonomic_api_source, gbif_match_limit, worms_n_proc / gbif_n_proc,\n'
@@ -321,7 +321,7 @@ def main():
         '-o', '--output', default=None, metavar='FILE',
         help=(
             'Output .xlsx path (a filename, not a folder). .csv is saved as .xlsx. '
-            'If omitted, writes taxa_assignment_INFO_<API>.xlsx in --outdir.'
+            'If omitted, writes taxa_mapping_INFO_<API>.xlsx in --outdir.'
         ),
     )
     parser.add_argument(
@@ -354,7 +354,7 @@ def main():
             parser.error('--api: expected GBIF or WoRMS')
         args.api = _canonical_api_name(args.api)
 
-    run_taxassign(
+    run_taxamapper(
         input_path=args.input,
         api_source=args.api,
         match_limit=args.limit,

@@ -1,1 +1,1 @@
-# Taxonomic Assignment Module for edna2obis 
+# Taxonomic Mapping Module for edna2obis 

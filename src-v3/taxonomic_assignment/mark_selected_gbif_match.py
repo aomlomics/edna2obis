@@ -9,7 +9,7 @@ from .taxa_assignment_info_export import (
 
 def mark_selected_gbif_matches(params, reporter=None):
     """
-    Reads taxa_assignment_INFO_GBIF.xlsx and the final occurrence_gbif_matched.csv
+    Reads taxa_mapping_INFO_GBIF.xlsx and the final occurrence_gbif_matched.csv
     to mark which of the GBIF matches was selected.
     """
     try:
@@ -18,7 +18,7 @@ def mark_selected_gbif_matches(params, reporter=None):
             return
 
         output_dir = params.get('output_dir', '../processed-v3/')
-        info_filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
+        info_filename = f"taxa_mapping_INFO_{api_choice}.xlsx"
         info_filepath = os.path.join(output_dir, info_filename)
 
         occurrence_filename = f"occurrence_core_{api_choice.lower()}.csv"

@@ -1,6 +1,6 @@
 """
-Taxonomic Assignment Manager for edna2obis
-Contains ALL original notebook functionality for taxonomic assignment including:
+Taxonomic Mapping Manager for edna2obis
+Contains ALL original notebook functionality for taxonomic mapping including:
 - PR2 database optimization (local reference database)
 - Assay rank determination 
 - WoRMS and GBIF API matching
@@ -27,7 +27,7 @@ from create_occurrence_core.occurrence_builder import get_final_occurrence_colum
 def load_pr2_worms_dict_into_params(params, reporter=None, warn_print=None):
     """
     When use_local_reference_database is True and API is WoRMS, load PR2 (or similar) Excel
-    into params['pr2_worms_dict']. Shared by assign_taxonomy and taxassign.
+    into params['pr2_worms_dict']. Shared by assign_taxonomy and taxamapper.
     warn_print: optional callable(str) when reporter is None (e.g. CLI).
     """
     def _warn(msg):
@@ -82,11 +82,11 @@ def load_pr2_worms_dict_into_params(params, reporter=None, warn_print=None):
 
 def assign_taxonomy(params, data, raw_data_tables, reporter):
     """
-    Perform taxonomic assignment using WoRMS or GBIF API
+    Perform taxonomic mapping using WoRMS or GBIF API
     EXACT implementation from original notebook with ALL functionality preserved
     """
     try:
-        reporter.add_section("Taxonomic Assignment")
+        reporter.add_section(f"Taxonomic Mapping to {params.get('taxonomic_api_source', 'WoRMS')}")
         
         importlib.reload(WoRMS_v3_matching)
         importlib.reload(GBIF_matching)
@@ -372,17 +372,17 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             matched_df_final = matched_df[cols_to_keep]
 
             matched_df_final.to_csv(final_occurrence_path, index=False, na_rep='')
-            reporter.add_success(f"Taxonomic assignment completed! Saved {len(matched_df_final):,} records to occurrence_core_{api_source.lower()}.csv")
+            reporter.add_success(f"Taxonomic mapping to {api_source} completed! Saved {len(matched_df_final):,} records to occurrence_core_{api_source.lower()}.csv")
             
             # Add summary statistics
             unique_taxa = matched_df['scientificName'].nunique()
             reporter.add_text(f"Summary: {unique_taxa:,} unique taxa identified")
             
         else:
-            reporter.add_error("Taxonomic assignment returned empty results")
+            reporter.add_error("Taxonomic mapping returned empty results")
             
     except Exception as e:
-        reporter.add_error(f"Taxonomic assignment failed: {str(e)}")
+        reporter.add_error(f"Taxonomic mapping failed: {str(e)}")
         # Include full traceback in the HTML report for cross-platform debugging
         reporter.add_text(f"<pre>{traceback.format_exc()}</pre>")
 
@@ -457,8 +457,8 @@ def limit_info_df_preserving_selected(info_df: pd.DataFrame, match_limit: int) -
 
 def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict) -> pd.DataFrame:
     """
-    Same column order, filled columns, and sorting as taxa_assignment_INFO.xlsx in the full workflow.
-    Used by create_taxa_assignment_info and taxassign.py.
+    Same column order, filled columns, and sorting as taxa_mapping_INFO.xlsx in the full workflow.
+    Used by create_taxa_assignment_info and taxamapper.py.
     """
     taxa_info = taxa_info.copy()
     api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
@@ -519,11 +519,11 @@ def format_taxa_assignment_info_dataframe(taxa_info: pd.DataFrame, params: dict)
 
 def create_taxa_assignment_info(params, reporter):
     """
-    Create a taxa_assignment_INFO.xlsx file (sheet taxa_assignment_INFO).
+    Create a taxa_mapping_INFO.xlsx file (sheet taxa_mapping_INFO).
     For WoRMS and GBIF, this includes detailed candidate rows and an 'ambiguous' flag when available.
     """
     try:
-        reporter.add_section("Creating Taxa Assignment Info File")
+        reporter.add_section("Creating Taxa Mapping Info File")
         # quiet CLI; report in HTML only
         
         api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
@@ -557,13 +557,13 @@ def create_taxa_assignment_info(params, reporter):
         os.makedirs(output_dir, exist_ok=True)
         
         api_choice = params.get('taxonomic_api_source', 'WoRMS')
-        output_filename = f"taxa_assignment_INFO_{api_choice}.xlsx"
+        output_filename = f"taxa_mapping_INFO_{api_choice}.xlsx"
         output_path = os.path.join(output_dir, output_filename)
         from .taxa_assignment_info_export import write_taxa_assignment_info_xlsx
         write_taxa_assignment_info_xlsx(taxa_info, output_path)
 
-        reporter.add_success("Taxa assignment info file created successfully")
-        reporter.add_text(f"Saved taxa assignment info: {len(taxa_info):,} total rows ({taxa_info['verbatimIdentification'].nunique():,} unique strings)")
+        reporter.add_success("Taxa mapping info file created successfully")
+        reporter.add_text(f"Saved taxa mapping info: {len(taxa_info):,} total rows ({taxa_info['verbatimIdentification'].nunique():,} unique strings)")
         reporter.add_text(f"Output file: {output_filename}")
         
         # Verify the file was created
@@ -574,15 +574,15 @@ def create_taxa_assignment_info(params, reporter):
             reporter.add_error("Error: File was not created")
             
         # Add detailed explanation and table view to the report
-        reporter.add_text("<h3>Detailed Taxa Assignment Information</h3>")
+        reporter.add_text("<h3>Detailed Taxa Mapping Information</h3>")
         reporter.add_text(
-            "<p>The table below (<code>taxa_assignment_INFO.xlsx</code>, sheet <code>taxa_assignment_INFO</code>) provides a comprehensive look at the results of the taxonomic matching process. "
+            "<p>The table below (<code>taxa_mapping_INFO.xlsx</code>, sheet <code>taxa_mapping_INFO</code>) provides a comprehensive look at the results of the taxonomic matching process. "
             "It includes all potential matches found for each unique <code>verbatimIdentification</code> from your raw data, not just the single best match chosen for the final occurrence file. "
             "This allows for manual review and complete transparency.</p>"
             "<ul>"
             "<li><b>verbatimIdentification:</b> The original, unaltered taxonomic string from your input data.</li>"
             "<li><b>cleanedTaxonomy:</b> A standardized version of the verbatim string used for matching.</li>"
-            "<li><b>selected_match:</b> (WoRMS and GBIF) <strong>Primary column to use when reading this file:</strong> True on the one row per <code>verbatimIdentification</code> that was chosen for the final occurrence file (or, for taxassign-only runs, the row that <em>would</em> be chosen in the full pipeline). Other rows are alternate candidates for review.</li>"
+            "<li><b>selected_match:</b> (WoRMS and GBIF) <strong>Primary column to use when reading this file:</strong> True on the one row per <code>verbatimIdentification</code> that was chosen for the final occurrence file (or, for taxamapper-only runs, the row that <em>would</em> be chosen in the full pipeline). Other rows are alternate candidates for review.</li>"
             "<li><b>scientificName:</b> The scientific name of the match returned by the taxonomic service (WoRMS or GBIF).</li>"
             "<li><b>confidence:</b> A score from 0-100 indicating GBIF's confidence in the match (GBIF only).</li>"
             "<li><b>ambiguous:</b> (WoRMS and GBIF) A flag indicating if multiple potential matches were found for the verbatim string.</li>"
@@ -608,7 +608,7 @@ def create_taxa_assignment_info(params, reporter):
             reporter.add_text(f"Summary: Found {ambiguous_count:,} unique verbatim strings with ambiguous matches.")
         
     except Exception as e:
-        reporter.add_error(f"Taxa assignment info creation failed: {str(e)}")
+        reporter.add_error(f"Taxa mapping info creation failed: {str(e)}")
 
 
 
