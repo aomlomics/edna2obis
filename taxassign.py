@@ -190,12 +190,11 @@ def run_taxassign(
 
     console.print('[bold]Taxonomy / matcher settings[/]')
     if use_config:
-        console.print(f'  Config file: [cyan]{cfg_path}[/]')
-        console.print(
-            '  [dim]API / row limit from config unless you pass[/] [cyan]-a[/] [dim]or[/] [cyan]-n[/][dim].[/]'
-        )
+        console.print(f'  Source: [cyan]{cfg_path}[/]  [dim](-a / -n / --n-proc override if you passed them)[/]')
     else:
-        console.print('  [dim]Not using config.yaml; add[/] [cyan]--use-config[/] [dim]to load matcher options from it.[/]')
+        console.print(
+            '  Source: built-in defaults. Pass [cyan]--use-config[/] to reuse taxonomic settings from config.yaml.'
+        )
     console.print(f'  API (--api):                    {api}')
     console.print(f'  Rows per name (--limit):        {gbif_lim}')
     console.print(f'  Parallel jobs (--n-proc):       {n_proc_use}')
@@ -252,7 +251,9 @@ def run_taxassign(
     return out_path
 
 
-class _TaxassignHelpFormatter(argparse.ArgumentDefaultsHelpFormatter, argparse.RawDescriptionHelpFormatter):
+class _TaxassignHelpFormatter(argparse.RawDescriptionHelpFormatter):
+    # RawDescription keeps example indentation. Do not use ArgumentDefaultsHelpFormatter:
+    # several flags use default=None as "not passed", which would print as (default: None).
     pass
 
 
@@ -261,71 +262,87 @@ def main():
     parser = argparse.ArgumentParser(
         prog='python taxassign.py',
         description=(
-            'Match verbatimIdentification strings to WoRMS or GBIF. '
-            'Set your taxonomic assignment parameters for WoRMS/GBIF in config.yaml and add --use-config to use them. Use the flags below only when you want to override the parameters set in the config.yaml file.'
+            'Match verbatimIdentification names to WoRMS or GBIF.\n'
+            '\n'
+            'Two modes for matcher settings (API, candidate limit, WoRMS walk-up,\n'
+            'PR2, n-proc, ...):\n'
+            '\n'
+            '  (default)      built-in values: GBIF, 3 candidates/name, n-proc 0\n'
+            '  --use-config   copy the taxonomic settings from config.yaml\n'
+            '                 (the same keys the full pipeline uses)\n'
+            '\n'
+            'File paths are always flags (-i / -o / --outdir), never config.yaml.\n'
+            '\n'
+            'examples:\n'
+            '  python taxassign.py -i names.tsv\n'
+            '      Built-in defaults. Writes processed-v3/taxa_assignment_INFO_GBIF.xlsx\n'
+            '\n'
+            '  python taxassign.py --use-config -i names.tsv\n'
+            '      Same WoRMS/GBIF knobs as the full pipeline. You still pass -i;\n'
+            '      config.yaml is not used for input or output paths.\n'
+            '\n'
+            '  python taxassign.py --use-config -i names.tsv -a GBIF\n'
+            '      Config settings, except API is GBIF (overrides taxonomic_api_source).\n'
+            '\n'
+            '  python taxassign.py -i names.tsv -a WoRMS -n 5 -o processed-v3/my_taxa.xlsx\n'
+            '      All settings from flags; config.yaml is ignored.'
         ),
         formatter_class=_TaxassignHelpFormatter,
         epilog=(
-            '-------------------------------------------------------------------------------\n'
-            '  CONFIG  (--use-config)  vs  COMMAND LINE\n'
-            '-------------------------------------------------------------------------------\n'
-            '  With --use-config, matcher tuning is read from config.yaml (next to taxassign.py).\n'
-            '  Input and output paths are NEVER taken from config:\n'
-            '    -i  --input     TSV/CSV of verbatimIdentification\n'
-            '    -o  --output    Full path to one .xlsx file (not a folder). .csv is rewritten to .xlsx\n'
-            '        --outdir    Folder only; used when you omit -o\n'
-            '\n'
-            '  These flags override config when you pass them (with --use-config):\n'
-            '\n'
-            '    -a  --api       GBIF or WoRMS (omit to use config taxonomic_api_source)\n'
-            '    -n  --limit     Max candidate rows per name (omit to use config gbif_match_limit)\n'
-            '        --n-proc    Parallel workers (omit to use config worms_n_proc / gbif_n_proc)\n'
-            '\n'
-            '\n'
-            '  WoRMS-only options (walk-up, PR2 file, marine-only, etc.) have no CLI — set them in config.yaml.\n'
+            '--use-config reads taxonomic keys from config.yaml next to this script:\n'
+            '  taxonomic_api_source, gbif_match_limit, worms_n_proc / gbif_n_proc,\n'
+            '  walk-up, PR2, higherClassification, and the other matcher options.\n'
+            '  -a / -n / --n-proc override those keys if you pass them.\n'
+            '  WoRMS-only knobs have no CLI flag — set them in config.yaml.\n'
         ),
     )
     parser.add_argument(
         '-i', '--input', default=DEFAULTS['INPUT_PATH'],
         help=(
-            f"Input TSV/CSV path (one column: verbatimIdentification). "
-            f"Never read from config, always set here or via the default: {DEFAULTS['INPUT_PATH']}"
+            'Name list TSV/CSV (column: verbatimIdentification). Never from config. '
+            f"(default: {DEFAULTS['INPUT_PATH']})"
         ),
     )
     parser.add_argument(
         '-a', '--api', default=None, metavar='API',
         help=(
-            'GBIF or WoRMS. With --use-config, omit this to use taxonomic_api_source from config; '
-            f'without --use-config, omitting defaults to {DEFAULTS["API"]}.'
+            f"GBIF or WoRMS. Default: {DEFAULTS['API']}. "
+            'With --use-config: config taxonomic_api_source, unless you pass -a.'
         ),
     )
     parser.add_argument(
         '-n', '--limit', type=int, default=None, metavar='N',
         help=(
-            'Max candidate rows per name (best match always kept). With --use-config, omit to use gbif_match_limit from config; '
-            f'without --use-config, omitting defaults to {DEFAULTS["MATCH_LIMIT"]}.'
+            f"Max candidate rows per name (best match always kept). Default: {DEFAULTS['MATCH_LIMIT']}. "
+            'With --use-config: config gbif_match_limit, unless you pass -n.'
         ),
     )
     parser.add_argument(
         '-o', '--output', default=None, metavar='FILE',
-        help='Output .xlsx path (include a filename; not a folder). If you pass .csv it is saved as .xlsx. If omitted, uses --outdir and the default filename.',
+        help=(
+            'Output .xlsx path (a filename, not a folder). .csv is saved as .xlsx. '
+            'If omitted, writes taxa_assignment_INFO_<API>.xlsx in --outdir.'
+        ),
     )
     parser.add_argument(
         '--outdir', default=DEFAULTS['OUTPUT_DIR'], metavar='DIR',
         help=(
-            f"Folder for output when -o is omitted (writes taxa_assignment_INFO_<API>.xlsx). Default: {DEFAULTS['OUTPUT_DIR']}. Not from config."
+            'Folder used when -o is omitted. Never from config. '
+            f"(default: {DEFAULTS['OUTPUT_DIR']})"
         ),
     )
     parser.add_argument(
         '--n-proc', type=int, default=None,
-        help='Number of parallel workers. With --use-config: if you omit this flag, config decides; if you pass a number, it overrides config. Without --use-config: defaults to 0.',
+        help=(
+            'Parallel workers. Default: 0. '
+            'With --use-config: config worms_n_proc or gbif_n_proc, unless you pass --n-proc.'
+        ),
     )
     parser.add_argument(
         '--use-config', action='store_true',
         help=(
-            f'Read WoRMS/GBIF matcher options from config.yaml next to this script '
-            f'({DEFAULT_CONFIG_PATH}). '
-            'Does not use config for input file path, pipeline data paths, or output folders. Config.yaml only provides taxonomic assignment options.'
+            'Copy matcher settings from config.yaml next to this script. '
+            'Does not change -i / -o / --outdir. See examples below.'
         ),
     )
 
