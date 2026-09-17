@@ -81,14 +81,6 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         except Exception as _e:
             reporter.add_text(f"Could not merge pass-through fields from occurrence core: {_e}")
 
-        if 'identificationRemarks' in occurrence_core.columns:
-            try:
-                id_merge = occurrence_core[['occurrenceID', 'identificationRemarks']].drop_duplicates(subset=['occurrenceID'])
-                dna_derived_df_final = dna_derived_df_final.merge(id_merge, on='occurrenceID', how='left')
-                reporter.add_text("Merged identificationRemarks from occurrence core so DNA extension matches occurrence core.")
-            except Exception as _e:
-                reporter.add_warning(f"Could not merge identificationRemarks from occurrence core: {_e}")
-
         # Now merge DNA sequences from taxonomy files
         # Build a lookup table of (featureID, assay_name) -> DNA_sequence
         all_tax_data = []
