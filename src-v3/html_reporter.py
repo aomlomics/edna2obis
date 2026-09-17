@@ -29,9 +29,10 @@ def _logo_src_for_html(repo_root: Path, report_filename: str, image_basename: st
 
 
 class HTMLReporter:
-    def __init__(self, filename="edna2obis_report.html", run_name=None):
+    def __init__(self, filename="edna2obis_report.html", run_name=None, dwc_core_type="occurrence"):
         self.filename = filename
         self.run_name = run_name
+        self.dwc_core_type = dwc_core_type
         self.sections = []
         self.status = "RUNNING"
         self.start_time = datetime.datetime.now()
@@ -39,6 +40,12 @@ class HTMLReporter:
         self.warnings = [] # To track warning messages
         self._seen_warning_keys = set()
         self._seen_error_keys = set()
+
+    def _core_type_label(self):
+        core = str(self.dwc_core_type or "occurrence").strip().lower()
+        if core == "event":
+            return "Darwin Core Archive type: Event Core"
+        return "Darwin Core Archive type: Occurrence Core"
         
     def _get_status_color(self):
         if self.status == "SUCCESS":
@@ -324,6 +331,7 @@ class HTMLReporter:
         
         <div class="metadata">
             <h3>Run Information</h3>
+            <div class="run-name-display"><h2>{self._core_type_label()}</h2></div>
             {f'<div class="run-name-display"><h2>Run name: {self.run_name}</h2></div>' if self.run_name else ''}
             <p><strong>Start Time:</strong> {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
             <p><strong>End Time:</strong> {end_time.strftime('%Y-%m-%d %H:%M:%S')}</p>

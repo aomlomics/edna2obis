@@ -1824,6 +1824,7 @@ def main():
     os.makedirs(output_dir, exist_ok=True)
     report_path = os.path.join(output_dir, report_filename)
     reporter = HTMLReporter(report_path, run_name)
+    reporter.dwc_core_type = params.get('dwc_core_type', 'occurrence')
     perf_log = performance_log_for_config(
         bool(params.get('include_performance_metrics_in_output', False)),
         output_dir,
