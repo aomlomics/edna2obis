@@ -347,6 +347,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
 
                     # 2. Filter the raw dataframe to keep only the columns we need, safely
                     final_cols_to_keep = [col for col in tax_source_faire_terms if col in current_tax_df_raw.columns]
+                    # You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
                     for _extra in ('Confidence', 'classify_method', 'percent_id'):
                         if _extra in current_tax_df_raw.columns and _extra not in final_cols_to_keep:
                             final_cols_to_keep.append(_extra)

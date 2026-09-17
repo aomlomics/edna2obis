@@ -54,7 +54,7 @@ dna_derived_extension:
   otu_class_appr: { faire_term: otu_clust_tool, source: analysisMetadata }
   otu_db: { faire_term: otu_db, source: analysisMetadata }
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db". You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
   source_mat_id: { faire_term: materialSampleID, source: constructed }
   adapters: { faire_term: adapters, source: constructed }
 
@@ -97,7 +97,7 @@ occurrence_core:
   decimalLatitude: { faire_term: decimalLatitude, source: sampleMetadata }
   decimalLongitude: { faire_term: decimalLongitude, source: sampleMetadata }
   geodeticDatum: { faire_term: verbatimSRS, source: sampleMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db". You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
   #nameAccordingTo: { faire_term: nameAccordingTo, source: constructed } # Constructed: according to your taxonomic mapping API choice (GBIF or WoRMS)
   associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }
 
@@ -140,7 +140,7 @@ generic_dna_derived_extension:
   otu_seq_comp_appr: { faire_term: otu_seq_comp_appr, source: analysisMetadata }
   otu_class_appr: { faire_term: otu_clust_tool, source: projectMetadata }
   otu_db: { faire_term: otu_db, source: projectMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db". You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
   adapters: { faire_term: adapters, source: constructed }
 
 
@@ -181,5 +181,5 @@ generic_occurrence_core:
   sampleSizeValue: { faire_term: samp_size, source: sampleMetadata }
   sampleSizeUnit: { faire_term: samp_size_unit, source: sampleMetadata }
   recordedBy: { faire_term: recordedBy, source: projectMetadata }
-  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db"
+  identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db". You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
   associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }
