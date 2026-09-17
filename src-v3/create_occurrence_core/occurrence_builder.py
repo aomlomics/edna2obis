@@ -712,6 +712,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                         + taxa_ref_db_str
                     )
                     
+                    # sampleSize* belong on the library event (eventID/lib_id), not parentEvent (samp_name).
                     if 'eventID' in current_assay_occurrence_intermediate_df.columns and not current_assay_occurrence_intermediate_df['eventID'].isna().all():
                         sample_size_map = current_assay_occurrence_intermediate_df.groupby('eventID')['organismQuantity'].sum().to_dict()
                         current_assay_occurrence_intermediate_df['sampleSizeValue'] = current_assay_occurrence_intermediate_df['eventID'].map(sample_size_map)

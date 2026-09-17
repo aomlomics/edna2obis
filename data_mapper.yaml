@@ -86,8 +86,8 @@ occurrence_core:
   occurrenceStatus: { faire_term: occurrenceStatus, source: constructed } 
   organismQuantity: { faire_term: organismQuantity, source: constructed } # Constructed: calculated
   organismQuantityType: { faire_term: organismQuantityType, source: constructed }
-  sampleSizeValue: { faire_term: samp_size, source: sampleMetadata }
-  sampleSizeUnit: { faire_term: samp_size_unit, source: sampleMetadata }
+  sampleSizeValue: { faire_term: sampleSizeValue, source: constructed } # Constructed: sum of organismQuantity per library event (eventID/lib_id), not parentEvent
+  sampleSizeUnit: { faire_term: sampleSizeUnit, source: constructed } # Constructed: "DNA sequence reads"
   recordedBy: { faire_term: recordedBy, source: projectMetadata }
   materialSampleID: { faire_term: materialSampleID, source: sampleMetadata }
   eventDate: { faire_term: eventDate, source: sampleMetadata }
@@ -178,8 +178,8 @@ generic_occurrence_core:
   occurrenceStatus: { faire_term: occurrenceStatus, source: constructed } 
   organismQuantity: { faire_term: organismQuantity, source: constructed } # Constructed: calculated
   organismQuantityType: { faire_term: organismQuantityType, source: constructed }
-  sampleSizeValue: { faire_term: samp_size, source: sampleMetadata }
-  sampleSizeUnit: { faire_term: samp_size_unit, source: sampleMetadata }
+  sampleSizeValue: { faire_term: sampleSizeValue, source: constructed } # Constructed: sum of organismQuantity per library event (eventID/lib_id), not parentEvent
+  sampleSizeUnit: { faire_term: sampleSizeUnit, source: constructed } # Constructed: "DNA sequence reads"
   recordedBy: { faire_term: recordedBy, source: projectMetadata }
   identificationRemarks: { faire_term: identificationRemarks, source: constructed } # Constructed: "otu_seq_comp_appr, confidence, against reference database: otu_db". You CAN append percent_id and classify_method at the end of an asvTaxaFeatures file; they are put into DwC identificationRemarks.
   associatedSequences: { faire_term: associatedSequences, source: experimentRunMetadata }
