@@ -1,4 +1,4 @@
-edna2obis Banner
+![edna2obis Banner](images/banner_edna2obis.png)
 
 ## Introduction
 
@@ -32,7 +32,7 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 ### Tutorial
 
 **Need help running edna2obis?**  
-[Watch tutorial on YouTube](https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11)
+[![Watch tutorial on YouTube](https://img.shields.io/badge/YouTube-Watch%20the%20tutorial-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://www.youtube.com/watch?v=bhNuE15icpQ&list=PLS6jqgZoUzto&index=11)
 
 ### Example data abstract:
 
@@ -54,7 +54,7 @@ Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fou
 - Metadata tables come from running [FAIReSheets](https://github.com/aomlomics/FAIReSheets) (projectMetadata, sampleMetadata, experimentRunMetadata; and the NOAA data format variation requires an analysisMetadata sheet per analysis run).
 - Raw ASV taxonomy and abundance tables come from Tourmaline (or any amplicon sequence processing workflow) as long as they follow Tourmaline's output structure.
 
-Inputs and outputs
+![Inputs and outputs](images/edna2obis_inputs_and_outputs.png)
 
 ### Supported Data Formats
 
@@ -224,7 +224,7 @@ If your abundance tables have decimal numbers, that is okay too.
 
 ## Configuration and Workflow
 
-How edna2obis works
+![How edna2obis works](images/edna2obis_how_it_works.png)
 
 Configure your run using the files below; the graphic shows how inputs flow through edna2obis to outputs.
 Current workflow output is **Occurrence Core + DNA Derived Extension** (with optional `eMoF.csv`, `meta.xml`, and `eml.xml`). Event Core support is planned for future versions.
@@ -471,8 +471,8 @@ The pipeline generates several files in your output directory:
 
 | occurrenceID                                                       | eventID                       | verbatimIdentification                                                                               | kingdom  | phylum   | class | order             | family         | genus        | scientificName                           | taxonRank | organismQuantity | organismQuantityType | recordedBy                                | materialSampleID   | eventDate           | locality            | decimalLatitude | decimalLongitude | basisOfRecord  | nameAccordingTo |
 | ------------------------------------------------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------- | -------- | -------- | ----- | ----------------- | -------------- | ------------ | ---------------------------------------- | --------- | ---------------- | -------------------- | ----------------------------------------- | ------------------ | ------------------- | ------------------- | --------------- | ---------------- | -------------- | --------------- |
-| GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Beloniformes;Exocoetidae;Cheilopogon                                  | Animalia | Chordata |       | Beloniformes      | Exocoetidae    | Cheilopogon  | Cheilopogon Lowe, 1841                   | genus     | 4                | DNA sequence reads   | Lynsey Wilcox Talbot | Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
-| GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Tetraodontiformes;Tetraodontidae;Lagocephalus;Lagocephalus laevigatus | Animalia | Chordata |       | Tetraodontiformes | Tetraodontidae | Lagocephalus | Lagocephalus laevigatus (Linnaeus, 1766) | species   | 5317             | DNA sequence reads   | Lynsey Wilcox Talbot | Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
+| GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Beloniformes;Exocoetidae;Cheilopogon                                  | Animalia | Chordata |       | Beloniformes      | Exocoetidae    | Cheilopogon  | Cheilopogon Lowe, 1841                   | genus     | 4                | DNA sequence reads   | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
+| GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Tetraodontiformes;Tetraodontidae;Lagocephalus;Lagocephalus laevigatus | Animalia | Chordata |       | Tetraodontiformes | Tetraodontidae | Lagocephalus | Lagocephalus laevigatus (Linnaeus, 1766) | species   | 5317             | DNA sequence reads   | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
 
 
 
