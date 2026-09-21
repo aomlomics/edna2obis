@@ -41,11 +41,11 @@ class HTMLReporter:
         self._seen_warning_keys = set()
         self._seen_error_keys = set()
 
-    def _core_type_label(self):
+    def _core_type_value(self):
         core = str(self.dwc_core_type or "occurrence").strip().lower()
         if core == "event":
-            return "Darwin Core Archive type: Event Core"
-        return "Darwin Core Archive type: Occurrence Core"
+            return "Event Core"
+        return "Occurrence Core"
         
     def _get_status_color(self):
         if self.status == "SUCCESS":
@@ -310,8 +310,9 @@ class HTMLReporter:
         .header-section {{ text-align: center; margin: 30px 0 50px 0; }}
         .logo-bar {{ display: flex; justify-content: center; align-items: center; gap: 40px; margin: 25px 0; opacity: 0.8; }}
         .logo-bar img {{ height: 60px; object-fit: contain; }}
-        .run-name-display {{ margin: 10px 0; }}
-        .run-name-display h2 {{ margin: 0; font-size: 1.5rem; font-weight: 600; color: #343a40; }}
+        .run-name-display {{ margin: 14px 0; }}
+        .run-name-display h2 {{ margin: 0; font-size: 2.25rem; font-weight: 400; color: #343a40; }}
+        .run-name-display h2 strong {{ font-weight: 700; }}
         .warnings-top {{ margin: 20px 0 30px 0; }}
     </style>
 </head>
@@ -331,12 +332,12 @@ class HTMLReporter:
         
         <div class="metadata">
             <h3>Run Information</h3>
-            <div class="run-name-display"><h2>{self._core_type_label()}</h2></div>
-            {f'<div class="run-name-display"><h2>Run name: {self.run_name}</h2></div>' if self.run_name else ''}
-            <p><strong>Start Time:</strong> {self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p><strong>End Time:</strong> {end_time.strftime('%Y-%m-%d %H:%M:%S')}</p>
-            <p><strong>Duration:</strong> {str(duration).split('.')[0]}</p>
-            <p><strong>Report File:</strong> {self.filename}</p>
+            <div class="run-name-display"><h2>Darwin Core Archive type: <strong>{self._core_type_value()}</strong></h2></div>
+            {f'<div class="run-name-display"><h2>Run name: <strong>{self.run_name}</strong></h2></div>' if self.run_name else ''}
+            <p>Start Time: <strong>{self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</strong></p>
+            <p>End Time: <strong>{end_time.strftime('%Y-%m-%d %H:%M:%S')}</strong></p>
+            <p>Duration: <strong>{str(duration).split('.')[0]}</strong></p>
+            <p>Report File: <strong>{self.filename}</strong></p>
         </div>
 """
         

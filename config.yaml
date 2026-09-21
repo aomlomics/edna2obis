@@ -8,7 +8,7 @@
 # If left blank or set to 'config.yaml', this file will be used.
 run_config_path: "config.yaml"
 metadata_format: "NOAA"  # "NOAA" or "GENERIC". NOAA format has separate analysisMetadata sheets. GENERIC format has analysis data within projectMetadata.
-edna2obis_run_name: "EXAMPLE_OUTPUT_FAIRE_NOAA_SMALL_GBIF" # This name will be used to name your config file (outputted for your convenience after your run is complete)
+edna2obis_run_name: "EXAMPLE_OUTPUT_FAIRE_NOAA_SMALL" # This name will be used to name your config file (outputted for your convenience after your run is complete)
 # This name will also be used to name your HTML report and Taxa mapping INFO files.
 
 # ================================STEP 2========================================
