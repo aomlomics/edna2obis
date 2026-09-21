@@ -1,0 +1,447 @@
+<eml:eml xmlns:eml="https://eml.ecoinformatics.org/eml-2.2.0"
+         xmlns:dc="http://purl.org/dc/terms/"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="https://eml.ecoinformatics.org/eml-2.2.0 https://rs.gbif.org/schema/eml-gbif-profile/1.3/eml.xsd"
+         packageId="30b856dc-5be0-4c97-b39e-57c74608ca61/v1.1" system="http://gbif.org" scope="system"
+         xml:lang="eng">
+    <dataset>
+        <alternateIdentifier>https://ipt-obis.gbif.us/resource?r=noaa-oer-okeanos-ex2201</alternateIdentifier>
+        <alternateIdentifier>30b856dc-5be0-4c97-b39e-57c74608ca61</alternateIdentifier>
+        <shortName>noaa-oer-okeanos-ex2201</shortName>
+        <title xml:lang="eng">NOAA Ocean Exploration seawater eDNA metabarcoding (EX2201)</title>
+        <creator>
+            <individualName>
+                <givenName>Clement</givenName>
+                <surName>Coclet</surName>
+            </individualName>
+            <organizationName>NOAA Atlantic Oceanographic and Meteorological Laboratory</organizationName>
+            <positionName>Research Scientist II</positionName>
+            <address>
+                <deliveryPoint>4301 Rickenbacker Cswy</deliveryPoint>
+                <city>Miami</city>
+                <administrativeArea>Florida</administrativeArea>
+                <postalCode>33149</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>clement.coclet@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-6672-148X</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Luke</givenName>
+                <surName>Thompson</surName>
+            </individualName>
+            <organizationName>NOAA Atlantic Oceanographic and Meteorological Laboratory</organizationName>
+            <positionName>Research Professor</positionName>
+            <address>
+                <deliveryPoint>4301 Rickenbacker Cswy</deliveryPoint>
+                <city>Miami</city>
+                <administrativeArea>Florida</administrativeArea>
+                <postalCode>33149</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>luke.thompson@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-3911-1280</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Nicole</givenName>
+                <surName>Miller</surName>
+            </individualName>
+            <organizationName>NOAA Ocean Exploration</organizationName>
+            <positionName>NOAA Omics Coordinator</positionName>
+            <address>
+                <deliveryPoint>1315 East-West Hwy</deliveryPoint>
+                <city>Silver Spring</city>
+                <administrativeArea>Maryland</administrativeArea>
+                <postalCode>20910</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>nicole.miller@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0009-0002-8148-6323</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Ashley</givenName>
+                <surName>Marranzino</surName>
+            </individualName>
+            <organizationName> NOAA Ocean Exploration</organizationName>
+            <positionName>Project Scientist</positionName>
+            <address>
+                <deliveryPoint>1315 East-West Hwy</deliveryPoint>
+                <city>Silver Spring</city>
+                <administrativeArea>Maryland</administrativeArea>
+                <postalCode>20910</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>ashley.marranzino@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-6451-1139</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Jennifer</givenName>
+                <surName>Green</surName>
+            </individualName>
+            <organizationName>NOAA Ocean Exploration</organizationName>
+            <positionName>Research Associate III</positionName>
+            <address>
+                <deliveryPoint>1021 Balch Blvd Ste 1003</deliveryPoint>
+                <city>Stennis Space Center</city>
+                <administrativeArea>Mississippi</administrativeArea>
+                <postalCode>39529</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>jennifer.green@noaa.gov</electronicMailAddress>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Logan</givenName>
+                <surName>Kline</surName>
+            </individualName>
+            <organizationName>NOAA Ocean Exploration</organizationName>
+            <positionName>Operations Support Analyst</positionName>
+            <address>
+                <deliveryPoint>1315 East-West Hwy</deliveryPoint>
+                <city>Silver Spring</city>
+                <administrativeArea>Maryland</administrativeArea>
+                <postalCode>20910</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>logan.kline@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0003-0257-9397</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Allen</givenName>
+                <surName>Collins</surName>
+            </individualName>
+            <organizationName>NOAA National Systematics Laboratory</organizationName>
+            <positionName>Director and Research Zoologist</positionName>
+            <address>
+                <deliveryPoint>MRC 163</deliveryPoint>
+                <city>Washington</city>
+                <administrativeArea>District of Columbia</administrativeArea>
+                <postalCode>20013-7012</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>allen.collins@noaa.gov</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0002-3664-9691</userId>
+        </creator>
+        <creator>
+            <individualName>
+                <givenName>Steven</givenName>
+                <surName>Auscavitz</surName>
+            </individualName>
+            <organizationName>Smithsonian National Museum of Natural History</organizationName>
+            <positionName>Genomics Specialist</positionName>
+            <address>
+                <deliveryPoint>MRC 163</deliveryPoint>
+                <city>Washington</city>
+                <administrativeArea>District of Columbia</administrativeArea>
+                <postalCode>20013-7012</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>auscavitchs@si.edu</electronicMailAddress>
+            <userId directory="https://orcid.org/">0000-0001-5777-4814</userId>
+        </creator>
+        <pubDate>
+            2026-04-13
+        </pubDate>
+        <language>eng</language>
+        <abstract>
+            <para>Environmental DNA (eDNA) collected by NOAA Ship Okeanos Explorer during expedition EX2201: 2022 ROV and Mapping Shakedown (February 23 - March 3, 2022), Pascagoula, Mississippi to Key West, Florida. eDNA samples (6) collected by ROV and metabarcoded using 12S, 18S (V4), and COI markers.</para>
+        </abstract>
+        <keywordSet>
+            <keyword>marine biome</keyword>
+            <keywordThesaurus>ENVO</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>marine epipelagic zone</keyword>
+            <keywordThesaurus>ENVO</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>marine mesopelagic zone</keyword>
+            <keywordThesaurus>ENVO</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>marine bathypelagic zone</keyword>
+            <keywordThesaurus>ENVO</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>seawater</keyword>
+            <keywordThesaurus>ENVO</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Atlantic Ocean</keyword>
+            <keywordThesaurus>N/A</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>18S rRNA (SSU eukaryote)</keyword>
+            <keywordThesaurus>N/A</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>12S rRNA (SSU mitochondria)</keyword>
+            <keywordThesaurus>N/A</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>COI (cytochrome oxidase I)</keyword>
+            <keywordThesaurus>N/A</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>eDNA</keyword>
+            <keywordThesaurus>ASFA</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>metabarcoding</keyword>
+            <keywordThesaurus>ASFA</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>marine biodiversity</keyword>
+            <keywordThesaurus>ASFA</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>environmental DNA</keyword>
+            <keywordThesaurus>GCMD</keywordThesaurus>
+        </keywordSet>
+        <keywordSet>
+            <keyword>Occurrence</keyword>
+            <keywordThesaurus>GBIF Dataset Type Vocabulary: http://rs.gbif.org/vocabulary/gbif/dataset_type_2015-07-10.xml</keywordThesaurus>
+        </keywordSet>
+        <intellectualRights>
+            <para>To the extent possible under law, the publisher has waived all rights to these data and has dedicated them to the <ulink url="http://creativecommons.org/publicdomain/zero/1.0/legalcode"><citetitle>Public Domain (CC0 1.0)</citetitle></ulink>. Users may copy, modify, distribute and use the work, including for commercial purposes, without restriction.</para>
+        </intellectualRights>
+        <licensed>
+            <licenseName>Creative Commons Zero v1.0 Universal</licenseName>
+            <url>https://spdx.org/licenses/CC0-1.0.html</url>
+            <identifier>CC0-1.0</identifier>
+        </licensed>
+        <distribution scope="document">
+            <online>
+                <url function="information">https://www.ncei.noaa.gov/waf/okeanos-rov-cruises/ex2201/</url>
+            </online>
+        </distribution>
+        <distribution scope="document">
+            <online>
+                <url function="download">https://ipt-obis.gbif.us/archive.do?r=noaa-oer-okeanos-ex2201</url>
+            </online>
+        </distribution>
+        <coverage>
+            <geographicCoverage>
+                <geographicDescription>Gulf of America (eastern Gulf shakedown, ~24–29°N, ~84–88°W)</geographicDescription>
+                <boundingCoordinates>
+                    <westBoundingCoordinate>-87.873</westBoundingCoordinate>
+                    <eastBoundingCoordinate>-84.074</eastBoundingCoordinate>
+                    <northBoundingCoordinate>29.212</northBoundingCoordinate>
+                    <southBoundingCoordinate>24.117</southBoundingCoordinate>
+                </boundingCoordinates>
+            </geographicCoverage>
+            <temporalCoverage>
+                <rangeOfDates>
+                    <beginDate>
+                        <calendarDate>2022-02-24</calendarDate>
+                    </beginDate>
+                    <endDate>
+                        <calendarDate>2022-03-02</calendarDate>
+                    </endDate>
+                </rangeOfDates>
+            </temporalCoverage>
+            <taxonomicCoverage>
+                <generalTaxonomicCoverage>Marine organisms identified through eDNA metabarcoding</generalTaxonomicCoverage>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Animalia</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Bacteria</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Chromista</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Fungi</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Plantae</taxonRankValue>
+                </taxonomicClassification>
+                <taxonomicClassification>
+                    <taxonRankName>kingdom</taxonRankName>
+                    <taxonRankValue>Protozoa</taxonRankValue>
+                </taxonomicClassification>
+            </taxonomicCoverage>
+        </coverage>
+        <purpose><para>This dataset serves two purposes. First, to advance alignment among researchers and stakeholders on making NOAA Ocean Exploration eDNA data publicly available and interpretable, and to identify and address challenges in achieving that goal. Second, to characterize biodiversity in sampled ocean environments using eDNA metabarcoding data from NOAA Ship Okeanos Explorer expeditions, with emphasis on deep-sea communities in the abyssal zone (depths below 4,000 m).</para></purpose>
+        <maintenance>
+            <description>
+                <para></para>
+            </description>
+            <maintenanceUpdateFrequency>asNeeded</maintenanceUpdateFrequency>
+        </maintenance>
+        <contact>
+            <individualName>
+                <givenName>Luke</givenName>
+                <surName>Thompson</surName>
+            </individualName>
+            <organizationName>NOAA Atlantic Oceanographic and Meteorological Laboratory</organizationName>
+            <positionName>Research Professor</positionName>
+            <address>
+                <deliveryPoint>4301 Rickenbacker Cswy</deliveryPoint>
+                <city>Miami</city>
+                <administrativeArea>Florida</administrativeArea>
+                <postalCode>33149</postalCode>
+                <country>US</country>
+            </address>
+            <electronicMailAddress>luke.thompson@noaa.gov</electronicMailAddress>
+            <onlineUrl>https://www.linkedin.com/in/luke-thompson-bb20074/</onlineUrl>
+            <userId directory="https://orcid.org/">0000-0002-3911-1280</userId>
+        </contact>
+        <methods>
+            <methodStep>
+                <description>
+                    <para>DNA was extracted from seawater filters, amplified by PCR for 18S, COI, and 12S metabarcoding markers, sequenced on Illumina, and analyzed with the Tourmaline 2 pipeline. Field sampling design and detailed procedures are described under sampling; bioinformatic QC and filtering are described under quality control.</para>
+                </description>
+            </methodStep>
+            <sampling>
+                <studyExtent>
+                    <description>
+                        <para>Gulf of America (eastern Gulf shakedown, ~24–29°N, ~84–88°W) from 2022-02-24 to 2022-03-02.</para>
+                    </description>
+                </studyExtent>
+                <samplingDescription>
+                    <para>Seawater samples were collected aboard NOAA Ship Okeanos Explorer during ROV dives and CTD casts. Water was drawn from Niskin bottles mounted on either the Deep Discoverer ROV or a CTD rosette. Standard collection volumes were 1.7 L for water samples and 2.0 L for distilled water blanks. Samples were filtered through 0.45 um membrane filters. Sample and environmental metadata - including dive or CTD cast ID, date, time, location, in-situ measurements (salinity, temperature, dissolved oxygen), and estimated bottom depth - were recorded electronically and transferred to the Sample Operator User Portal (SOUP). Laboratory procedures followed documented protocols (https://github.com/aomlomics/protocols). DNA was extracted from filters and amplified by PCR targeting three metabarcoding markers: 18S rRNA (protists/eukaryotes), COI (metazoa), and 12S rRNA (fish). Sequencing was performed on the Illumina NextSeq platform at the NOAA National Systematics Laboratory. Bioinformatic processing was performed on the Northern Gulf Institute&apos;s Orion computing cluster using the Tourmaline 2 pipeline. Steps included adapter trimming and quality filtering (Cutadapt), denoising and representative sequence determination (DADA2), and taxonomic assignment using a naive Bayes classifier and consensus VSEARCH (QIIME 2). Raw sequence data in FASTQ format were submitted to the NCBI Sequence Read Archive (SRA). FAIRe-formatted sample metadata were submitted to NCBI BioSample. Taxonomic occurrence data were formatted for submission to OBIS.</para>
+                </samplingDescription>
+            </sampling>
+            <qualityControl>
+                <description>
+                    <para>Quality control measures were implemented across all stages of the workflow. During sample collection, laboratory errors and deviations from standard operating procedures (NOAA Ocean Exploration eDNA Sample Workflow, Revision 2.3) were recorded per sample in a physical notebook and transferred to the Sample Operator User Portal (SOUP). Negative controls (distilled water blanks, extraction blanks, PCR blanks, and sequencing blanks) were included throughout sampling and processing to monitor for contamination. Control samples were excluded from the final published dataset but are archived in NCBI SRA and BioSample records for transparency. Raw sequence data were processed using the Tourmaline 2 pipeline. Low-quality bases and adapters were trimmed using Cutadapt, and sequences were denoised using DADA2 to generate representative sequences. Taxonomic assignments were made using a naive Bayes classifier and consensus VSEARCH, with confidence thresholds applied to ensure reliable identifications. Post-assignment filters were applied to remove sequences associated with domestic or human taxa (Bovidae, Suidae, Felidae, Canidae, Primates, Homo sapiens), unresolved assignments (Unassigned), and terrestrial organisms as flagged by WoRMS habitat classifications.</para>
+                </description>
+            </qualityControl>
+        </methods>
+        <project id="noaa-oer-okeanos">
+            <title>NOAA Ocean Exploration seawater eDNA metabarcoding</title>
+            <personnel>
+                <individualName>
+                    <givenName>Luke</givenName>
+                    <surName>Thompson</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0002-3911-1280</userId>
+                <role>processor</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Clement</givenName>
+                    <surName>Coclet</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0002-6672-148X</userId>
+                <role>processor</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Nicole</givenName>
+                    <surName>Miller</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0009-0002-8148-6323</userId>
+                <role>curator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Ashley</givenName>
+                    <surName>Marranzino</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0002-6451-1139</userId>
+                <role>curator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Jennifer</givenName>
+                    <surName>Green</surName>
+                </individualName>
+                <role>curator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Logan</givenName>
+                    <surName>Kline</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0003-0257-9397</userId>
+                <role>originator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Allen</givenName>
+                    <surName>Collins</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0002-3664-9691</userId>
+                <role>reviewer</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Steven</givenName>
+                    <surName>Auscavitz</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0001-5777-4814</userId>
+                <role>originator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Sammy</givenName>
+                    <surName>Harding</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0009-0008-8885-6140</userId>
+                <role>curator</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Bayden</givenName>
+                    <surName>Willms</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0009-0003-2751-7317</userId>
+                <role>programmer</role>
+            </personnel>
+            <personnel>
+                <individualName>
+                    <givenName>Katherine</givenName>
+                    <surName>Silliman</surName>
+                </individualName>
+                <userId directory="https://orcid.org/">0000-0001-5964-3965</userId>
+                <role>publisher</role>
+            </personnel>
+            <abstract>
+                <para>The mission of NOAA Ocean Exploration is to explore the ocean for national benefit, including discovery and characterization of deep-sea environments and biodiversity. This project provides preliminary environmental DNA metabarcoding data from plankton, metazoa, cnidaria, and fish collected aboard NOAA Ship Okeanos Explorer, operated by NOAA Ocean Exploration. Sample archiving and management, wet lab processing, and sequencing was conducted by the Smithsonian National Museum of Natural History and the NOAA National Systematics Laboratory. DNA sequence analysis was performed by the NOAA Atlantic Oceanographic and Meteorological Laboratory.</para>
+            </abstract>
+            <funding>
+                <para>&quot;A Comprehensive Bioinformatics Platform for Marine eDNA and Microbiome Data&quot; (Grant ID NA21OAR4320190-T3-01S040, NOAA Ocean Exploration)</para>
+            </funding>
+            <award>
+                <funderName>NOAA Ocean Exploration</funderName>
+                
+                <awardNumber>NA21OAR4320190-T3-01S040</awardNumber>
+                <title>A Comprehensive Bioinformatics Platform for Marine eDNA and Microbiome Data</title>
+            </award>
+            <studyAreaDescription>
+                <descriptor name="generic"
+                            citableClassificationSystem="false">
+                    <descriptorValue>Atlantic (SE U.S., Gulf of America, Puerto Rico/Puerto Rico Trench, Azores) and Pacific (U.S. West Coast) from 2021-10-27 to 2023-04-26.</descriptorValue>
+                </descriptor>
+            </studyAreaDescription>
+            <designDescription>
+                <description>
+                    <para>To characterize biodiversity in sampled ocean environments using eDNA metabarcoding data from NOAA Ship Okeanos Explorer expeditions, with emphasis on deep-sea communities in the abyssal zone (depths below 4,000 m).</para>
+                </description>
+            </designDescription>
+        </project>
+    </dataset>
+    <additionalMetadata>
+        <metadata>
+            <gbif>
+                <dateStamp>2026-04-13T20:12:51.115+00:00</dateStamp>
+                <hierarchyLevel>dataset</hierarchyLevel>
+                <citation>Coclet C, Thompson L, Miller N, Marranzino A, Green J, Kline L, Collins A, Auscavitz S (2026). NOAA Ocean Exploration seawater eDNA metabarcoding (EX2201). Version 1.2. NOAA Ocean Exploration. Occurrence dataset. https://ipt-obis.gbif.us/resource?r=noaa-oer-okeanos-ex2201&amp;v=1.2</citation>
+                <dc:replaces>30b856dc-5be0-4c97-b39e-57c74608ca61/v1.1.xml</dc:replaces>
+            </gbif>
+        </metadata>
+    </additionalMetadata>
+</eml:eml>

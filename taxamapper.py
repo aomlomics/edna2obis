@@ -12,13 +12,13 @@ if SRC_DIR not in sys.path:
 
 # CLI UI
 from cli_output.cli_ui import console, print_header, silence_output
-from taxonomic_assignment.taxa_assignment_manager import (
+from taxonomic_alignment.taxa_assignment_manager import (
     format_taxa_assignment_info_dataframe,
     load_pr2_worms_dict_into_params,
     limit_info_df_preserving_selected,
     mark_selected_match_from_main_dataframe,
 )
-from taxonomic_assignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
+from taxonomic_alignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
 
 # Default config next to this script (no path typing required for normal use)
 DEFAULT_CONFIG_PATH = os.path.join(THIS_DIR, 'config.yaml')
@@ -216,10 +216,10 @@ def run_taxamapper(
     with console.status(f'Running Taxonomic Mapping to {api}...', spinner='dots'):
         with silence_output():
             if api == 'GBIF':
-                from taxonomic_assignment.GBIF_matching import get_gbif_match_for_dataframe
+                from taxonomic_alignment.GBIF_matching import get_gbif_match_for_dataframe
                 results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
             else:
-                from taxonomic_assignment.WoRMS_v3_matching import get_worms_match_for_dataframe
+                from taxonomic_alignment.WoRMS_v3_matching import get_worms_match_for_dataframe
                 results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
             if api == 'WoRMS' and int(params.get('worms_n_proc_effective') or 0) >= 8:
                 console.print('[yellow]WoRMS:[/] %s workers — may hit API rate limits.' % params['worms_n_proc_effective'])

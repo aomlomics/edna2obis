@@ -131,7 +131,7 @@ worms_consider_unaccepted_for_selection: false
 # lineage for each taxon (including intermediate ranks like Subphlyum, Infraphylum, etc.). Enabling this parameter will
 # significantly increase the runtime, because it requires extra WoRMS classification lookups,
 # so leave it as 'false' unless you really need it. higherClassification is a Darwin Core field, compatible on both OBIS and GBIF submissions.
-worms_return_higher_classification: false
+worms_return_higher_classification: true
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
@@ -155,14 +155,14 @@ output_dir: "processed-v3/"
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
-emof_enabled: false
-emof_template_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_eMoF_Fields_edna2obis.tsv"
+emof_enabled: true
+emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
 # Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
-eml_enabled: false
-eml_config_path: "raw-v3/FAIRe_NOAA_example_dataset_large/noaa-oer-okeanos_EML_config.yaml"
+eml_enabled: true
+eml_config_path: "EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)
