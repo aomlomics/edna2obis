@@ -24,10 +24,10 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 - Improved taxonomic mapping performance and accuracy (with caching)
   - Choose [WoRMS](https://www.marinespecies.org/) or [GBIF](https://www.gbif.org/) APIs
   - Optionally skip species-level matching for selected assays
-  - `taxa_mapping_INFO_<API>.csv` with transparent candidate tracking (`selected_match` is the chosen row)
+  - `taxa_mapping_INFO_<API>.xlsx` with transparent candidate tracking (`selected_match` is the chosen row)
 - Run report generation via `edna2obis_report.html`
 - Optional generation of `eMoF.csv`, project-level `eml.xml`, and `meta.xml`
-- Taxonomy-only mode via `taxamapper.py` (same `taxa_mapping_INFO_<API>.csv` style; filter `selected_match = True` for the carried-forward mapping)
+- Taxonomy-only mode via `taxamapper.py` (same `taxa_mapping_INFO_<API>.xlsx` style; filter `selected_match = True` for the carried-forward mapping)
 
 ### Tutorial
 
@@ -409,7 +409,7 @@ The pipeline will:
 If you only want to map taxonomy for a list of identifiers (without running the full edna2obis workflow), use `taxamapper.py`.
 
 - Input: a TSV/CSV with a single column named `verbatimIdentification`. An example is provided at `raw-v3/taxamapper_example_input.tsv`.
-- Output: `taxa_mapping_INFO_<API>.csv` (same column layout as the full pipeline; sheet `taxa_mapping_INFO` only). **Important:** `selected_match` is `True` on the row that would be chosen as the official mapping (equivalent to what goes to occurrence in the full pipeline). You may get multiple candidate rows per name; the rest are for review. Candidate count is controlled by `-n` (or by `gbif_match_limit` from `config.yaml` when using `--use-config`).
+- Output: `taxa_mapping_INFO_<API>.xlsx` (same column layout as the full pipeline; sheet `taxa_mapping_INFO` only). **Important:** `selected_match` is `True` on the row that would be chosen as the official mapping (equivalent to what goes to occurrence in the full pipeline). You may get multiple candidate rows per name; the rest are for review. Candidate count is controlled by `-n` (or by `gbif_match_limit` from `config.yaml` when using `--use-config`).
 
 Help:
 
@@ -420,7 +420,7 @@ python taxamapper.py --help
 Examples:
 
 ```bash
-# Example input, default API and limits from taxamapper.py, writes processed-v3/taxa_mapping_INFO_<API>.csv
+# Example input, default API and limits from taxamapper.py, writes processed-v3/taxa_mapping_INFO_<API>.xlsx
 python taxamapper.py
 
 # Map taxonomies to WoRMS using an input file
@@ -430,7 +430,7 @@ python taxamapper.py -i raw-v3/taxamapper_example_input.tsv -a WoRMS
 python taxamapper.py -i raw-v3/taxamapper_example_input.tsv -a GBIF -n 5
 
 # Explicit output path
-python taxamapper.py -i raw-v3/taxamapper_example_input.tsv -a GBIF -o processed-v3/my_run.csv
+python taxamapper.py -i raw-v3/taxamapper_example_input.tsv -a GBIF -o processed-v3/my_run.xlsx
 
 # Matcher options from config.yaml
 python taxamapper.py --use-config
@@ -443,7 +443,7 @@ Options:
 - `-i, --input`: TSV/CSV with column `verbatimIdentification` (default: `raw-v3/taxamapper_example_input.tsv`)
 - `-a, --api`: `GBIF` or `WoRMS` (omit with `--use-config` to use `taxonomic_api_source` from config)
 - `-n, --limit`: max candidate rows per name (omit with `--use-config` to use `gbif_match_limit` from config)
-- `-o, --output`: output `.csv` path (not a folder). If omitted, `{outdir}/taxa_mapping_INFO_<API>.csv`
+- `-o, --output`: output `.xlsx` path (not a folder). If omitted, `{outdir}/taxa_mapping_INFO_<API>.xlsx`
 - `--outdir`: directory when `-o` omitted (default: `processed-v3`)
 - `--use-config`: load matcher settings from `config.yaml` beside `taxamapper.py`
 - `--n-proc`: parallel workers (optional)
@@ -458,7 +458,7 @@ The pipeline generates several files in your output directory:
 - `processed-v3/`
   - `edna2obis_report_worms.html` / `edna2obis_report_gbif.html` - Run report.
   - `occurrence_core_worms.csv` / `occurrence_core_gbif.csv` - Occurrence Core with assigned taxonomy.
-  - `taxa_mapping_INFO_worms.csv` / `taxa_mapping_INFO_GBIF.csv` - Candidate taxonomy matches; use **`selected_match`** for the chosen row.
+  - `taxa_mapping_INFO_WoRMS.xlsx` / `taxa_mapping_INFO_GBIF.xlsx` - Candidate taxonomy matches; use **`selected_match`** for the chosen row. The API part of the filename matches `taxonomic_api_source` in `config.yaml`.
   - `dna_derived_extension.csv` - DNA Derived Data extension.
   - `eMoF.csv` - Extended Measurement or Fact extension (if enabled).
   - `meta.xml` - Darwin Core Archive mapping metadata.
@@ -531,13 +531,13 @@ Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Taxo
 - `gbif_return_higher_classification`: GBIF only. If true, calls the parents endpoint and includes `higherClassification`
 - Local reference database (WoRMS only) for fast AphiaID lookups
 
-Also writes `taxa_mapping_INFO_<API>.csv` (sheet `taxa_mapping_INFO`). One row can appear per candidate match, not only the match used in the occurrence file.
+Also writes `taxa_mapping_INFO_<API>.xlsx` (sheet `taxa_mapping_INFO`). One row can appear per candidate match, not only the match used in the occurrence file.
 
 ### taxa_mapping_INFO columns
 
 **Important column!** `selected_match` is True on the row the pipeline treats as the official mapping for each `verbatimIdentification` (the one reflected in the occurrence file). For `taxamapper.py`-only runs, it is True on the row that *would* be chosen in the full pipeline. When you summarize results, **filter on** `selected_match` **= TRUE**; other mapping rows exist for transparency and QA.
 
-Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in the `.csv` file.
+Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in the `.xlsx` file.
 
 
 | Column                 | Meaning                                                                                                                                                                                                                               |
