@@ -22,11 +22,14 @@ def print_separator(title: str | None = None) -> None:
         console.print(line, style="dim")
 
 
-def print_header() -> None:
+def print_header(
+    title: str = "edna2obis",
+    subtitle: str = "eDNA to OBIS/GBIF Publisher (v3) - NOAA Omics",
+) -> None:
     """Render the application header using pyfiglet and Rich (single color, readable)."""
-    title = pyfiglet.figlet_format("edna2obis", font="standard")
-    console.print(title, style="navy_blue")
-    console.print("eDNA to OBIS/GBIF Publisher (v3) - NOAA Omics", style="bold navy_blue")
+    art = pyfiglet.figlet_format(title, font="standard")
+    console.print(art, style="navy_blue")
+    console.print(subtitle, style="bold navy_blue")
     print_separator()
 
 

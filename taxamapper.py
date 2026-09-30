@@ -258,7 +258,7 @@ class _TaxamapperHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 
 def main():
-    print_header()
+    print_header("taxamapper", subtitle="Taxonomic mapping CLI for edna2obis-v3")
     parser = argparse.ArgumentParser(
         prog='python taxamapper.py',
         description=(
@@ -278,7 +278,7 @@ def main():
             '      Built-in defaults. Writes processed-v3/taxa_mapping_INFO_GBIF.xlsx\n'
             '\n'
             '  python taxamapper.py --use-config -i names.tsv\n'
-            '      Same WoRMS/GBIF knobs as the full pipeline. You still pass -i;\n'
+            '      Same WoRMS/GBIF parameters as the full pipeline. You still pass -i;\n'
             '      config.yaml is not used for input or output paths.\n'
             '\n'
             '  python taxamapper.py --use-config -i names.tsv -a GBIF\n'
@@ -293,7 +293,7 @@ def main():
             '  taxonomic_api_source, gbif_match_limit, worms_n_proc / gbif_n_proc,\n'
             '  walk-up, PR2, higherClassification, and the other matcher options.\n'
             '  -a / -n / --n-proc override those keys if you pass them.\n'
-            '  WoRMS-only knobs have no CLI flag — set them in config.yaml.\n'
+            '  WoRMS-only parameters have no CLI flag, set them in config.yaml.\n'
         ),
     )
     parser.add_argument(
