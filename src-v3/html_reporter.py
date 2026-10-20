@@ -111,6 +111,113 @@ class HTMLReporter:
             'type': 'dataframe',
             'content': content
         })
+
+    def add_location_map(self, df, lat_col="decimalLatitude", lon_col="decimalLongitude"):
+        """
+        Preview unique sample coordinates on a Leaflet map.
+
+        Occurrence rows repeat the same station once per taxon, so points are
+        grouped by coordinate first. Leaflet and the cluster plugin are loaded
+        from a CDN when the report is opened, which keeps them out of this repo.
+        """
+        import json
+        import html as html_lib
+        import pandas as pd
+
+        if df is None or lat_col not in getattr(df, "columns", []) or lon_col not in df.columns:
+            self.add_text("Sample location map skipped: decimalLatitude and decimalLongitude were not both present.")
+            return
+
+        frame = pd.DataFrame({
+            lat_col: pd.to_numeric(df[lat_col], errors="coerce"),
+            lon_col: pd.to_numeric(df[lon_col], errors="coerce"),
+        })
+        if "locality" in df.columns:
+            frame["locality"] = df["locality"].values
+
+        frame = frame.dropna(subset=[lat_col, lon_col])
+        frame = frame[frame[lat_col].between(-90, 90) & frame[lon_col].between(-180, 180)]
+        if frame.empty:
+            self.add_text("Sample location map skipped: no usable decimalLatitude / decimalLongitude values.")
+            return
+
+        if "locality" in frame.columns:
+            grouped = frame.groupby([lat_col, lon_col], as_index=False).agg(
+                n=(lat_col, "size"),
+                locality=("locality", "first"),
+            )
+        else:
+            grouped = frame.groupby([lat_col, lon_col], as_index=False).agg(n=(lat_col, "size"))
+
+        points = []
+        for row in grouped.itertuples(index=False):
+            point = {
+                "lat": round(float(getattr(row, lat_col)), 6),
+                "lon": round(float(getattr(row, lon_col)), 6),
+                "n": int(row.n),
+            }
+            if "locality" in grouped.columns:
+                loc = getattr(row, "locality")
+                if pd.notna(loc) and str(loc).strip():
+                    point["locality"] = html_lib.escape(str(loc).strip())
+            points.append(point)
+
+        n_places = len(points)
+        n_records = int(grouped["n"].sum())
+        place_word = "location" if n_places == 1 else "locations"
+        record_word = "occurrence record" if n_records == 1 else "occurrence records"
+        summary = f"{n_places} unique {place_word} across {n_records:,} {record_word}."
+        # json.dumps handles quotes; escaping "<" keeps a locality from closing the script tag.
+        payload = json.dumps(points).replace("<", "\\u003c")
+        map_id = f"edna-location-map-{len(self.sections)}"
+        # Plain string, not an f-string: the JavaScript below has its own braces.
+        content = """
+<h4>Sample locations</h4>
+<p>__SUMMARY__ A single station is drawn as a circle of 1, and nearby stations group into larger circles as you zoom out. The ocean basemap loads when this report is opened with internet access.</p>
+<div id="__MAP_ID__" style="height: 420px; margin: 10px 0 16px 0; border: 1px solid #ddd; border-radius: 4px;"></div>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script>
+window.addEventListener("load", function () {
+  if (typeof L === "undefined" || typeof L.markerClusterGroup !== "function") {
+    var el = document.getElementById("__MAP_ID__");
+    if (el) el.textContent = "Map could not load. Open this report with internet access to fetch the basemap.";
+    return;
+  }
+  var points = __POINTS__;
+  var map = L.map("__MAP_ID__", { maxZoom: 13 });
+  // Esri tile order is row/column, so this is {z}/{y}/{x}, not the OSM {z}/{x}/{y}.
+  // The reference layer adds sea names and depth labels on top of the bathymetry.
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Base/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 13,
+    attribution: "Esri, Garmin, GEBCO, NOAA NGDC, and other contributors"
+  }).addTo(map);
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Ocean/World_Ocean_Reference/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 13
+  }).addTo(map);
+  // singleMarkerMode draws a lone station with the same circle as a cluster, labeled 1.
+  var markers = L.markerClusterGroup({ singleMarkerMode: true });
+  points.forEach(function (p) {
+    var marker = L.marker([p.lat, p.lon]);
+    var label = p.n + " occurrence record" + (p.n === 1 ? "" : "s");
+    if (p.locality) label = p.locality + "<br>" + label;
+    label += "<br>" + p.lat + ", " + p.lon;
+    marker.bindPopup(label);
+    markers.addLayer(marker);
+  });
+  map.addLayer(markers);
+  map.fitBounds(markers.getBounds().pad(0.2), {maxZoom: 8, padding: [20, 20]});
+});
+</script>
+""".replace("__POINTS__", payload).replace("__MAP_ID__", map_id).replace("__SUMMARY__", summary)
+
+        self.sections.append({
+            'type': 'map',
+            'content': content
+        })
     
     def add_success(self, message):
         """Add a success message"""

@@ -835,6 +835,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
                                        'identificationRemarks', 'locationID']
                 preview_cols_to_show = [col for col in preview_cols_subset if col in occ_all_final_output.columns]
                 reporter.add_dataframe(occ_all_final_output[preview_cols_to_show], "Occurrence Core Preview", max_rows=5)
+                reporter.add_location_map(occ_all_final_output)
                 
                 # Add important note about assay_name column
                 reporter.add_text("<h4>NOTE:</h4>")
