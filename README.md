@@ -13,8 +13,9 @@ terms into the Darwin Core standard.
 This use case draws on both the guide and the extension to build a workflow for
 creating Darwin Core Archives from eDNA data.
 
-Current output model: **Occurrence Core + DNA Derived Extension**.
-Future versions are planned to support **Event Core + Occurrence Extension + DNA Derived Extension**.
+Current output model options:
+- **Occurrence Core + DNA Derived Extension**.
+- **Event Core + Occurrence Extension + DNA Derived Extension**.
 
 The latest version of edna2obis (v3) builds on the original workflow with:
 
@@ -28,6 +29,11 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 - Run report generation via `edna2obis_report.html`
 - Optional generation of `eMoF.csv`, project-level `eml.xml`, and `meta.xml`
 - Taxonomy-only mode via `taxamapper.py` (same `taxa_mapping_INFO_<API>.xlsx` style; filter `selected_match = True` for the carried-forward mapping)
+
+### Citation 
+If you find edna2obis helpful for your work, please consider citing the software:  
+
+Bayden Willms, & Katherine Silliman. (2026). aomlomics/edna2obis: v3.2.0 (Version v3.2.0) [Computer software]. Zenodo. https://doi.org/10.5281/zenodo.23667395
 
 ### Tutorial
 
