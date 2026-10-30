@@ -23,7 +23,7 @@ combined_metadata_file: true
 sampleMetadata: "sampleMetadata"
 experimentRunMetadata: "experimentRunMetadata"
 projectMetadata: "projectMetadata"
-excel_file: "raw-v3/FAIRe_generic_example_dataset/noaa-aoml-gomecc4.xlsx"
+excel_file: "data/example_raw/FAIRe_generic_example_dataset/noaa-aoml-gomecc4.xlsx"
 
 # When combined_metadata_file: false = separate TSV files (one path per sheet)
 sampleMetadata_file: "path/to/sampleMetadata.tsv"
@@ -43,16 +43,16 @@ field_names_row_table: 1  # Row where abundance/occurrence table sample names ar
 datafiles:
   gomecc4_18s_analysis1:
     assay_name: "ssu18sv9-emp"
-    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu18sv9-emp.xlsx"
-    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu18sv9-emp_20220718_18S-Amplicon_PE250.csv"
+    taxonomy_file: "data/example_raw/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu18sv9-emp.xlsx"
+    abundance_file: "data/example_raw/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu18sv9-emp_20220718_18S-Amplicon_PE250.csv"
   gomecc4_16s_analysis2:
     assay_name: "ssu16sv4v5-emp"
-    taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613.xlsx"
-    abundance_file: "raw-v3/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613_16S-Amplicon_PE250.xlsx"
+    taxonomy_file: "data/example_raw/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613.xlsx"
+    abundance_file: "data/example_raw/FAIRe_generic_example_dataset/otuRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220613_16S-Amplicon_PE250.xlsx"
   # gomecc4_16s_analysis3:
   #   assay_name: "ssu16sv4v5-emp"
-  #   taxonomy_file: "raw-v3/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
-  #   abundance_file: "raw-v3/FAIRe_generic_example_dataset/otu_gomecc4_ssu16sv4v5_20220831_16S-Amplicon_PE250.txt"
+  #   taxonomy_file: "data/example_raw/FAIRe_generic_example_dataset/taxaRaw_noaa-aoml-gomecc4_ssu16sv4v5-emp_20220831.xlsx"
+  #   abundance_file: "data/example_raw/FAIRe_generic_example_dataset/otu_gomecc4_ssu16sv4v5_20220831_16S-Amplicon_PE250.txt"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
@@ -137,7 +137,7 @@ worms_return_higher_classification: false
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false
-local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
+local_reference_database_path: "data/example_raw/pr2_version_5.0.0_taxonomy.xlsx"
 
 # Optional parameters (will use defaults if not specified)
 # Number of processes for matching (0 means use all available CPUs)
@@ -146,25 +146,25 @@ gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
 # Works on both WoRMS and GBIF taxonomic mapping options
-output_dir: "processed-v3/"
+output_dir: "outputs/"
 
 # ================================STEP 9========================================
 # OPTIONAL output files
 # -----------------------------------------------------------------------------
 # OPTIONAL Output Files: eMoF (extended measurement or fact), and EML (Ecological Metadata Language)
 # Data for these files must be manually entered in their respective input files:
-# eMoF: raw-v3/eMoF Fields edna2obis .xlsx
+# eMoF: data/example_raw/eMoF Fields edna2obis .xlsx
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
-# Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
+emof_template_path: "data/example_raw/eMoF_Fields_edna2obis.tsv"
+# Optional: path to the eMoF template Excel. If not provided, defaults to data/example_raw/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)
 eml_enabled: false
-eml_config_path: "raw-v3/EML_config.yaml"
+eml_config_path: "data/example_raw/EML_config.yaml"
 
 # ================================STEP 10========================================
 # OPTIONAL - Split output files by cruise/expedition (short_name)

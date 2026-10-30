@@ -18,7 +18,7 @@
 # -----------------------------------------------------------------------------
 
 eml_metadata:
-  # Repo root contacts.yaml: two levels up from raw-v3/FAIRe_NOAA_example_dataset_large/
+  # Repo root contacts.yaml: two levels up from data/example_raw/FAIRe_NOAA_example_dataset_large/
   contacts_path: "../../contacts.yaml"
 
   # Leave "" unless you set the package id here on purpose. Quick guide item 2.

@@ -21,12 +21,12 @@ combined_metadata_file: false
 sampleMetadata: "sampleMetadata"
 experimentRunMetadata: "experimentRunMetadata"
 projectMetadata: "projectMetadata"
-excel_file: "raw-v3/clement_testing/FAIRe-NOAA_noaa-oer-okeanos.xlsx"
+excel_file: "data/example_raw/clement_testing/FAIRe-NOAA_noaa-oer-okeanos.xlsx"
 
 # When combined_metadata_file: false = separate TSV files (one path per sheet)
-sampleMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
-experimentRunMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
-projectMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
+sampleMetadata_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-sampleMetadata.tsv"
+experimentRunMetadata_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-experimentRunMetadata.tsv"
+projectMetadata_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/FAIRe_noaa-sefsc-gu1901-projectMetadata.tsv"
 
 # Input table layout (1-based)
 field_name_row: 3  # Row where sampleMetadata/experimentRunMetadata field names are.
@@ -42,14 +42,14 @@ field_names_row_table: 1  # Row where abundance/occurrence table sample names ar
 datafiles:
   rosel-ctd-mifish-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-MiFish-Miya-Stoeckle"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/table_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_mifish_addMFtrawlJfish_v2024.10_241001.tsv"
   rosel-ctd-riaz-addMFtrawlJfish-241001:
     assay_name: "Fish-12S-Riaz"
-    taxonomy_file: "raw-v3/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    occurrence_file: "raw-v3/FAIRe_NOAA_example_dataset_small/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
-    analysisMetadata_file: "raw-v3/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    taxonomy_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/asvTaxaFeatures_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    occurrence_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/table_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
+    analysisMetadata_file: "data/example_raw/FAIRe_NOAA_example_dataset_small/analysisMetadata_gu1901_riaz_addMFtrawlJfish_v2024.10_241001.tsv"
 
   # Add other analysis runs here, following the pattern:
   # your_analysis_run_name:
@@ -135,7 +135,7 @@ worms_return_higher_classification: true
 
 # Optional local reference database (WoRMS only) - speeds up matching significantly!
 use_local_reference_database: false  # or false  
-local_reference_database_path: "raw-v3/pr2_version_5.0.0_taxonomy.xlsx"
+local_reference_database_path: "data/example_raw/pr2_version_5.0.0_taxonomy.xlsx"
 
 # Optional parameters (will use defaults if not specified)
 # Number of processes for matching (maximum is 10. Performanmce improvement is negligible beyond 8)
@@ -144,20 +144,20 @@ gbif_n_proc: 0
 
 # Output directory (will be created if it doesn't exist)
 # Works on both WoRMS and GBIF taxonomic mapping options
-output_dir: "processed-v3/"
+output_dir: "outputs/"
 
 # ================================STEP 9========================================
 # OPTIONAL output files
 # -----------------------------------------------------------------------------
 # OPTIONAL Output Files: eMoF (extended measurement or fact), and EML (Ecological Metadata Language)
 # Data for these files must be manually entered in their respective input files:
-# eMoF: raw-v3/eMoF Fields edna2obis .xlsx
+# eMoF: data/example_raw/eMoF Fields edna2obis .xlsx
 # EML: EML_config.yaml
 # -----------------------------------------------------------------------------
 # Enable/disable eMoF creation. Set to true to get an eMoF, false to skip eMoF output.
 emof_enabled: true
-emof_template_path: "raw-v3/eMoF_Fields_edna2obis.tsv"
-# Optional: path to the eMoF template Excel. If not provided, defaults to raw-v3/eMoF_Fields_edna2obis.xlsx
+emof_template_path: "data/example_raw/eMoF_Fields_edna2obis.tsv"
+# Optional: path to the eMoF template Excel. If not provided, defaults to data/example_raw/eMoF_Fields_edna2obis.xlsx
 
 # Enable/disable EML creation. Set to true to generate EML XML file, false to skip.
 # EML metadata configuration is stored in a separate file (see eml_config_path below)

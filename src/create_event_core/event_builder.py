@@ -30,7 +30,7 @@ def _load_event_core_mapping(params):
 
 def create_event_core(params, reporter=None, occurrence_filename=None):
     """Write event_core.csv next to the Occurrence Core and return its filename."""
-    output_dir = params.get('output_dir', 'processed-v3/')
+    output_dir = params.get('output_dir', 'outputs/')
     api = str(params.get('taxonomic_api_source', 'worms')).lower()
     if occurrence_filename is None:
         occurrence_filename = f"occurrence_core_{api}.csv"

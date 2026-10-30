@@ -690,7 +690,7 @@ def create_dna_derived_extension(params, data, raw_data_tables, dwc_data, occurr
         # Save DNA derived extension to CSV file
         reporter.add_text("Saving DNA derived extension to CSV...")
         
-        output_dir = params.get('output_dir', 'processed-v3/')
+        output_dir = params.get('output_dir', 'outputs/')
         os.makedirs(output_dir, exist_ok=True)
         
         output_path = os.path.join(output_dir, "dna_derived_extension.csv")

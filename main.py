@@ -13,8 +13,8 @@ import traceback
 import warnings
 import xml.etree.ElementTree as ET
 
-# Add the src-v3 directory to Python path for imports
-sys.path.insert(0, "src-v3")
+# Add the src directory to Python path for imports
+sys.path.insert(0, "src")
 
 # CLI UI
 from cli_output.cli_ui import (
@@ -27,7 +27,7 @@ import numpy as np
 import pandas as pd
 import io
 
-# Import custom modules from src-v3
+# Import custom modules from src
 from html_reporter import HTMLReporter
 from run_performance_log import performance_log_for_config
 
@@ -400,11 +400,11 @@ def load_config(config_path="config.yaml"):
         params['gbif_match_limit'] = config.get('gbif_match_limit', 3)
         params['gbif_use_assignment_score_for_selection'] = config.get('gbif_use_assignment_score_for_selection', False)
         params['gbif_return_higher_classification'] = config.get('gbif_return_higher_classification', False)
-        params['output_dir'] = config.get('output_dir', "processed-v3/")
+        params['output_dir'] = config.get('output_dir', "outputs/")
         
         # eMoF options
         params['emof_enabled'] = config.get('emof_enabled', True)
-        params['emof_template_path'] = config.get('emof_template_path', 'raw-v3/eMoF Fields edna2obis .xlsx')
+        params['emof_template_path'] = config.get('emof_template_path', 'data/example_raw/eMoF Fields edna2obis .xlsx')
         
         # EML options (metadata loaded separately from EML_config.yaml)
         params['eml_enabled'] = config.get('eml_enabled', False)
@@ -442,7 +442,7 @@ def load_config(config_path="config.yaml"):
         params['worms_consider_unaccepted_for_selection'] = config.get('worms_consider_unaccepted_for_selection', False)
 
         # Put all outputs for a run into a single folder.
-        base_output_dir = params.get('output_dir', "processed-v3/")
+        base_output_dir = params.get('output_dir', "outputs/")
         run_name = str(params.get('edna2obis_run_name', 'unnamed_run')).strip() or "unnamed_run"
         invalid = '<>:"/\\|?*'
         safe_run_name = ''.join(('_' if c in invalid else c) for c in run_name).strip()
@@ -466,7 +466,7 @@ def save_config_for_run(params, reporter, config_path):
     """Save the config file used for this run with the run name"""
     try:
         run_name = params.get('edna2obis_run_name', 'unnamed_run')
-        output_dir = params.get('output_dir', "processed-v3/")
+        output_dir = params.get('output_dir', "outputs/")
         
         # Create the output directory if it doesn't exist
         os.makedirs(output_dir, exist_ok=True)
@@ -499,7 +499,7 @@ def slim_occurrence_for_event_mode(params, reporter, occurrence_filename):
     In Event Core mode, remove duplicate event/sample-level columns from the
     Occurrence file (which becomes an extension) after Event Core has been built.
     """
-    output_dir = params.get('output_dir', 'processed-v3/')
+    output_dir = params.get('output_dir', 'outputs/')
     occ_path = os.path.join(output_dir, occurrence_filename)
     if not os.path.exists(occ_path):
         raise FileNotFoundError(f"Occurrence file not found for Event-mode slimming: {occ_path}")
@@ -564,7 +564,7 @@ def split_output_files_by_short_name(params, data, reporter):
     reporter.add_section("Splitting Output Files by short_name", level=2)
     
     try:
-        output_dir = params.get('output_dir', 'processed-v3/')
+        output_dir = params.get('output_dir', 'outputs/')
         api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
         core_type = str(params.get('dwc_core_type', 'occurrence')).strip().lower()
         
@@ -1948,7 +1948,7 @@ def main():
 
     # --- Initialize HTML reporter with a dynamic name ---
     global reporter
-    output_dir = params.get('output_dir', "processed-v3/")
+    output_dir = params.get('output_dir', "outputs/")
     api_choice = params.get('taxonomic_api_source', 'unknown')
     run_name = params.get('edna2obis_run_name', 'unnamed_run')
     report_filename = f"edna2obis_report_{api_choice}_{run_name}.html"
@@ -2090,7 +2090,7 @@ def main():
         with perf_log.step("occurrence_core_postprocess"):
             # Remove match_type_debug from final occurrence file (keep it only in taxa_mapping_INFO.xlsx)
             api_source = params.get('taxonomic_api_source', 'WoRMS').lower()
-            final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
+            final_occurrence_path = os.path.join(params.get('output_dir', 'outputs/'), f'occurrence_core_{api_source}.csv')
             try:
                 if os.path.exists(final_occurrence_path):
                     # Read the file, remove match_type_debug column, and save back
@@ -2103,7 +2103,7 @@ def main():
                 reporter.add_text(f"Warning: Could not remove match_type_debug from final file: {e}")
 
             # Delete intermediate occurrence.csv file
-            intermediate_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), 'occurrence.csv')
+            intermediate_occurrence_path = os.path.join(params.get('output_dir', 'outputs/'), 'occurrence.csv')
             try:
                 if os.path.exists(intermediate_occurrence_path):
                     os.remove(intermediate_occurrence_path)
@@ -2157,7 +2157,7 @@ def main():
         # --- Final File Validation ---
         with perf_log.step("final_output_validation"):
             reporter.add_section("Final File Validation", level=3)
-            output_dir = params.get('output_dir', 'processed-v3/')
+            output_dir = params.get('output_dir', 'outputs/')
             api_choice = params.get("taxonomic_api_source", "worms")
 
             files_to_validate = [
@@ -2301,7 +2301,7 @@ def main():
         reporter.add_success("All steps completed successfully!")
         reporter.add_text("Files generated:")
         
-        output_dir = params.get('output_dir', '../processed-v3/')
+        output_dir = params.get('output_dir', '../outputs/')
         api_choice = params.get("taxonomic_api_source", "worms")
         
         # Define the list of expected final files

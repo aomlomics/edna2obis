@@ -17,7 +17,7 @@ def mark_selected_gbif_matches(params, reporter=None):
         if api_choice != 'GBIF':
             return
 
-        output_dir = params.get('output_dir', '../processed-v3/')
+        output_dir = params.get('output_dir', '../outputs/')
         info_filename = f"taxa_mapping_INFO_{api_choice}.xlsx"
         info_filepath = os.path.join(output_dir, info_filename)
 
@@ -103,8 +103,8 @@ if __name__ == '__main__':
     # This block allows the script to be run standalone for testing
     mock_params = {
         'taxonomic_api_source': 'GBIF',
-        'output_dir': '../../processed-v3/'
+        'output_dir': '../../outputs/'
     }
-    # To test, you would need sample files in the 'processed-v3' directory.
+    # To test, you would need sample files in the 'outputs' directory.
     # mark_selected_gbif_matches(mock_params)
     print("This script is intended to be called from the main edna2obis pipeline.") 
