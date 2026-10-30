@@ -8,6 +8,7 @@ See [docs/RELEASING.md](docs/RELEASING.md) for how releases are made.
 
 ### Changed
 - **Breaking:** renamed directories to drop the version suffix: `src-v3/` → `src/`, `raw-v3/` → `data/example_raw/`, `processed-v3/` → `outputs/`. Update paths in your own config files.
+- README restructured around a Quick Start; detailed reference moved to `docs/` (`input-data.md`, `outputs.md`, `taxonomic-mapping.md`, `taxamapper.md`).
 - The version is now defined in `src/_version.py` and shown by `python main.py --version`, `python taxamapper.py --version`, the CLI banner and the HTML report.
 
 ### Fixed
