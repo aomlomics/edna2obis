@@ -9,7 +9,7 @@ Key Features:
 - Supports all major EML sections: people, coverage, keywords, methods, etc.
 - Auto-generates UUIDs for document identification
 - Validates required fields and provides helpful error messages
-- Outputs to processed-v3/ directory automatically
+- Outputs to outputs/ directory automatically
 """
 
 import copy
@@ -1288,7 +1288,7 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         occurrence_df = data.get('occurrence', pd.DataFrame())
         if occurrence_df.empty:
             try:
-                output_dir = params.get('output_dir', 'processed-v3/')
+                output_dir = params.get('output_dir', 'outputs/')
                 api_choice = str(params.get('taxonomic_api_source', 'GBIF')).lower()
                 occ_filename = f"occurrence_core_{api_choice}.csv"
                 occ_path = os.path.join(output_dir, occ_filename)
@@ -1540,7 +1540,7 @@ def create_eml_file(params: Dict, data: Dict[str, pd.DataFrame], reporter) -> st
         xml_string = _prettify_xml(root)
         
         # Save to file
-        output_dir = params.get('output_dir', 'processed-v3/')
+        output_dir = params.get('output_dir', 'outputs/')
         os.makedirs(output_dir, exist_ok=True)
         eml_path = os.path.join(output_dir, 'eml.xml')
         

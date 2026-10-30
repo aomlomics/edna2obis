@@ -92,7 +92,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         importlib.reload(GBIF_matching)
         
         # Load the occurrence file generated earlier
-        occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), 'occurrence.csv')
+        occurrence_path = os.path.join(params.get('output_dir', '../outputs/'), 'occurrence.csv')
         if not os.path.exists(occurrence_path):
             reporter.add_error(f"Occurrence file not found at {occurrence_path}")
             return
@@ -352,7 +352,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             reporter.add_text(f"Removed temporary columns: {columns_to_drop}")
             
             # Now, save the final matched dataframe with a new name
-            final_occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_core_{api_source.lower()}.csv')
+            final_occurrence_path = os.path.join(params.get('output_dir', '../outputs/'), f'occurrence_core_{api_source.lower()}.csv')
             
             # --- Reorder columns to final desired spec, removing API-specific IDs that are not relevant ---
             final_col_order = get_final_occurrence_column_order()
@@ -537,7 +537,7 @@ def create_taxa_assignment_info(params, reporter):
         else:
             # ORIGINAL PATH (Fallback if info_df is missing)
             reporter.add_text(f"Using standard method (one row per unique verbatim ID) for info file. Note: Ambiguous matches may not be shown.")
-            occurrence_path = os.path.join(params.get('output_dir', '../processed-v3/'), f'occurrence_core_{api_source}.csv')
+            occurrence_path = os.path.join(params.get('output_dir', '../outputs/'), f'occurrence_core_{api_source}.csv')
             if not os.path.exists(occurrence_path):
                 reporter.add_error(f"Taxonomically matched occurrence file not found at {occurrence_path}")
                 return
@@ -553,7 +553,7 @@ def create_taxa_assignment_info(params, reporter):
         taxa_info = format_taxa_assignment_info_dataframe(taxa_info, params)
 
         # --- Save and Report ---
-        output_dir = params.get('output_dir', '../processed-v3/')
+        output_dir = params.get('output_dir', '../outputs/')
         os.makedirs(output_dir, exist_ok=True)
         
         api_choice = params.get('taxonomic_api_source', 'WoRMS')

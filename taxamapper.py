@@ -4,13 +4,14 @@ import argparse
 import pandas as pd
 import yaml
 
-# Ensure we can import from src-v3 before importing CLI UI
+# Ensure we can import from src before importing CLI UI
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
-SRC_DIR = os.path.join(THIS_DIR, 'src-v3')
+SRC_DIR = os.path.join(THIS_DIR, 'src')
 if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 # CLI UI
+from _version import __version__
 from cli_output.cli_ui import console, print_header, silence_output
 from taxonomic_alignment.taxa_assignment_manager import (
     format_taxa_assignment_info_dataframe,
@@ -47,10 +48,10 @@ TAXONOMY_CONFIG_KEYS = (
 # CLI flags override these defaults. With --use-config, CLI flags also override the
 # matching keys from config.yaml (see --help epilog).
 DEFAULTS = {
-    'INPUT_PATH': 'raw-v3/taxamapper_example_input.tsv',
+    'INPUT_PATH': 'data/example_raw/taxamapper_example_input.tsv',
     'API': 'GBIF',                  # 'GBIF' or 'WoRMS'
     'MATCH_LIMIT': 3,               # max matches per verbatimIdentification in output
-    'OUTPUT_DIR': 'processed-v3',   # used if OUTPUT_PATH is empty
+    'OUTPUT_DIR': 'outputs',   # used if OUTPUT_PATH is empty
     'OUTPUT_PATH': '',              # explicit path for taxa_mapping_INFO .xlsx; if empty, uses OUTPUT_DIR
     'N_PROC': None,               # None = with --use-config use config worms_n_proc/gbif_n_proc; else 0
 }
@@ -139,7 +140,7 @@ def run_taxamapper(
     input_path: str,
     api_source: str | None = None,
     match_limit: int | None = None,
-    out_dir: str = 'processed-v3',
+    out_dir: str = 'outputs',
     out_path: str | None = None,
     n_proc: int | None = None,
     use_config: bool = False,
@@ -258,7 +259,7 @@ class _TaxamapperHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 
 def main():
-    print_header("taxamapper", subtitle="Taxonomic mapping CLI for edna2obis-v3")
+    print_header("taxamapper", subtitle=f"Taxonomic mapping CLI for edna2obis v{__version__}")
     parser = argparse.ArgumentParser(
         prog='python taxamapper.py',
         description=(
@@ -275,7 +276,7 @@ def main():
             '\n'
             'examples:\n'
             '  python taxamapper.py -i names.tsv\n'
-            '      Built-in defaults. Writes processed-v3/taxa_mapping_INFO_GBIF.xlsx\n'
+            '      Built-in defaults. Writes outputs/taxa_mapping_INFO_GBIF.xlsx\n'
             '\n'
             '  python taxamapper.py --use-config -i names.tsv\n'
             '      Same WoRMS/GBIF parameters as the full pipeline. You still pass -i;\n'
@@ -284,7 +285,7 @@ def main():
             '  python taxamapper.py --use-config -i names.tsv -a GBIF\n'
             '      Config settings, except API is GBIF (overrides taxonomic_api_source).\n'
             '\n'
-            '  python taxamapper.py -i names.tsv -a WoRMS -n 5 -o processed-v3/my_taxa.xlsx\n'
+            '  python taxamapper.py -i names.tsv -a WoRMS -n 5 -o outputs/my_taxa.xlsx\n'
             '      All settings from flags; config.yaml is ignored.'
         ),
         formatter_class=_TaxamapperHelpFormatter,
@@ -346,6 +347,7 @@ def main():
         ),
     )
 
+    parser.add_argument('--version', action='version', version=f'edna2obis {__version__}')
     args = parser.parse_args()
 
     if args.api is not None:
