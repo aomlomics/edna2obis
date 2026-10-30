@@ -28,6 +28,7 @@ import pandas as pd
 import io
 
 # Import custom modules from src
+from _version import __version__
 from html_reporter import HTMLReporter
 from run_performance_log import performance_log_for_config
 
@@ -2369,4 +2370,7 @@ def main():
 
 
 if __name__ == "__main__":
+    if "--version" in sys.argv[1:]:
+        print(f"edna2obis {__version__}")
+        sys.exit(0)
     main() 

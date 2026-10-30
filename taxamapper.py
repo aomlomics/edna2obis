@@ -11,6 +11,7 @@ if SRC_DIR not in sys.path:
     sys.path.insert(0, SRC_DIR)
 
 # CLI UI
+from _version import __version__
 from cli_output.cli_ui import console, print_header, silence_output
 from taxonomic_alignment.taxa_assignment_manager import (
     format_taxa_assignment_info_dataframe,
@@ -258,7 +259,7 @@ class _TaxamapperHelpFormatter(argparse.RawDescriptionHelpFormatter):
 
 
 def main():
-    print_header("taxamapper", subtitle="Taxonomic mapping CLI for edna2obis-v3")
+    print_header("taxamapper", subtitle=f"Taxonomic mapping CLI for edna2obis v{__version__}")
     parser = argparse.ArgumentParser(
         prog='python taxamapper.py',
         description=(
@@ -346,6 +347,7 @@ def main():
         ),
     )
 
+    parser.add_argument('--version', action='version', version=f'edna2obis {__version__}')
     args = parser.parse_args()
 
     if args.api is not None:

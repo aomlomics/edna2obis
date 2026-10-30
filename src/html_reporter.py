@@ -7,6 +7,8 @@ import datetime
 import webbrowser
 from pathlib import Path
 
+from _version import __version__
+
 
 def _normalize_message_key(message):
     """Normalize message text so exact repeats can be safely deduplicated."""
@@ -334,6 +336,7 @@ class HTMLReporter:
             <h3>Run Information</h3>
             <div class="run-name-display"><h2>Darwin Core Archive type: <strong>{self._core_type_value()}</strong></h2></div>
             {f'<div class="run-name-display"><h2>Run name: <strong>{self.run_name}</strong></h2></div>' if self.run_name else ''}
+            <p>edna2obis version: <strong>{__version__}</strong></p>
             <p>Start Time: <strong>{self.start_time.strftime('%Y-%m-%d %H:%M:%S')}</strong></p>
             <p>End Time: <strong>{end_time.strftime('%Y-%m-%d %H:%M:%S')}</strong></p>
             <p>Duration: <strong>{str(duration).split('.')[0]}</strong></p>
