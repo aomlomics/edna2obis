@@ -16,7 +16,7 @@ creating Darwin Core Archives from eDNA data.
 Current output model: **Occurrence Core + DNA Derived Extension**.
 Future versions are planned to support **Event Core + Occurrence Extension + DNA Derived Extension**.
 
-The latest version of edna2obis (v3) builds on the original workflow with:
+edna2obis v3 builds on the original workflow with:
 
 - Script architecture (single command) instead of a notebook workflow
 - Configuration-first setup (set parameters in files, not code)
@@ -36,18 +36,14 @@ The latest version of edna2obis (v3) builds on the original workflow with:
 
 ### Example data abstract:
 
-Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fourth Gulf of Mexico Ecosystems and Carbon Cycle (GOMECC-4) cruise from September 13 to October 21, 2021. Sampling for GOMECC-4 occurred along 16 coastal-offshore transects across the entire Gulf of Mexico and an additional line at 27N latitude in the Atlantic Ocean. We also collected eDNA samples near Padre Island National Seashore (U.S. National Parks Service), a barrier island located off the coast of south Texas. Vertical CTD sampling was employed at each site to measure discrete chemical, physical, and biological properties. Water sampling for DNA filtration was conducted at 54 sites and three depths per site (surface, deep chlorophyll maximum, and near bottom) to capture horizontal and vertical gradients of bacterial, protistan, and metazoan diversity across the Gulf. The resulting ASVs, their assigned taxonomy, and the metadata associated with theircollection are the input data for the OBIS conversion scripts presented here.
+Seawater was collected on board the NOAA ship Ronald H. Brown as part of the fourth Gulf of Mexico Ecosystems and Carbon Cycle (GOMECC-4) cruise from September 13 to October 21, 2021. Sampling for GOMECC-4 occurred along 16 coastal-offshore transects across the entire Gulf of Mexico and an additional line at 27N latitude in the Atlantic Ocean. We also collected eDNA samples near Padre Island National Seashore (U.S. National Parks Service), a barrier island located off the coast of south Texas. Vertical CTD sampling was employed at each site to measure discrete chemical, physical, and biological properties. Water sampling for DNA filtration was conducted at 54 sites and three depths per site (surface, deep chlorophyll maximum, and near bottom) to capture horizontal and vertical gradients of bacterial, protistan, and metazoan diversity across the Gulf. The resulting ASVs, their assigned taxonomy, and the metadata associated with their collection are the input data for the OBIS conversion scripts presented here.
 
 ### Published data
 
 - [GBIF](https://www.gbif.org/dataset/9012def0-bd87-48a0-ac9e-e0e78dd37689)
 - [OBIS](https://obis.org/dataset/210efc7c-4762-47ee-b4b5-22a0f436ef44)
 
-
-
 ## Input Data Format
-
-
 
 ### Quick Overview
 
@@ -77,7 +73,6 @@ Project wide (project_level) project metadata, and metadata unique to each assay
 
 **Note**: In generic FAIRe format, analysis metadata is included in this sheet rather than in separate analysisMetadata files.
 
-
 | **term_name**         | project_level                                                                                                            | ssu16sv4v5-emp (1st assay) | ssu18sv9-emp (2nd assay) |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------ | -------------------------- | ------------------------ |
 | **recordedBy**        | Luke Thompson                                                                                                            |                            |                          |
@@ -101,23 +96,16 @@ Project wide (project_level) project metadata, and metadata unique to each assay
 | **code_repo**         | [https://github.com/aomlomics/gomecc](https://github.com/aomlomics/gomecc)                                               |                            |                          |
 | **biological_rep**    | 3                                                                                                                        |                            |                          |
 
-
-
-
 ### sampleMetadata
 
 Contextual data about the samples collected. Each row is a distinct sample (Event)
 
 **Note**: This structure is largely the same between generic FAIRe and FAIRe NOAA formats.
 
-
 | samp_name               | materialSampleID             | geo_loc_name                                | eventDate              | decimalLatitude | decimalLongitude | sampleSizeValue | sampleSizeUnit | env_broad_scale              | env_local_scale                         | env_medium                | samp_collect_device          | samp_vol_we_dna_ext | samp_mat_process                                                | size_frac |
 | ----------------------- | ---------------------------- | ------------------------------------------- | ---------------------- | --------------- | ---------------- | --------------- | -------------- | ---------------------------- | --------------------------------------- | ------------------------- | ---------------------------- | ------------------- | --------------------------------------------------------------- | --------- |
 | GOMECC4_27N_Sta1_Deep_A | GOMECC4_27N_Sta1_Deep        | USA: Atlantic Ocean, east of Florida (27 N) | 2021-09-14T11:00-04:00 | 26.997          | -79.618          | 1920            | mL             | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | Niskin bottle on CTD rosette | 1920 mL             | Pumped through Sterivex filter (0.22-µm) using peristaltic pump | 0.22 µm   |
 | GOMECC4_27N_Sta1_Deep_B | GOMECC4_PANAMACITY_Sta1_Deep | USA: Atlantic Ocean, east of Florida (27 N) | 2021-09-20T23:13-04:00 | 26.997          | -79.618          | 1920            | mL             | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | Niskin bottle on CTD rosette | 1920 mL             | Pumped through Sterivex filter (0.22-µm) using peristaltic pump | 0.22 µm   |
-
-
-
 
 ### experimentRunMetadata
 
@@ -125,21 +113,16 @@ Library preparation and sequencing details
 
 **Note**: This structure is largely the same between generic FAIRe and FAIRe NOAA formats.
 
-
 | samp_name                 | assay_name     | pcr_plate_id   | lib_id         | seq_run_id              | mid_forward | mid_reverse | filename                                 | filename2                                | input_read_count |
 | ------------------------- | -------------- | -------------- | -------------- | ----------------------- | ----------- | ----------- | ---------------------------------------- | ---------------------------------------- | ---------------- |
 | GOMECC4_NegativeControl_1 | ssu16sv4v5-emp | not applicable | GOMECC16S_Neg1 | 20220613_Amplicon_PE250 | TAGCAGCT    | CTGTGCCTA   | GOMECC16S_Neg1_S499_L001_R1_001.fastq.gz | GOMECC16S_Neg1_S499_L001_R2_001.fastq.gz | 29319            |
 | GOMECC4_NegativeControl_2 | ssu16sv4v5-emp | not applicable | GOMECC16S_Neg2 | 20220613_Amplicon_PE250 | TAGCAGCT    | CTAGGACTA   | GOMECC16S_Neg2_S500_L001_R1_001.fastq.gz | GOMECC16S_Neg2_S500_L001_R2_001.fastq.gz | 30829            |
-
-
-
 
 ### analysisMetadata
 
 Bioinformatic analysis configuration metadata. There is one analysisMetadata sheet PER analysis. Append the `analysis_run_name` to the filename, ex: analysisMetadata_gomecc4_16s_p1-2_v2024.10_241122.tsv
 
 **Note**: analysisMetadata sheet(s) is **only present in FAIRe NOAA format**. In generic FAIRe format, this information is included in the projectMetadata sheet.
-
 
 | **Field**              | Value                                                                      |
 | ---------------------- | -------------------------------------------------------------------------- |
@@ -155,22 +138,19 @@ Bioinformatic analysis configuration metadata. There is one analysisMetadata she
 | **otu_db**             | Silva SSU Ref NR 99 v138.1; 515f-926r region; 10.5281/zenodo.8392695       |
 | **otu_seq_comp_appr**  | Tourmaline; qiime2-2021.2                                                  |
 
-
-
-
 ### Raw Data: ASV Taxonomies and Abundance Tables
 
 You must have two raw data files associated with each analysis (`analysisMetadata`) in your submission. These files are generated by [Tourmaline v2](https://github.com/aomlomics/tourmaline), AOML Omics' amplicon sequence processing workflow.
 
 **Note**: Raw data structure is largely the same between formats, with one key difference: in generic FAIRe format, the sequence identifier column is named `seq_id` instead of `featureid`.
 
-If your data was generated with Qiime2 or a previous version of Tourmaline, you can convert the `table.qza`, `taxonomy.qza`, and `repseqs.qza` outputs to the correct format using the `create_asv_seq_taxa_obis.sh` shell script.
+If your data was generated with Qiime2 or a previous version of Tourmaline, you can convert the `table.qza`, `taxonomy.qza`, and `repseqs.qza` outputs to the correct format using the [`src/create_asv_seq_taxa_obis.sh`](src/create_asv_seq_taxa_obis.sh) shell script.
 
 Example:  
 
 ```bash
 # Run this with a qiime2 environment.
-bash create_asv_seq_taxa_obis.sh -f \
+bash src/create_asv_seq_taxa_obis.sh -f \
 ../gomecc_v2_raw/table-16S-merge.qza -t ../gomecc_v2_raw/taxonomy-16S-merge.qza -r ../gomecc_v2_raw/repseqs-16S-merge.qza \
 -o ../gomecc_v2_raw/gomecc-16S-asv.tsv
 ```
@@ -179,12 +159,10 @@ Your ASV raw data files should look like this:
 
 #### ASV Taxonomy Features:
 
-
 | featureid    | dna_sequence | taxonomy                                 | verbatimIdentification                   | kingdom   | phylum         | other_ranks... | species                | Confidence |
 | ------------ | ------------ | ---------------------------------------- | ---------------------------------------- | --------- | -------------- | -------------- | ---------------------- | ---------- |
 | 1ce3b5c6d... | TACGA...     | Bacteria;Proteobacteria;Alphaproteoba... | d__Bacteria;p__Proteoba...               | Bacteria  | Proteobacteria | ...            | Clade_Ia               | 0.88       |
 | 4e38e8ced... | GCTACTAC...  | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota;Obazoa;Opisthokonta;Metazoa... | Eukaryota | Obazoa         | ...            | Clausocalanus furcatus | 0.999      |
-
 
 **Note**: In generic FAIRe format, the first column would be named `seq_id` instead of `featureid`.
 
@@ -205,16 +183,12 @@ Some field values are truncated (`...`) for readability in the documentation. In
 - edna2obis sends the value in `verbatimIdentification` to the selected taxonomy API (after cleaning common prefixes and formatting).
 - The API response is then used to fill most of the taxonomy fields in your final outputs (e.g., standard ranks and identifiers).
 
-
-
 #### ASV Abundance Tables:
-
 
 | featureid    | GOMECC4_BROWNSVILLE_Sta63_DCM_A | GOMECC4_BROWNSVILLE_Sta63_DCM_B | GOMECC4_CAMPECHE_Sta91_DCM_A |
 | ------------ | ------------------------------- | ------------------------------- | ---------------------------- |
 | 1ce3b5c6d... | 0                               | 32                              | 2                            |
 | 4e38e8ced... | 15                              | 0                               | 45                           |
-
 
 Each column name after `featureid` is a sample name, and must correspond with your sampleMetadata.
 
@@ -233,8 +207,6 @@ edna2obis uses several configuration files to customize the conversion process. 
 
 ### Main Configuration Files
 
-
-
 #### `config.yaml`
 
 The primary configuration file that controls the overall pipeline behavior:
@@ -245,16 +217,12 @@ The primary configuration file that controls the overall pipeline behavior:
 - **Custom field handling**: Configure how to process specific metadata fields
 - **Processing parameters**: Set parallel processing limits and caching options
 
-
-
 #### `data_mapper.yaml`
 
 Maps FAIRe metadata fields to Darwin Core terms:
 
 - **Field mappings**: Maps FAIRe fields to Darwin Core standards
 - **Format-specific mappings**: Different mappings for generic vs NOAA FAIRe formats
-
-
 
 #### `EML_config.yaml`
 
@@ -265,13 +233,11 @@ Controls Ecological Metadata Language (EML) generation:
 - **Temporal coverage**: Study period and sampling frequency
 - **Method descriptions**: Detailed protocols and methodologies
 
-
-
 ### eMoF Configuration
 
 The Extended Measurement or Fact (eMoF) file can be customized to include additional measurements:
 
-- **Template file**: `data/example_raw/eMoF_Fields_edna2obis.xlsx`
+- **Template file**: `data/example_raw/eMoF_Fields_edna2obis.tsv`
 - **Custom measurements**: Add your own measurement types and values
 - **Controlled vocabularies**: Use OBIS-approved terms for measurement types and units
 - **Documentation**: See [OBIS eMoF formatting guide](https://manual.obis.org/format_emof.html) for detailed instructions
@@ -280,9 +246,7 @@ You can add custom fields to the eMoF template to include additional environment
 
 ### Example Configuration Files
 
-
-
-#### `config_FAIRe_noaa.yaml`
+#### `EXAMPLE_config_FAIRe_noaa.yaml`
 
 Example configuration for FAIRe NOAA format data:
 
@@ -290,9 +254,7 @@ Example configuration for FAIRe NOAA format data:
 - Optimized settings for NOAA-specific metadata structure
 - Includes NOAA-specific field mappings
 
-
-
-#### `config_FAIRe_generic.yaml`
+#### `EXAMPLE_config_FAIRe_generic.yaml`
 
 Example configuration for generic FAIRe format data:
 
@@ -300,11 +262,7 @@ Example configuration for generic FAIRe format data:
 - Generic field mappings and processing parameters
 - Compatible with standard FAIRe workflows
 
-
-
 ## 🚀 Setup and Installation
-
-
 
 ### Prerequisites
 
@@ -316,11 +274,7 @@ Example configuration for generic FAIRe format data:
 - At least 8GB RAM recommended
 - Internet connection required (for API calls to WoRMS/GBIF)
 
-
-
 ### Quick Start
-
-
 
 #### 1. Clone the Repository
 
@@ -328,8 +282,6 @@ Example configuration for generic FAIRe format data:
 git clone https://github.com/aomlomics/edna2obis.git
 cd edna2obis
 ```
-
-
 
 #### 2. Create Python Environment
 
@@ -345,8 +297,6 @@ conda env create -f environment.yml
 conda activate edna2obis
 ```
 
-
-
 ##### Option B: venv + pip
 
 ```bash
@@ -361,8 +311,6 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-
-
 #### 3. Edit the Configuration Files
 
 Edit the configuration files with your data file paths and other parameters:
@@ -370,22 +318,21 @@ Edit the configuration files with your data file paths and other parameters:
 **Primary configuration**:
 
 - Edit `config.yaml` for main pipeline settings
-- You can copy `config_FAIRe_noaa.yaml` or `config_FAIRe_generic.yaml` into `config.yaml` as a starting point based on your data format
+- You can copy `EXAMPLE_config_FAIRe_noaa.yaml` or `EXAMPLE_config_FAIRe_generic.yaml` into `config.yaml` as a starting point based on your data format, or set `run_config_path` in `config.yaml` to point at another config file
 
 **Additional configuration** (optional):
 
 - Modify `data_mapper.yaml` for custom field mappings
 - Update `EML_config.yaml` for metadata generation settings, or specify you don't want an EML file in `config.yaml`
-- Customize `data/example_raw/eMoF_Fields_edna2obis.xlsx` for additional measurements, or specify you don't want an eMoF file in `config.yaml`
+- Customize `data/example_raw/eMoF_Fields_edna2obis.tsv` for additional measurements, or specify you don't want an eMoF file in `config.yaml`
 
 Key settings to update in `config.yaml`:
 
-- `excel_file`: Path to your FAIRe Excel file (data template)
+- `metadata_format`: `"NOAA"` or `"GENERIC"`
+- `combined_metadata_file`: `true` if all metadata sheets are in one Excel file (`excel_file`), `false` for separate TSV files (`sampleMetadata_file`, `experimentRunMetadata_file`, `projectMetadata_file`)
 - `datafiles`: Paths to your ASV taxonomy and occurrence files
 - `taxonomic_api_source`: Choose "WoRMS" or "GBIF"
-- `output_dir`: Where to save results (default: "outputs/")
-
-
+- `output_dir`: Where to save results (default: "outputs/"); each run gets a subfolder named after `edna2obis_run_name`
 
 #### 4. Run the Pipeline
 
@@ -453,10 +400,11 @@ In-file defaults (no CLI needed):
 
 ## Output Files
 
-The pipeline generates several files in your output directory:
+The pipeline writes its files to `<output_dir>/<edna2obis_run_name>/` (default `outputs/<edna2obis_run_name>/`). See [`outputs/`](outputs/) for example runs.
 
-- `outputs/`
-  - `edna2obis_report_worms.html` / `edna2obis_report_gbif.html` - Run report.
+- `outputs/<edna2obis_run_name>/`
+  - `edna2obis_report_<API>_<edna2obis_run_name>.html` - Run report.
+  - `config_<edna2obis_run_name>.yaml` - Copy of the config used for the run.
   - `occurrence_core_worms.csv` / `occurrence_core_gbif.csv` - Occurrence Core with assigned taxonomy.
   - `taxa_mapping_INFO_WoRMS.xlsx` / `taxa_mapping_INFO_GBIF.xlsx` - Candidate taxonomy matches; use **`selected_match`** for the chosen row. The API part of the filename matches `taxonomic_api_source` in `config.yaml`.
   - `dna_derived_extension.csv` - DNA Derived Data extension.
@@ -464,29 +412,19 @@ The pipeline generates several files in your output directory:
   - `meta.xml` - Darwin Core Archive mapping metadata.
   - `eml.xml` - Dataset metadata in EML format (if enabled).
 
-
-
 ### Occurrence Core (GBIF example)
-
 
 | occurrenceID                                                       | eventID                       | verbatimIdentification                                                                               | kingdom  | phylum   | class | order             | family         | genus        | scientificName                           | taxonRank | organismQuantity | organismQuantityType | recordedBy                                | materialSampleID   | eventDate           | locality            | decimalLatitude | decimalLongitude | basisOfRecord  | nameAccordingTo |
 | ------------------------------------------------------------------ | ----------------------------- | ---------------------------------------------------------------------------------------------------- | -------- | -------- | ----- | ----------------- | -------------- | ------------ | ---------------------------------------- | --------- | ---------------- | -------------------- | ----------------------------------------- | ------------------ | ------------------- | ------------------- | --------------- | ---------------- | -------------- | --------------- |
 | GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Beloniformes;Exocoetidae;Cheilopogon                                  | Animalia | Chordata |       | Beloniformes      | Exocoetidae    | Cheilopogon  | Cheilopogon Lowe, 1841                   | genus     | 4                | DNA sequence reads   | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
 | GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | GU190706-CTD11-220_MiFish_S30 | Eukaryota;Chordata;Actinopteri;Tetraodontiformes;Tetraodontidae;Lagocephalus;Lagocephalus laevigatus | Animalia | Chordata |       | Tetraodontiformes | Tetraodontidae | Lagocephalus | Lagocephalus laevigatus (Linnaeus, 1766) | species   | 5317             | DNA sequence reads   | Lynsey Wilcox Talbot \| Katherine Silliman | GU190706-CTD11-220 | 2019-07-06 00:00:00 | USA: Gulf of Mexico | -85.793         | 28.662           | MaterialSample | GBIF            |
 
-
-
-
 ### DNA Derived Extension
-
 
 | eventID                       | source_mat_id      | samp_name          | env_broad_scale              | env_local_scale                         | env_medium                | samp_vol_we_dna_ext | samp_collect_device | samp_mat_process                                                                                                | size_frac | concentration | lib_layout | seq_meth                     | nucl_acid_ext                                                            | target_gene                 | target_subfragment | pcr_primer_forward    | pcr_primer_reverse           | pcr_primer_name_forward | pcr_primer_name_reverse | pcr_primer_reference                                                       | pcr_cond                                                                                                                      | nucl_acid_amp  | ampliconSize | otu_seq_comp_appr                                          | otu_db | occurrenceID                                                       | DNA_sequence                                                                                                                                                                | concentrationUnit | otu_class_appr              |
 | ----------------------------- | ------------------ | ------------------ | ---------------------------- | --------------------------------------- | ------------------------- | ------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------- | --------- | ------------- | ---------- | ---------------------------- | ------------------------------------------------------------------------ | --------------------------- | ------------------ | --------------------- | ---------------------------- | ----------------------- | ----------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | -------------- | ------------ | ---------------------------------------------------------- | ------ | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------- | --------------------------- |
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2                   | Niskin bottle       | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45      | 1.57          | paired end | Illumina MiSeq [OBI_0002003] | [https://doi.org/10.1002/edn3.70074](https://doi.org/10.1002/edn3.70074) | 12S rRNA (SSU mitochondria) | V5-V6              | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F              | MiFish-U-R2             | [https://doi.org/10.1098/rsos.150088](https://doi.org/10.1098/rsos.150088) | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175          | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_18109634cc2f8e156e5402bf13cf4502 | CACCGCGGTTATACGAGAGGCCTAAGTTGACAGACAACGGCGTAAAGAGTGGTTAAGGAAAAATTTATACTAAAGCCGAACATCCTCAAGACTGTCGTACGTTTCCGAGGATATGAAGTCCCCCTACGAAAGTGGCTTTAACTCCCCTGACCCCACGAAAGCTGTGAC    | ng/µl             | qiime2-2023.5; DADA2 1.26.0 |
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220 | GU190706-CTD11-220 | marine biome [ENVO:00000447] | marine mesopelagic zone [ENVO:00000213] | sea water [ENVO:00002149] | 2                   | Niskin bottle       | Samples were vacuum-filtered through a MilliporeSigma 47 mm diameter mixed cellulose ester (MCE) filter with... | 0.45      | 1.57          | paired end | Illumina MiSeq [OBI_0002003] | [https://doi.org/10.1002/edn3.70074](https://doi.org/10.1002/edn3.70074) | 12S rRNA (SSU mitochondria) | V5-V6              | GTCGGTAAAACTCGTGCCAGC | CATAGTGGGGTATCTAATCCCAGTTTGT | MiFish-U-F              | MiFish-U-R2             | [https://doi.org/10.1098/rsos.150088](https://doi.org/10.1098/rsos.150088) | initial denaturation:98_30s; 40 cycles of denaturation: 98_20s, annealing:60_20s, elongation:72_20s; final elongation:72_5min | not applicable | 175          | qiime2-2023.5; naive-bayes classifier; scikit-learn 0.24.1 | custom | GU190706-CTD11-220_MiFish_S30_occ_183bc18f3e5eac45c6dd248fb86d64bf | CACCGCGGTTATACGATGAAGCCCAAGTTGTTAGCCTTCGGCGTAAAGAGTGGTTAGAGTACCCCAACAAAACTAAGGCCGAACACCTTCAGGGCAGTCATACGCTTTCGAAGGCATGAAGCACACCAACGAAAGTAGCCTTACCAGACTTGAACCCACGAAAGCTAAGAT | ng/µl             | qiime2-2023.5; DADA2 1.26.0 |
-
-
-
 
 ## Taxonomic Mapping Algorithms
 
@@ -506,8 +444,6 @@ Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Taxo
 - Fill: `scientificName`, `scientificNameID` (LSID), `taxonRank`, ranks (`kingdom … species`), `nameAccordingTo=WoRMS`, plus `cleanedTaxonomy` and `match_type_debug`.
 - Endpoints: AphiaID record; Match Names.
 
-
-
 ### GBIF
 
 - Clean `verbatimIdentification` as above and remove rank prefixes like `d__`, `p__`, etc.
@@ -518,8 +454,6 @@ Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Taxo
 - Cache results to speed up future runs.
 - Fill: `scientificName`, `taxonID` (e.g., `gbif:<usageKey>`), `taxonRank`, ranks (`kingdom … genus`), `confidence`, optional `higherClassification`, `environment` when available, `nameAccordingTo=GBIF`, plus `cleanedTaxonomy` and `match_type_debug`.
 - Endpoints: name_lookup; name_backbone; name_usage parents.
-
-
 
 ### Settings that affect matching
 
@@ -539,11 +473,10 @@ Also writes `taxa_mapping_INFO_<API>.xlsx` (sheet `taxa_mapping_INFO`). One row 
 
 Columns are ordered with `selected_match` immediately after `cleanedTaxonomy` in the `.xlsx` file.
 
-
 | Column                 | Meaning                                                                                                                                                                                                                               |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | verbatimIdentification | Original taxonomic string from your data before matching.                                                                                                                                                                             |
-| cleanedTaxonomy        | Normalized / cleaned version of verbatimIdentification (what is actually used for API lookup.                                                                                                                                         |
+| cleanedTaxonomy        | Normalized / cleaned version of verbatimIdentification (what is actually used for API lookup).                                                                                                                                         |
 | selected_match         | **Indicates the taxonomic mapping!** True only on the chosen mapping row for that `verbatimIdentification` (occurrence file in full pipeline; same rule for taxamapper-only output). False on alternate candidate rows kept for review. |
 | ambiguous              | WoRMS and GBIF. True when more than one candidate mapping was found for this verbatim string.                                                                                                                                         |
 | replaced_unaccepted    | WoRMS and GBIF. True when an unaccepted/synonym name was resolved to an accepted valid name.                                                                                                                                          |
@@ -577,14 +510,12 @@ The eMoF file captures occurrence-level measurements linked to each occurrenceID
   - If the eMoF template specifies a literal unit (e.g., `m`, `°C`), that unit is used for every emitted row of that measurementType.
   - If the template says `provided`, a column named `<measurementType>_unit` must be present in the chosen source sheet and must be non-blank for all emitted rows.
   - If the template leaves the unit blank, output unit is blank (no auto-fallback).
-- **Template**: Configure measurements in `data/example_raw/eMoF_Fields_edna2obis.xlsx` on the `input_file` sheet. Required columns: `measurementType`, `measurementValue`, `measurementUnit`, `measurementTypeID`, `measurementValueID`, `measurementUnitID`, `measurementRemarks`.
-- **Output**: Written to `outputs/eMoF.csv`.
-
-
+- **Template**: Configure measurements in `data/example_raw/eMoF_Fields_edna2obis.tsv` (tab-separated). Required columns: `measurementType`, `measurementValue`, `measurementUnit`. Optional columns: `verbatimMeasurementType`, `measurementTypeID`, `measurementValueID`, `measurementUnitID`, `measurementRemarks`. Point `emof_template_path` in `config.yaml` at your own copy if you don't want to edit the bundled one.
+- **Output**: Written to `outputs/<edna2obis_run_name>/eMoF.csv`.
 
 #### Customizing eMoF Measurements
 
-You can add custom measurements to your eMoF file by editing the template file `data/example_raw/eMoF_Fields_edna2obis.xlsx`. This allows you to include:
+You can add custom measurements to your eMoF file by editing the template file `data/example_raw/eMoF_Fields_edna2obis.tsv`. This allows you to include:
 
 - **Environmental measurements**: Temperature, salinity, pH, dissolved oxygen, etc.
 - **Sampling parameters**: Gear type, sampling depth, volume filtered, etc.
@@ -597,20 +528,14 @@ For detailed guidance on formatting eMoF files and using controlled vocabularies
 
 Below is a small, illustrative preview of the eMoF structure. Your actual content will depend on your eMoF template and metadata.
 
-
 | eventID                       | occurrenceID                              | verbatimMeasurementType | measurementType | measurementValue | measurementUnit | measurementTypeID                                                                                                    | measurementValueID | measurementUnitID                                                                                            | measurementRemarks |
 | ----------------------------- | ----------------------------------------- | ----------------------- | --------------- | ---------------- | --------------- | -------------------------------------------------------------------------------------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------ | ------------------ |
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220_MiFish_S30_occ_ASV_001 | temperature             | Temperature     | 25.5             | °C              | [http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/](http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/) |                    | [http://vocab.nerc.ac.uk/collection/P06/current/UPAA/](http://vocab.nerc.ac.uk/collection/P06/current/UPAA/) |                    |
 | GU190706-CTD11-220_MiFish_S30 | GU190706-CTD11-220_MiFish_S30_occ_ASV_002 | temperature             | Temperature     | 25.5             | °C              | [http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/](http://vocab.nerc.ac.uk/collection/P01/current/TEMPPR01/) |                    | [http://vocab.nerc.ac.uk/collection/P06/current/UPAA/](http://vocab.nerc.ac.uk/collection/P06/current/UPAA/) |                    |
 
+## Troubleshooting
 
-
-
-### Troubleshooting
-
-
-
-#### Common Issues
+### Common Issues
 
 1. **Environment creation fails**
   ```bash
@@ -624,23 +549,17 @@ Below is a small, illustrative preview of the eMoF structure. Your actual conten
   - Verify all file paths in config.yaml are correct
   - Use absolute paths if relative paths don't work
 
-
-
-#### Getting Help
+### Getting Help
 
 - Check the HTML report for detailed error messages
 - Review the terminal output for specific error details
-- **Ensure your input data follows the FAIRe NOAA format**
+- **Ensure your input data follows the FAIRe NOAA or generic FAIRe format**, and that `metadata_format` in `config.yaml` matches it
 
-
-
-#### Recommended System Requirements
+### Recommended System Requirements
 
 - Processing: 8GB+ RAM, 4+ CPU cores
 - Storage: ~1GB free space for large datasets
 - Network: Stable internet for API calls
-
-
 
 ## Disclaimer
 

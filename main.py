@@ -404,7 +404,7 @@ def load_config(config_path="config.yaml"):
         
         # eMoF options
         params['emof_enabled'] = config.get('emof_enabled', True)
-        params['emof_template_path'] = config.get('emof_template_path', 'data/example_raw/eMoF Fields edna2obis .xlsx')
+        params['emof_template_path'] = config.get('emof_template_path', 'data/example_raw/eMoF_Fields_edna2obis.tsv')
         
         # EML options (metadata loaded separately from EML_config.yaml)
         params['eml_enabled'] = config.get('eml_enabled', False)
