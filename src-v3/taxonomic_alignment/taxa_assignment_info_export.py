@@ -11,8 +11,13 @@ import pandas as pd
 SHEET_DATA = "taxa_mapping_INFO"
 
 
-def read_taxa_assignment_info_dataframe(xlsx_path: str) -> pd.DataFrame:
-    return pd.read_excel(xlsx_path, sheet_name=SHEET_DATA, engine="openpyxl")
+def read_taxa_assignment_info_dataframe(xlsx_path: str, **read_excel_kwargs) -> pd.DataFrame:
+    # Callers that only need to edit the sheet keep the old defaults.
+    # The final file check passes keep_default_na=False so text such as "NA"
+    # is not treated as a missing value and then written back blank.
+    options = {"sheet_name": SHEET_DATA, "engine": "openpyxl"}
+    options.update(read_excel_kwargs)
+    return pd.read_excel(xlsx_path, **options)
 
 
 def write_taxa_assignment_info_xlsx(df: pd.DataFrame, xlsx_path: str) -> str:

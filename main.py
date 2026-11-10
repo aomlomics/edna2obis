@@ -2174,6 +2174,13 @@ def main():
 
             all_empty_columns_summary = []
             removed_columns_summary = []
+
+            def _column_is_entirely_blank(series):
+                # Missing cells and whitespace count as blank. Literal text such as
+                # "NA" or "001" does not, because this check writes the table back.
+                text = series.where(series.notna(), "")
+                return bool(text.astype(str).str.strip().eq("").all())
+
             for filename in files_to_validate:
                 filepath = os.path.join(output_dir, filename)
                 if os.path.exists(filepath):
@@ -2186,8 +2193,11 @@ def main():
                                 read_taxa_assignment_info_dataframe,
                                 write_taxa_assignment_info_xlsx,
                             )
-                            df = read_taxa_assignment_info_dataframe(filepath)
-                            empty_columns = [col for col in df.columns if df[col].isna().all()]
+                            df = read_taxa_assignment_info_dataframe(
+                                filepath,
+                                keep_default_na=False,
+                            )
+                            empty_columns = [col for col in df.columns if _column_is_entirely_blank(df[col])]
                             if empty_columns:
                                 for col in empty_columns:
                                     reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
@@ -2199,10 +2209,19 @@ def main():
                                     removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
                         else:
                             sep = '\t' if filename.lower().endswith('.tsv') else ','
-                            df = pd.read_csv(filepath, sep=sep, low_memory=False)
+                            # dtype=str keeps IDs like "001" as text. keep_default_na=False
+                            # keeps tokens such as "NA" instead of turning them into blanks on write.
+                            df = pd.read_csv(
+                                filepath,
+                                sep=sep,
+                                dtype=str,
+                                keep_default_na=False,
+                                encoding='utf-8-sig',
+                                low_memory=False,
+                            )
 
                             # Existing empty column check (for reporting)
-                            empty_columns = [col for col in df.columns if df[col].isna().all()]
+                            empty_columns = [col for col in df.columns if _column_is_entirely_blank(df[col])]
                             if empty_columns:
                                 for col in empty_columns:
                                     reporter.add_warning(f"In output file <strong>'{filename}'</strong>, the column <strong>'{col}'</strong> was found to be completely empty.")
@@ -2211,7 +2230,7 @@ def main():
                             # --- NEW: Remove empty columns and overwrite file ---
                             if empty_columns:
                                 df.drop(columns=empty_columns, inplace=True)
-                                df.to_csv(filepath, index=False, sep=sep, encoding='utf-8-sig')
+                                df.to_csv(filepath, index=False, sep=sep, encoding='utf-8-sig', na_rep='')
                                 for col in empty_columns:
                                     removed_columns_summary.append(f"File: <code>{filename}</code>, Removed Column: <code>{col}</code>")
 
