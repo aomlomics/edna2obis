@@ -121,7 +121,7 @@ class RunPerformanceLog:
         self.metrics["config_referenced_input_files_counted"] = n
 
     def set_output_file_metrics(self, params: dict[str, Any]) -> None:
-        out = params.get("output_dir", "processed-v3/")
+        out = params.get("output_dir", "outputs/")
         api = str(params.get("taxonomic_api_source", "WoRMS")).lower()
         hc_seconds = params.get("worms_higher_classification_seconds")
         if hc_seconds is not None:

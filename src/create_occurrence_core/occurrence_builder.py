@@ -180,7 +180,7 @@ def create_occurrence_core(data, raw_data_tables, params, dwc_data, reporter: HT
             if col not in DESIRED_OCCURRENCE_COLUMNS_IN_ORDER:
                 DESIRED_OCCURRENCE_COLUMNS_IN_ORDER.append(col)
 
-        output_dir = params.get('output_dir', "processed-v3/")
+        output_dir = params.get('output_dir', "outputs/")
         os.makedirs(output_dir, exist_ok=True)
         output_filename = "occurrence.csv"
         output_path = os.path.join(output_dir, output_filename)

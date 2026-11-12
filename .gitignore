@@ -128,6 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Processed directory - ignore all files except .zip
-processed/*
-!processed/*.zip
+# Pipeline outputs - ignore run outputs except the bundled examples
+outputs/*
+!outputs/EXAMPLE_OUTPUT_*/

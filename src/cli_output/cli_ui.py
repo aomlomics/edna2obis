@@ -7,6 +7,8 @@ import io
 import logging
 from contextlib import contextmanager, redirect_stderr, redirect_stdout
 
+from _version import __version__
+
 # Exported, shared console for the app
 console = Console()
 
@@ -24,7 +26,7 @@ def print_separator(title: str | None = None) -> None:
 
 def print_header(
     title: str = "edna2obis",
-    subtitle: str = "eDNA to OBIS/GBIF Publisher (v3) - NOAA Omics",
+    subtitle: str = f"eDNA to OBIS/GBIF Publisher v{__version__} - NOAA Omics",
 ) -> None:
     """Render the application header using pyfiglet and Rich (single color, readable)."""
     art = pyfiglet.figlet_format(title, font="standard")

@@ -246,7 +246,7 @@ def _load_final_occurrence(params, reporter) -> pd.DataFrame:
     Falls back to the intermediate in-memory occurrence_core DataFrame only if the
     final file is missing (should be rare), and warns the user.
     """
-    output_dir = params.get('output_dir', 'processed-v3/')
+    output_dir = params.get('output_dir', 'outputs/')
     api_choice = params.get('taxonomic_api_source', 'WoRMS').lower()
     final_occurrence_path = os.path.join(output_dir, f"occurrence_core_{api_choice}.csv")
 
@@ -469,7 +469,7 @@ def _create_emof_table_event_mode(
         .sort_values('eventID', kind='mergesort')
     )
 
-    output_dir = params.get('output_dir', 'processed-v3/')
+    output_dir = params.get('output_dir', 'outputs/')
     os.makedirs(output_dir, exist_ok=True)
     emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
 
@@ -751,7 +751,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         # ------------------------------------------------------------------
         # Load template (input_file sheet)
         # ------------------------------------------------------------------
-        template_path = params.get('emof_template_path', 'raw-v3/eMoF_Fields_edna2obis.tsv')
+        template_path = params.get('emof_template_path', 'data/example_raw/eMoF_Fields_edna2obis.tsv')
         if not os.path.exists(template_path):
             reporter.add_error(f"eMoF template not found: {template_path}")
             raise FileNotFoundError(f"Template not found: {template_path}")
@@ -821,7 +821,7 @@ def create_emof_table(params, occurrence_core: pd.DataFrame, data: Dict[str, pd.
         template_df = template_df.sort_values('_mt_key', kind='mergesort').drop(columns=['_mt_key'])
 
         has_verbatim_col = 'verbatimMeasurementType' in template_df.columns
-        output_dir = params.get('output_dir', 'processed-v3/')
+        output_dir = params.get('output_dir', 'outputs/')
         os.makedirs(output_dir, exist_ok=True)
         emof_csv_path = os.path.join(output_dir, 'eMoF.csv')
         preview_rows: List[Dict[str, object]] = []
