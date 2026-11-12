@@ -1540,11 +1540,30 @@ def remove_control_samples(data, raw_data_tables, params, reporter):
         # Get lib_ids to drop from experimentRunMetadata BEFORE removing from ERM
         # (abundance table columns are now lib_id, not samp_name)
         lib_ids_to_drop = set()
+        # lib_ids that belong to samples we are keeping. Used so a real library
+        # column is not dropped when a control sample happens to use the same text.
+        kept_lib_id_keys = set()
+
+        def _abundance_column_key(value):
+            # Collapse the "123.0" form pandas gives numeric IDs. Leave "001" unchanged.
+            text = str(value).strip()
+            if len(text) > 2 and text.endswith('.0') and text[:-2].isdigit():
+                return text[:-2]
+            return text
+
+        control_sample_keys = {_abundance_column_key(name) for name in samples_to_drop}
+        control_sample_keys.discard('')
         if 'experimentRunMetadata' in data and not data['experimentRunMetadata'].empty:
             if 'lib_id' in data['experimentRunMetadata'].columns:
                 # Get lib_ids for control samples
                 control_erm_rows = data['experimentRunMetadata']['samp_name'].isin(samples_to_drop)
                 lib_ids_to_drop = set(data['experimentRunMetadata'].loc[control_erm_rows, 'lib_id'].astype(str).str.strip().unique())
+                if 'samp_name' in data['experimentRunMetadata'].columns:
+                    kept_lib_id_keys = {
+                        _abundance_column_key(value)
+                        for value in data['experimentRunMetadata'].loc[~control_erm_rows, 'lib_id']
+                    }
+                    kept_lib_id_keys.discard('')
                 if lib_ids_to_drop:
                     reporter.add_text(f"Found {len(lib_ids_to_drop)} lib_id(s) corresponding to control samples to remove from abundance tables")
                     reporter.add_text(f"Control lib_ids to remove: {list(lib_ids_to_drop)[:10]}{'...' if len(lib_ids_to_drop) > 10 else ''}")
@@ -1560,8 +1579,18 @@ def remove_control_samples(data, raw_data_tables, params, reporter):
                 abundance_df = tables_dict['occurrence']
                 original_cols = len(abundance_df.columns)
                 
-                # Drop columns where column name (lib_id) is in lib_ids_to_drop
-                cols_to_remove = [col for col in lib_ids_to_drop if str(col).strip() in abundance_df.columns]
+                # Drop columns where column name (lib_id) is in lib_ids_to_drop.
+                # Also drop columns named by control samp_name. If that text is still
+                # a kept lib_id, leave it: later steps treat that column as a library.
+                control_lib_id_keys = {_abundance_column_key(value) for value in lib_ids_to_drop}
+                control_lib_id_keys.discard('')
+                cols_to_remove = []
+                for col in abundance_df.columns:
+                    if col == 'featureid':
+                        continue
+                    key = _abundance_column_key(col)
+                    if key in control_lib_id_keys or (key in control_sample_keys and key not in kept_lib_id_keys):
+                        cols_to_remove.append(col)
                 if cols_to_remove:
                     raw_data_tables[analysis_run_name]['occurrence'] = abundance_df.drop(columns=cols_to_remove)
                     new_cols = len(raw_data_tables[analysis_run_name]['occurrence'].columns)
