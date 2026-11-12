@@ -97,7 +97,9 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
             reporter.add_error(f"Occurrence file not found at {occurrence_path}")
             return
             
-        df_to_match = pd.read_csv(occurrence_path)
+        # dtype=object keeps text IDs such as 001. It also avoids the strict pandas
+        # string dtype that later rejects non-string values on some Mac/Linux installs.
+        df_to_match = pd.read_csv(occurrence_path, dtype=object)
         # Coerce key columns to plain strings (avoids Mac/pandas dtype 'str' error downstream)
         for col in ['verbatimIdentification', 'assay_name']:
             if col in df_to_match.columns:

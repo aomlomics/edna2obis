@@ -639,7 +639,7 @@ def split_output_files_by_short_name(params, data, reporter):
         try:
             occ_path = os.path.join(output_dir, f'occurrence_core_{api_choice}.csv')
             if os.path.exists(occ_path):
-                occ_df = pd.read_csv(occ_path, low_memory=False)
+                occ_df = pd.read_csv(occ_path, dtype=object, low_memory=False)
                 # Prefer parentEventID (samp_name) if present, since samp_name maps directly to short_name via sampleMetadata.
                 parent_key_col = 'parentEventID' if 'parentEventID' in occ_df.columns else ('samp_name' if 'samp_name' in occ_df.columns else None)
                 if parent_key_col and 'occurrenceID' in occ_df.columns:
@@ -942,6 +942,7 @@ def load_project_data(params, reporter):
                         index_col=None,
                         na_values=[""],
                         keep_default_na=False,
+                        dtype=object,
                     )
                     analysis_df = extract_long_format_pairs(
                         analysis_raw_df,
@@ -1028,7 +1029,9 @@ def load_project_data(params, reporter):
                     reporter.add_text(f"Synthesized analysis metadata for run '{run_name}' using assay '{assay_name}'.")
 
             # Load the main data sheets (do not use read_excel(comment='#') — '#' inside a cell truncates the rest of that row)
-            _xlsx_kw = dict(index_col=None, na_values=[""], keep_default_na=False)
+            # dtype=object keeps an ID written as text, such as 001, from being inferred as a number.
+            # Real numbers and dates stay in the type Excel stored.
+            _xlsx_kw = dict(index_col=None, na_values=[""], keep_default_na=False, dtype=object)
             excel_path = params['excel_file']
             pm_sheet = params['projectMetadata']
             sm_sheet = params['sampleMetadata']
@@ -1059,6 +1062,7 @@ def load_project_data(params, reporter):
                         index_col=None,
                         na_values=[""],
                         keep_default_na=False,
+                        dtype=object,
                     )
                     first_analysis_df = extract_long_format_pairs(
                         first_analysis_raw_df,
@@ -1292,7 +1296,12 @@ def load_asv_data(params, reporter):
                             best_header_row = configured_raw_header_idx
                         
                         # Read the Excel file with the determined sheet and header row
-                        tax_df = pd.read_excel(tax_path, sheet_name=best_sheet, header=best_header_row)
+                        tax_df = pd.read_excel(
+                            tax_path,
+                            sheet_name=best_sheet,
+                            header=best_header_row,
+                            dtype=object,
+                        )
                         # Drop any completely empty columns that may have been created by reading
                         tax_df = tax_df.loc[:, ~tax_df.columns.astype(str).str.match(r'^Unnamed', na=False)]
                         reporter.add_text(
@@ -1317,7 +1326,8 @@ def load_asv_data(params, reporter):
                             sep=separator,
                             skiprows=skiprows,
                             low_memory=False,
-                            skip_blank_lines=True
+                            skip_blank_lines=True,
+                            dtype=object,
                         )
 
                     # --- Perform essential input normalization ---
@@ -1413,7 +1423,12 @@ def load_asv_data(params, reporter):
 
                     if file_extension == '.xlsx':
                         abundance_header = configured_raw_header_idx
-                        df_abundance = pd.read_excel(abundance_path, sheet_name=0, header=abundance_header)
+                        df_abundance = pd.read_excel(
+                            abundance_path,
+                            sheet_name=0,
+                            header=abundance_header,
+                            dtype=object,
+                        )
                         reporter.add_text(
                             f"Note: Reading '{abundance_path}' as an Excel file using configured "
                             f"field_names_row_table={configured_raw_header_row}."
@@ -1436,7 +1451,8 @@ def load_asv_data(params, reporter):
                             skiprows=rows_to_skip,
                             header=0,
                             low_memory=False,
-                            skip_blank_lines=True
+                            skip_blank_lines=True,
+                            dtype=object,
                         )
                     
                     # Standardize the first column to 'featureid' (accepts featureid or #OTU ID, etc.).
@@ -2122,8 +2138,14 @@ def main():
             final_occurrence_path = os.path.join(params.get('output_dir', 'processed-v3/'), f'occurrence_core_{api_source}.csv')
             try:
                 if os.path.exists(final_occurrence_path):
-                    # Read the file, remove match_type_debug column, and save back
-                    final_df = pd.read_csv(final_occurrence_path)
+                    # Read the file, remove match_type_debug column, and save back.
+                    # dtype=object keeps text IDs such as 001. keep_default_na=False keeps a
+                    # literal NA from being written back as a blank cell.
+                    final_df = pd.read_csv(
+                        final_occurrence_path,
+                        dtype=object,
+                        keep_default_na=False,
+                    )
                     if 'match_type_debug' in final_df.columns:
                         final_df = final_df.drop(columns=['match_type_debug'])
                         final_df.to_csv(final_occurrence_path, index=False, na_rep='')

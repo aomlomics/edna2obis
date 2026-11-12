@@ -252,7 +252,7 @@ def _load_final_occurrence(params, reporter) -> pd.DataFrame:
 
     if os.path.exists(final_occurrence_path):
         try:
-            df = pd.read_csv(final_occurrence_path, low_memory=False)
+            df = pd.read_csv(final_occurrence_path, dtype=object, low_memory=False)
             return df
         except Exception as e:
             reporter.add_warning(f"Could not read final occurrence file '{final_occurrence_path}': {e}")
