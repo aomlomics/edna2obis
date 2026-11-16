@@ -28,9 +28,9 @@ Add a line under `## [Unreleased]` in `CHANGELOG.md` in the same PR as the chang
 
 ## Making a release
 
-1. On `develop`, rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, add a fresh empty `## [Unreleased]` above it, and update the compare links at the bottom.
+1. On `dev`, rename `## [Unreleased]` in `CHANGELOG.md` to `## [X.Y.Z] - YYYY-MM-DD`, add a fresh empty `## [Unreleased]` above it, and update the compare links at the bottom.
 2. Set `__version__ = "X.Y.Z"` in `src/_version.py`.
-3. Open a PR from `develop` to `main`, titled `Release vX.Y.Z`, and merge it.
+3. Open a PR from `dev` to `main`, titled `Release vX.Y.Z`, and merge it.
 4. Tag the merge commit on `main` and push the tag:
 
    ```bash
