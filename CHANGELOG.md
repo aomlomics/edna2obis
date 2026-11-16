@@ -6,8 +6,10 @@ See [docs/RELEASING.md](docs/RELEASING.md) for how releases are made.
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-11-16
+
 ### Changed
-- **Breaking:** renamed directories to drop the version suffix: `src-v3/` → `src/`, `raw-v3/` → `data/example_raw/`, `processed-v3/` → `outputs/`. Update paths in your own config files.
+- **Breaking:** renamed directories to drop the version suffix: `src-v3/` → `src/`, `raw-v3/` → `data/example_raw/`, `processed-v3/` → `outputs/`. Update the `raw-v3/` and `processed-v3/` paths in your own config files.
 - README restructured around a Quick Start; detailed reference moved to `docs/` (`input-data.md`, `outputs.md`, `taxonomic-mapping.md`, `taxamapper.md`).
 - The version is now defined in `src/_version.py` and shown by `python main.py --version`, `python taxamapper.py --version`, the CLI banner and the HTML report.
 
@@ -15,6 +17,9 @@ See [docs/RELEASING.md](docs/RELEASING.md) for how releases are made.
 - README: corrected example config names, eMoF template format (`.tsv`) and required columns, script path, and output file naming.
 - `main.py`: eMoF template fallback now points at the bundled `data/example_raw/eMoF_Fields_edna2obis.tsv`.
 - Config templates: removed `excel_file` paths that pointed at files not in the repository.
+- The final file check no longer alters literal cell text when it rewrites tables.
+- Control samples were staying in the abundance table when `samp_name`s are used instead of library IDs.
+- Cells are read as `object` instead of string, preserving numbers with leading zeros.
 
 ## [3.2.0] - 2026-10-26
 
@@ -57,7 +62,8 @@ First script-based (non-notebook) release with configuration files. Tags `v3.0.1
 
 Notebook-based workflow. See the `legacy-v1` branch.
 
-[Unreleased]: https://github.com/aomlomics/edna2obis/compare/v3.2.0...HEAD
+[Unreleased]: https://github.com/aomlomics/edna2obis/compare/v4.0.0...HEAD
+[4.0.0]: https://github.com/aomlomics/edna2obis/compare/v3.2.0...v4.0.0
 [3.2.0]: https://github.com/aomlomics/edna2obis/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/aomlomics/edna2obis/compare/v3.0.2-alpha...v3.1.0
 [3.0.0-alpha]: https://github.com/aomlomics/edna2obis/compare/v1.0.0...v3.0.0-alpha
