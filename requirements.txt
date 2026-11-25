@@ -3,7 +3,7 @@ numpy
 openpyxl
 pyworms
 multiprocess
-pygbif
+pygbif<=0.6.5
 pytz
 pyyaml
 notebook

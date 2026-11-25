@@ -13,6 +13,8 @@ Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Taxo
   - Use the most specific level that returns an accepted record for the mapping (ex: favors a genus match over a class match).
 - If an assay is set to skip species, drop the last level before searching.
 - If nothing accepted, set `scientificName=incertae sedis` and clear ranks.
+- A failed request (timeout, rate limit, or no connection) is retried. If it still fails, the run stops with an error. That name is not written as `incertae sedis`.
+- If `higherClassification` was requested and that call still fails, the scientific name is kept, the lineage is left blank, and the HTML report shows a warning. The failed lineage is not cached.
 - Fill: `scientificName`, `scientificNameID` (LSID), `taxonRank`, ranks (`kingdom … species`), `nameAccordingTo=WoRMS`, plus `cleanedTaxonomy` and `match_type_debug`.
 - Endpoints: AphiaID record; Match Names.
 
@@ -22,8 +24,10 @@ Taxonomic assignment (matching ASVs/OTUs to taxa) happens before edna2obis. Taxo
 - Try the most specific level first; move broader only if needed.
 - For each candidate from the initial lookup, confirm against the GBIF backbone to get a confidence score.
 - Choose the highest-confidence accepted match by default; optionally choose by lineage `assignment_score` first when `gbif_use_assignment_score_for_selection` is true. Include accepted candidates and unaccepted/synonym review rows in the review list. If none, set `scientificName=incertae sedis`.
+- A failed request is retried. If it still fails, the run stops with an error and that name is not written as `incertae sedis`. Failed requests are not written to `gbif_matches_cache_v4.pkl`. Empty entries in an older `gbif_matches_cache_v3.pkl` are looked up again, because those empties used to mix real non-matches with failed requests.
+- If `higherClassification` was requested and the parents call still fails, the scientific name is kept, the lineage is left blank, and the run reports a warning. That name is left out of the cache so the next run can try the lineage again.
 - If an assay is set to skip species, drop the last level before searching.
-- Cache results to speed up future runs.
+- Cache successful lookups, including genuine non-matches, to speed up future runs. Failed requests are not cached.
 - Fill: `scientificName`, `taxonID` (e.g., `gbif:<usageKey>`), `taxonRank`, ranks (`kingdom … genus`), `confidence`, optional `higherClassification`, `environment` when available, `nameAccordingTo=GBIF`, plus `cleanedTaxonomy` and `match_type_debug`.
 - Endpoints: name_lookup; name_backbone; name_usage parents.
 

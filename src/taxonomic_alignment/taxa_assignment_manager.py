@@ -21,6 +21,11 @@ from contextlib import redirect_stdout, redirect_stderr
 # Import the API-specific matching scripts
 from . import WoRMS_v3_matching
 from . import GBIF_matching
+from .lookup_failures import (
+    TaxonomicLookupFailed,
+    empty_gbif_cache_warning,
+    higher_classification_warning,
+)
 from create_occurrence_core.occurrence_builder import get_final_occurrence_column_order
 
 
@@ -78,6 +83,29 @@ def load_pr2_worms_dict_into_params(params, reporter=None, warn_print=None):
         if use_local_db and api_source != 'WoRMS':
             _warn("Local reference database optimization is only available for WoRMS API")
         params['pr2_worms_dict'] = {}
+
+
+def _report_lookup_warnings(params, reporter, api_source):
+    """Tell the HTML report about cache retries and lineage requests that failed."""
+    if reporter is None:
+        return
+
+    if api_source == 'GBIF':
+        cache_message = empty_gbif_cache_warning(params.get('gbif_cache_retries'))
+        if cache_message:
+            reporter.add_warning(cache_message)
+        lineage_message = higher_classification_warning(
+            'GBIF',
+            params.get('gbif_higher_classification_failures'),
+        )
+    else:
+        lineage_message = higher_classification_warning(
+            'WoRMS',
+            params.get('worms_higher_classification_failures'),
+        )
+
+    if lineage_message:
+        reporter.add_warning(lineage_message)
 
 
 def assign_taxonomy(params, data, raw_data_tables, reporter):
@@ -185,6 +213,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                 matched_df = worms_results['main_df']
                 # Store the detailed info df in params to pass it to the next function
                 params['taxa_info_df'] = worms_results['info_df']
+                _report_lookup_warnings(params, reporter, 'WoRMS')
             elif api_source == 'GBIF':
                 # The 'with' block that captures output is temporarily disabled for debugging
                 # to allow real-time logs to appear on the console.
@@ -200,6 +229,7 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
                     )
                 matched_df = gbif_results['main_df']
                 params['taxa_info_df'] = gbif_results['info_df']
+                _report_lookup_warnings(params, reporter, 'GBIF')
             else:
                 raise ValueError(f"Unknown taxonomic API source: {api_source}")
             
@@ -387,6 +417,10 @@ def assign_taxonomy(params, data, raw_data_tables, reporter):
         reporter.add_error(f"Taxonomic mapping failed: {str(e)}")
         # Include full traceback in the HTML report for cross-platform debugging
         reporter.add_text(f"<pre>{traceback.format_exc()}</pre>")
+        # A failed API request must stop the pipeline. Otherwise main() still
+        # writes a success performance log and a completed archive.
+        if isinstance(e, TaxonomicLookupFailed):
+            raise
 
 
 def mark_selected_match_from_main_dataframe(info_df: pd.DataFrame, main_df: pd.DataFrame, api: str) -> pd.DataFrame:

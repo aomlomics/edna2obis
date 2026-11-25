@@ -20,6 +20,11 @@ from taxonomic_alignment.taxa_assignment_manager import (
     mark_selected_match_from_main_dataframe,
 )
 from taxonomic_alignment.taxa_assignment_info_export import write_taxa_assignment_info_xlsx
+from taxonomic_alignment.lookup_failures import (
+    TaxonomicLookupFailed,
+    empty_gbif_cache_warning,
+    higher_classification_warning,
+)
 
 # Default config next to this script (no path typing required for normal use)
 DEFAULT_CONFIG_PATH = os.path.join(THIS_DIR, 'config.yaml')
@@ -214,20 +219,36 @@ def run_taxamapper(
     df_in = _read_verbatim_input(input_path)
 
     console.print(f'[bold]Starting Taxonomic Mapping to {api}...[/]')
-    with console.status(f'Running Taxonomic Mapping to {api}...', spinner='dots'):
-        with silence_output():
-            if api == 'GBIF':
-                from taxonomic_alignment.GBIF_matching import get_gbif_match_for_dataframe
-                results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
-            else:
-                from taxonomic_alignment.WoRMS_v3_matching import get_worms_match_for_dataframe
-                results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
-            if api == 'WoRMS' and int(params.get('worms_n_proc_effective') or 0) >= 8:
-                console.print('[yellow]WoRMS:[/] %s workers — may hit API rate limits.' % params['worms_n_proc_effective'])
-            if api == 'GBIF' and int(params.get('gbif_n_proc_effective') or 0) >= 8:
-                console.print('[yellow]GBIF:[/] %s workers — may hit API rate limits.' % params['gbif_n_proc_effective'])
-            info_df = results.get('info_df', pd.DataFrame())
-            main_df = results.get('main_df', pd.DataFrame())
+    try:
+        with console.status(f'Running Taxonomic Mapping to {api}...', spinner='dots'):
+            with silence_output():
+                if api == 'GBIF':
+                    from taxonomic_alignment.GBIF_matching import get_gbif_match_for_dataframe
+                    results = get_gbif_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
+                else:
+                    from taxonomic_alignment.WoRMS_v3_matching import get_worms_match_for_dataframe
+                    results = get_worms_match_for_dataframe(df_in.copy(), params, n_proc=n_proc_use)
+                if api == 'WoRMS' and int(params.get('worms_n_proc_effective') or 0) >= 8:
+                    console.print('[yellow]WoRMS:[/] %s workers — may hit API rate limits.' % params['worms_n_proc_effective'])
+                if api == 'GBIF' and int(params.get('gbif_n_proc_effective') or 0) >= 8:
+                    console.print('[yellow]GBIF:[/] %s workers — may hit API rate limits.' % params['gbif_n_proc_effective'])
+                info_df = results.get('info_df', pd.DataFrame())
+                main_df = results.get('main_df', pd.DataFrame())
+    except TaxonomicLookupFailed as exc:
+        console.print(f'\n[bold red]Taxonomic lookup failed.[/]\n{exc}')
+        raise SystemExit(1) from None
+
+    for message in (
+        empty_gbif_cache_warning(params.get('gbif_cache_retries')),
+        higher_classification_warning(
+            api,
+            params.get('gbif_higher_classification_failures')
+            if api == 'GBIF'
+            else params.get('worms_higher_classification_failures'),
+        ),
+    ):
+        if message:
+            console.print(f'[yellow]{message}[/]')
 
     console.print(f'[green]Finished Taxonomic Mapping to {api}.[/]')
 
