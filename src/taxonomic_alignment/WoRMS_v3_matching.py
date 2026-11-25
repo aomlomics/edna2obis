@@ -9,6 +9,12 @@ import sys
 import os
 import pickle
 
+from .lookup_failures import (
+    TaxonomicLookupFailed,
+    call_with_retry,
+    format_lookup_failure,
+)
+
 # Set up logging to provide clear progress updates
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -85,10 +91,12 @@ def _get_higher_classification(aphia_id):
     if not aphia_id:
         return None
 
-    try:
-        classification = pyworms.aphiaClassificationByAphiaID(aphia_id)
-    except Exception:
-        return None
+    # A raised error is a failed request. An empty classification is a real
+    # response with no usable lineage, and the caller must not treat those the same.
+    classification = call_with_retry(
+        lambda: pyworms.aphiaClassificationByAphiaID(aphia_id),
+        f"WoRMS classification AphiaID {aphia_id}",
+    )
 
     if not isinstance(classification, dict) or not classification:
         return None
@@ -138,9 +146,24 @@ def _extract_aphia_id_from_lsid(scientific_name_id):
 def _get_higher_classification_worker(scientific_name_id):
     """
     Worker wrapper for fetching higherClassification by scientificNameID / AphiaID.
+
+    Returns (scientific_name_id, lineage or None, request_failed).
+    request_failed is True only when the API call itself failed. A blank lineage
+    from a successful response is not a failure and is not cached.
     """
     aphia_id = _extract_aphia_id_from_lsid(scientific_name_id)
-    return scientific_name_id, _get_higher_classification(aphia_id)
+    if not aphia_id:
+        return scientific_name_id, None, False
+    try:
+        value = _get_higher_classification(aphia_id)
+    except Exception as exc:
+        logging.warning(
+            "WoRMS higherClassification for AphiaID %s failed after retries: %s",
+            aphia_id,
+            exc,
+        )
+        return scientific_name_id, None, True
+    return scientific_name_id, value, False
 
 
 def _load_higher_classification_cache(output_dir):
@@ -199,7 +222,7 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
         if df is not None and not df.empty and 'scientificNameID' in df.columns
     ]
     if not valid_targets:
-        return
+        return 0
 
     unique_scientific_name_ids = []
     seen_ids = set()
@@ -217,12 +240,13 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
             unique_scientific_name_ids.append(scientific_name_id)
 
     if not unique_scientific_name_ids:
-        return
+        return 0
 
     cache = _load_higher_classification_cache(output_dir)
     ids_to_fetch = [scientific_name_id for scientific_name_id in unique_scientific_name_ids if scientific_name_id not in cache]
 
     fetch_n_proc = min(max(int(n_proc or 1), 1), _HIGHER_CLASSIFICATION_MAX_WORKERS)
+    failed_count = 0
     if ids_to_fetch:
         logging.info(f"Fetching higherClassification for {len(ids_to_fetch)} uncached WoRMS taxa.")
 
@@ -235,7 +259,11 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
             with ctx.Pool(processes=fetch_n_proc) as pool:
                 classification_results = pool.map(_get_higher_classification_worker, ids_to_fetch)
 
-        for scientific_name_id, value in classification_results:
+        for scientific_name_id, value, request_failed in classification_results:
+            if request_failed:
+                # Leave it out of the cache so the next run tries this AphiaID again.
+                failed_count += 1
+                continue
             if value is not None and str(value).strip():
                 cache[scientific_name_id] = str(value).strip()
 
@@ -248,6 +276,8 @@ def _enrich_higher_classification_dataframes(source_df, target_dataframes, outpu
         mapped_values = df['scientificNameID'].astype('string').map(cache)
         fill_mask = df['higherClassification'].isna() | (df['higherClassification'].astype('string').str.strip() == '')
         df.loc[fill_mask, 'higherClassification'] = mapped_values[fill_mask]
+
+    return failed_count
 
 
 def _build_worms_result_record(record_to_use, api_source_for_record, replaced_unaccepted=False, unaccepted_match=False):
@@ -402,8 +432,11 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
     """Fetches and formats a full WoRMS record using a direct AphiaID.
     Used by local database pre-matching. Example uses Silva PR2 database"""
     try:
-        record = pyworms.aphiaRecordByAphiaID(aphia_id_to_check)
-        
+        record = call_with_retry(
+            lambda: pyworms.aphiaRecordByAphiaID(aphia_id_to_check),
+            f"WoRMS AphiaID {aphia_id_to_check}",
+        )
+
         if record and isinstance(record, dict) and record.get('status') == 'accepted':
             result = _build_worms_result_record(
                 record_to_use=record,
@@ -420,90 +453,117 @@ def get_worms_classification_by_id_worker(aphia_id_to_check, api_source_for_reco
 
 def get_worms_batch_worker(batch_info):
     """
-    Worker function for parallel batch processing - with timeout safety.
-    Now collects ALL accepted matches to handle ambiguous cases.
+    Worker function for parallel batch processing.
+    Collects every accepted match so ambiguous names can be reviewed.
+
+    Returns (batch_num, matches_by_name, failed_names).
+    failed_names holds names whose request failed. A name that is simply absent
+    from matches_by_name was looked up successfully and had no accepted match.
     """
     batch_num, chunk, marine_only = batch_info
     batch_results = {}
-    
-    try:
-        batch_results_raw = pyworms.aphiaRecordsByMatchNames(chunk, marine_only=marine_only)
+    failed_names = set()
 
-        for j, name_list in enumerate(batch_results_raw):
-            if not name_list:
+    try:
+        batch_results_raw = call_with_retry(
+            lambda: pyworms.aphiaRecordsByMatchNames(chunk, marine_only=marine_only),
+            f"WoRMS Match Names batch {batch_num} ({len(chunk)} names)",
+        )
+    except Exception as exc:
+        logging.error(
+            "WoRMS Match Names batch %s failed after retries (%s names): %s",
+            batch_num,
+            len(chunk),
+            exc,
+        )
+        # The whole batch failed. Do not pretend each name had no match.
+        return batch_num, {}, set(chunk)
+
+    if not batch_results_raw:
+        return batch_num, {}, set()
+
+    for j, name_list in enumerate(batch_results_raw):
+        if j >= len(chunk):
+            continue
+        if not name_list:
+            continue
+
+        accepted_by_lsid = {}
+        unaccepted_rows_for_term = []
+        name_request_failed = False
+
+        for match in name_list:
+            if not match:
                 continue
 
-            accepted_by_lsid = {}
-            unaccepted_rows_for_term = []
+            status = match.get('status')
+            record_to_use = None
+            name_changed = False
 
-            for match in name_list:
-                if not match:
-                    continue
+            # Case 1: already an accepted record
+            if status == 'accepted':
+                record_to_use = match
 
-                status = match.get('status')
-                record_to_use = None
-                name_changed = False
+            # Case 2: unaccepted record with a valid (accepted) name behind it.
+            # For example: Synagrops spinosus -> Parascombrops spinosus.
+            elif status == 'unaccepted':
+                valid_aphia = (
+                    match.get('valid_AphiaID')
+                    or match.get('valid_aphia_id')
+                    or match.get('valid_aphiaID')
+                )
+                if valid_aphia:
+                    try:
+                        resolved = call_with_retry(
+                            lambda aphia_id=valid_aphia: pyworms.aphiaRecordByAphiaID(aphia_id),
+                            f"WoRMS AphiaID {valid_aphia}",
+                        )
+                        if resolved and resolved.get('status') == 'accepted':
+                            record_to_use = resolved
+                            name_changed = True
+                    except Exception:
+                        # Resolving the accepted name failed. That is not "no match".
+                        name_request_failed = True
+                        record_to_use = None
 
-                # Case 1: already an accepted record
-                if status == 'accepted':
-                    record_to_use = match
+            # Ignore any other statuses
+            if not record_to_use:
+                continue
 
-                # Case 2: unaccepted record with a valid (accepted) name behind it.
-                # For example: Synagrops spinosus -> Parascombrops spinosus.
-                elif status == 'unaccepted':
-                    valid_aphia = (
-                        match.get('valid_AphiaID')
-                        or match.get('valid_aphia_id')
-                        or match.get('valid_aphiaID')
-                    )
-                    if valid_aphia:
-                        try:
-                            resolved = pyworms.aphiaRecordByAphiaID(valid_aphia)
-                            if resolved and resolved.get('status') == 'accepted':
-                                record_to_use = resolved
-                                name_changed = True
-                        except Exception:
-                            record_to_use = None
+            sci_id = record_to_use.get('lsid')
+            if not sci_id:
+                continue
 
-                # Ignore any other statuses
-                if not record_to_use:
-                    continue
+            # Only after we have a usable accepted record (with lsid): add the unaccepted row for transparency.
+            if name_changed and status == 'unaccepted':
+                unaccepted_rows_for_term.append(_build_worms_result_record(
+                    record_to_use=match,
+                    api_source_for_record='WoRMS',
+                    replaced_unaccepted=False,
+                    unaccepted_match=True
+                ))
 
-                sci_id = record_to_use.get('lsid')
-                if not sci_id:
-                    continue
+            existing = accepted_by_lsid.get(sci_id)
+            if existing is None:
+                res = _build_worms_result_record(
+                    record_to_use=record_to_use,
+                    api_source_for_record='WoRMS',
+                    replaced_unaccepted=name_changed,
+                    unaccepted_match=False
+                )
+                accepted_by_lsid[sci_id] = res
+            else:
+                if name_changed and not existing.get('replaced_unaccepted'):
+                    existing['replaced_unaccepted'] = True
 
-                # Only after we have a usable accepted record (with lsid): add the unaccepted row for transparency.
-                if name_changed and status == 'unaccepted':
-                    unaccepted_rows_for_term.append(_build_worms_result_record(
-                        record_to_use=match,
-                        api_source_for_record='WoRMS',
-                        replaced_unaccepted=False,
-                        unaccepted_match=True
-                    ))
+        accepted_matches = list(accepted_by_lsid.values()) + unaccepted_rows_for_term
 
-                existing = accepted_by_lsid.get(sci_id)
-                if existing is None:
-                    res = _build_worms_result_record(
-                        record_to_use=record_to_use,
-                        api_source_for_record='WoRMS',
-                        replaced_unaccepted=name_changed,
-                        unaccepted_match=False
-                    )
-                    accepted_by_lsid[sci_id] = res
-                else:
-                    if name_changed and not existing.get('replaced_unaccepted'):
-                        existing['replaced_unaccepted'] = True
+        if accepted_matches:
+            batch_results[chunk[j]] = accepted_matches
+        elif name_request_failed:
+            failed_names.add(chunk[j])
 
-            accepted_matches = list(accepted_by_lsid.values()) + unaccepted_rows_for_term
-
-            if accepted_matches:
-                batch_results[chunk[j]] = accepted_matches
-            
-        return batch_num, batch_results
-
-    except Exception:
-        return batch_num, {}
+    return batch_num, batch_results, failed_names
 
 def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     """
@@ -723,17 +783,20 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
             logging.info(f"Processing {total_batches} batches with {n_proc} processes...")
             
             processed_batches = 0
+            failed_terms = set()
             ctx = _get_mp_context()
             with ctx.Pool(processes=n_proc) as pool:
                 # Use imap_unordered to get results as they complete, allowing for progress reporting
-                for batch_num, batch_result in pool.imap_unordered(get_worms_batch_worker, batch_data):
+                for batch_num, batch_result, batch_failed_names in pool.imap_unordered(get_worms_batch_worker, batch_data):
                     batch_lookup.update(batch_result)
+                    failed_terms.update(batch_failed_names)
                     processed_batches += 1
                     logging.info(f"  ... Progress: {processed_batches}/{total_batches} batches completed (Batch ID: {batch_num}).")
 
             logging.info(f"Smart parallel processing complete! Found matches for {len(batch_lookup)} terms.")
 
             still_unmatched_batch = []
+            failed_verbatims = []
             for verbatim_str, assay_name in unmatched_tuples:
                 parsed_names = parse_semicolon_taxonomy(verbatim_str)
                 if not parsed_names:
@@ -751,9 +814,16 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                 
                 cleaned_taxonomy = ';'.join(parsed_names) if parsed_names else verbatim_str
                 match_found = False
+                lookup_failed_for_record = False
                 
                 for walkup_step, term in enumerate(reversed(parsed_names)):
                     if worms_max_walkup_steps is not None and walkup_step > worms_max_walkup_steps:
+                        break
+
+                    # A failed request is not "this rank is absent". Stop here so a
+                    # broader rank is not used in place of a lookup that never finished.
+                    if term in failed_terms:
+                        lookup_failed_for_record = True
                         break
 
                     if term in batch_lookup:
@@ -823,10 +893,18 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
                         match_found = True
                         break
                 
+                if lookup_failed_for_record:
+                    failed_verbatims.append(verbatim_str)
+                    continue
+
                 if not match_found:
                     walkup_stats['no_acceptable_term_found'] += 1
                     still_unmatched_batch.append((verbatim_str, assay_name))
             
+            if failed_verbatims:
+                walkup_stats['lookup_failed'] = len(failed_verbatims)
+                raise TaxonomicLookupFailed(format_lookup_failure('WoRMS', failed_verbatims))
+
             unmatched_tuples = still_unmatched_batch
             logging.info(f"Stage 2 complete. Total matched: {len(results_cache)}. Remaining: {len(unmatched_tuples)}")
 
@@ -885,9 +963,10 @@ def get_worms_match_for_dataframe(occurrence_df, params_dict, n_proc=0):
     info_df = pd.DataFrame(info_records)
 
     params_dict.pop('worms_higher_classification_seconds', None)
+    params_dict['worms_higher_classification_failures'] = 0
     if worms_return_higher_classification:
         hc_t0 = time.perf_counter()
-        _enrich_higher_classification_dataframes(
+        params_dict['worms_higher_classification_failures'] = _enrich_higher_classification_dataframes(
             source_df=results_df,
             target_dataframes=[results_df, info_df],
             output_dir=params_dict.get('output_dir', '.'),
