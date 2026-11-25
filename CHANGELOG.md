@@ -6,6 +6,8 @@ See [docs/RELEASING.md](docs/RELEASING.md) for how releases are made.
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-11-24
+
 ### Fixed
 - WoRMS and GBIF request failures (timeouts, rate limits, or no connection) are retried, then reported as an error. Those names are no longer saved as `incertae sedis` or written into the GBIF match cache, so a later run can try them again. A missing `higherClassification` from a failed lineage request is reported as a warning and is not cached. Empty entries in an older `gbif_matches_cache_v3.pkl` are looked up again.
 - GBIF matching failed on every `name_backbone` call with pygbif 0.6.6 or later, because that release moved the call to GBIF's v2 matching service and changed its arguments. `pygbif` is now pinned to `<=0.6.5` in `requirements.txt` and `environment.yml`. Moving the call to the v2 service is the longer-term fix.
@@ -66,7 +68,8 @@ First script-based (non-notebook) release with configuration files. Tags `v3.0.1
 
 Notebook-based workflow. See the `legacy-v1` branch.
 
-[Unreleased]: https://github.com/aomlomics/edna2obis/compare/v4.0.0...HEAD
+[Unreleased]: https://github.com/aomlomics/edna2obis/compare/v4.0.1...HEAD
+[4.0.1]: https://github.com/aomlomics/edna2obis/compare/v4.0.0...v4.0.1
 [4.0.0]: https://github.com/aomlomics/edna2obis/compare/v3.2.0...v4.0.0
 [3.2.0]: https://github.com/aomlomics/edna2obis/compare/v3.1.0...v3.2.0
 [3.1.0]: https://github.com/aomlomics/edna2obis/compare/v3.0.2-alpha...v3.1.0
